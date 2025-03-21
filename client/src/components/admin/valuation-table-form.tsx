@@ -71,9 +71,9 @@ export default function ValuationTableForm() {
       <CardContent>
         <div className="mb-6">
           <p className="text-neutral-500">
-            Edit the valuation table ranging from -20 to +20. These values determine how many credits 
+            Edit the valuation table ranging from -20 to +20. These values determine what percentage of their value 
             drivers, engines, and teams gain or lose based on their performance compared to the 
-            average of their last 3 races.
+            average of their last 3 races. For example, a value of 5 means a 5% change in valuation.
           </p>
         </div>
 
@@ -86,7 +86,7 @@ export default function ValuationTableForm() {
                 <TableRow className="bg-neutral-100">
                   <TableHead className="font-medium text-neutral-500">Value</TableHead>
                   <TableHead className="font-medium text-neutral-500">Description</TableHead>
-                  <TableHead className="font-medium text-neutral-500">Credit Change</TableHead>
+                  <TableHead className="font-medium text-neutral-500">Percentage Change (%)</TableHead>
                   <TableHead className="font-medium text-neutral-500">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -115,7 +115,7 @@ export default function ValuationTableForm() {
                           value={
                             editValues[entry.difference] !== undefined
                               ? editValues[entry.difference]
-                              : entry.creditChange
+                              : parseFloat(entry.percentageChange.toString())
                           }
                           onChange={(e) => handleInputChange(entry.difference, e.target.value)}
                         />
@@ -126,7 +126,7 @@ export default function ValuationTableForm() {
                           disabled={
                             updateValuationMutation.isPending ||
                             editValues[entry.difference] === undefined ||
-                            editValues[entry.difference] === entry.creditChange
+                            editValues[entry.difference] === parseFloat(entry.percentageChange.toString())
                           }
                           className="text-primary hover:text-primary/90"
                           variant="ghost"
