@@ -84,6 +84,14 @@ export const insertDriverSchema = createInsertSchema(drivers).omit({
   id: true,
 });
 
+// Relações dos pilotos
+export const driversRelations = relations(drivers, ({ one }) => ({
+  team: one(teams, {
+    fields: [drivers.teamId],
+    references: [teams.id],
+  }),
+}));
+
 // Race Result model
 export const raceResults = pgTable("race_results", {
   id: serial("id").primaryKey(),
@@ -98,6 +106,18 @@ export const insertRaceResultSchema = createInsertSchema(raceResults).omit({
   valuation: true,
 });
 
+// Relações dos resultados das corridas
+export const raceResultsRelations = relations(raceResults, ({ one }) => ({
+  race: one(races, {
+    fields: [raceResults.raceId],
+    references: [races.id],
+  }),
+  driver: one(drivers, {
+    fields: [raceResults.driverId],
+    references: [drivers.id],
+  }),
+}));
+
 // Performance History model
 export const performanceHistory = pgTable("performance_history", {
   id: serial("id").primaryKey(),
@@ -111,6 +131,26 @@ export const performanceHistory = pgTable("performance_history", {
 export const insertPerformanceHistorySchema = createInsertSchema(performanceHistory).omit({
   id: true,
 });
+
+// Relações do histórico de performance
+export const performanceHistoryRelations = relations(performanceHistory, ({ one }) => ({
+  race: one(races, {
+    fields: [performanceHistory.raceId],
+    references: [races.id],
+  }),
+  driver: one(drivers, {
+    fields: [performanceHistory.driverId],
+    references: [drivers.id],
+  }),
+  team: one(teams, {
+    fields: [performanceHistory.teamId],
+    references: [teams.id],
+  }),
+  engine: one(engines, {
+    fields: [performanceHistory.engineId],
+    references: [engines.id],
+  }),
+}));
 
 // Valuation Table model
 export const valuationTable = pgTable("valuation_table", {
@@ -137,6 +177,30 @@ export const userTeams = pgTable("user_teams", {
 export const insertUserTeamSchema = createInsertSchema(userTeams).omit({
   id: true,
 });
+
+// Relações dos times dos usuários
+export const userTeamsRelations = relations(userTeams, ({ one }) => ({
+  user: one(users, {
+    fields: [userTeams.userId],
+    references: [users.id],
+  }),
+  driver1: one(drivers, {
+    fields: [userTeams.driver1Id],
+    references: [drivers.id],
+  }),
+  driver2: one(drivers, {
+    fields: [userTeams.driver2Id],
+    references: [drivers.id],
+  }),
+  engine: one(engines, {
+    fields: [userTeams.engineId],
+    references: [engines.id],
+  }),
+  team: one(teams, {
+    fields: [userTeams.teamId],
+    references: [teams.id],
+  }),
+}));
 
 // Types
 export type User = typeof users.$inferSelect;
