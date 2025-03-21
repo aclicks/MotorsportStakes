@@ -91,7 +91,6 @@ export function setupAuth(app: Express) {
                 username: profile.displayName.replace(/\s+/g, "_").toLowerCase() || `google_${profile.id}`,
                 email: email || "",
                 password: await hashPassword(randomPassword),
-                isAdmin: false,
                 googleId: profile.id,
               });
             }
@@ -166,4 +165,15 @@ export function setupAuth(app: Express) {
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
     res.json(req.user);
   });
+  
+  // Google OAuth routes
+  app.get("/api/auth/google", passport.authenticate("google"));
+  
+  app.get(
+    "/api/auth/google/callback",
+    passport.authenticate("google", {
+      successRedirect: "/",
+      failureRedirect: "/auth",
+    })
+  );
 }

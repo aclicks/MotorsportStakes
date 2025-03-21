@@ -18,7 +18,9 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByGoogleId(googleId: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, user: Partial<InsertUser>): Promise<User>;
   
   // Driver methods
   getDrivers(): Promise<Driver[]>;
@@ -279,6 +281,23 @@ export class MemStorage implements IStorage {
     return Array.from(this.users.values()).find(
       (user) => user.email.toLowerCase() === email.toLowerCase(),
     );
+  }
+  
+  async getUserByGoogleId(googleId: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      (user) => user.googleId === googleId,
+    );
+  }
+  
+  async updateUser(id: number, user: Partial<InsertUser>): Promise<User> {
+    const existingUser = await this.getUser(id);
+    if (!existingUser) {
+      throw new Error(`User with id ${id} not found`);
+    }
+    
+    const updatedUser = { ...existingUser, ...user };
+    this.users.set(id, updatedUser);
+    return updatedUser;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {

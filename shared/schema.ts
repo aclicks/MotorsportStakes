@@ -9,6 +9,7 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   email: text("email").notNull().unique(),
   isAdmin: boolean("is_admin").default(false).notNull(),
+  googleId: text("google_id").unique(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -16,6 +17,7 @@ export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
   email: true,
+  googleId: true,
 });
 
 // Race model
