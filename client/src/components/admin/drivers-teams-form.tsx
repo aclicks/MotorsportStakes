@@ -52,6 +52,10 @@ export default function DriversTeamsForm() {
     number: 0,
     teamId: 0,
     value: 150,
+    retired: false,
+    lastRace1Position: null,
+    lastRace2Position: null,
+    lastRace3Position: null,
   });
   
   const [teamForm, setTeamForm] = useState({
@@ -221,6 +225,10 @@ export default function DriversTeamsForm() {
       number: 0,
       teamId: 0,
       value: 150,
+      retired: false,
+      lastRace1Position: null,
+      lastRace2Position: null,
+      lastRace3Position: null,
     });
     setIsEditingDriver(false);
   };
@@ -251,6 +259,10 @@ export default function DriversTeamsForm() {
       number: driver.number,
       teamId: driver.teamId,
       value: driver.value,
+      retired: driver.retired || false,
+      lastRace1Position: driver.lastRace1Position || null,
+      lastRace2Position: driver.lastRace2Position || null,
+      lastRace3Position: driver.lastRace3Position || null,
     });
     setIsEditingDriver(true);
   };
