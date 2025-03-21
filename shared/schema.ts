@@ -64,6 +64,10 @@ export const drivers = pgTable("drivers", {
   number: integer("number").notNull().unique(),
   teamId: integer("team_id").notNull(),
   value: integer("value").notNull(),
+  retired: boolean("retired").default(false).notNull(),
+  lastRace1Position: integer("last_race1_position"),
+  lastRace2Position: integer("last_race2_position"),
+  lastRace3Position: integer("last_race3_position"),
 });
 
 export const insertDriverSchema = createInsertSchema(drivers).omit({
@@ -102,7 +106,7 @@ export const insertPerformanceHistorySchema = createInsertSchema(performanceHist
 export const valuationTable = pgTable("valuation_table", {
   difference: integer("difference").primaryKey(),
   description: text("description").notNull(),
-  creditChange: integer("credit_change").notNull(),
+  percentageChange: numeric("percentage_change").notNull().default("0"),
 });
 
 export const insertValuationTableSchema = createInsertSchema(valuationTable);
