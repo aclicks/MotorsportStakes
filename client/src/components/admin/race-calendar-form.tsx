@@ -18,11 +18,22 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Loader2, CalendarIcon } from "lucide-react";
+import { Loader2, CalendarIcon, Trash2 } from "lucide-react";
 import { Race } from "@shared/schema";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 
 // Define schema for race form
@@ -115,6 +126,28 @@ export default function RaceCalendarForm() {
       });
     },
   });
+  
+  // Delete race mutation
+  const deleteRaceMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest("DELETE", `/api/admin/races/${id}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Race Deleted",
+        description: "The race has been deleted successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/races"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to Delete Race",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
   // Reset form and editing state
   const resetForm = () => {
@@ -149,7 +182,7 @@ export default function RaceCalendarForm() {
     }
   };
 
-  const isPending = createRaceMutation.isPending || updateRaceMutation.isPending;
+  const isPending = createRaceMutation.isPending || updateRaceMutation.isPending || deleteRaceMutation.isPending;
 
   return (
     <div className="space-y-6">
@@ -311,14 +344,57 @@ export default function RaceCalendarForm() {
                             : "Upcoming"}
                         </TableCell>
                         <TableCell>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEdit(race)}
-                            disabled={isPending}
-                          >
-                            Edit
-                          </Button>
+                          <div className="flex space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEdit(race)}
+                              disabled={isPending}
+                            >
+                              Edit
+                            </Button>
+                            
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-red-500 border-red-200 hover:bg-red-50"
+                                  disabled={isPending || race.resultsSubmitted}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Race</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete {race.name}? This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel disabled={deleteRaceMutation.isPending}>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      deleteRaceMutation.mutate(race.id);
+                                    }}
+                                    disabled={deleteRaceMutation.isPending}
+                                    className="bg-red-500 hover:bg-red-600"
+                                  >
+                                    {deleteRaceMutation.isPending ? (
+                                      <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Deleting...
+                                      </>
+                                    ) : (
+                                      "Delete"
+                                    )}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
