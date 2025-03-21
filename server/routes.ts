@@ -492,37 +492,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create race
   app.post("/api/admin/races", isAdmin, async (req, res) => {
     try {
+      console.log("Received race data:", JSON.stringify(req.body));
+      
+      // Extract date and rest of the body
       const { date, ...restBody } = req.body;
+      
+      console.log("Date value:", date);
       
       // Ensure we have a proper date string in ISO format
       let parsedDate = date;
-      if (typeof date === 'string') {
+      if (date) {
         try {
-          // Create a date object and convert back to ISO string
-          parsedDate = new Date(date).toISOString();
+          // Handle both date objects and strings
+          if (typeof date === 'string') {
+            parsedDate = new Date(date).toISOString();
+          } else if (date instanceof Date) {
+            parsedDate = date.toISOString();
+          } else if (typeof date === 'object' && date.toISOString) {
+            parsedDate = date.toISOString();
+          }
+          console.log("Parsed date:", parsedDate);
         } catch (err) {
+          console.error("Date parsing error:", err);
           return res.status(400).json({ message: "Invalid date format" });
         }
+      } else {
+        return res.status(400).json({ message: "Date is required" });
       }
       
       // Combine sanitized data
       const sanitizedData = { ...restBody, date: parsedDate };
       
+      console.log("Sanitized data:", JSON.stringify(sanitizedData));
+      
       // Validate and parse the data
       const raceData = insertRaceSchema.parse(sanitizedData);
+      console.log("Validated race data:", JSON.stringify(raceData));
+      
       const race = await storage.createRace(raceData);
       res.status(201).json(race);
     } catch (error) {
+      console.error("Race creation error:", error);
       if (error instanceof ZodError) {
         return res.status(400).json({ message: fromZodError(error).message });
       }
-      res.status(500).json({ message: "Error creating race", error: error.message });
+      res.status(500).json({ message: "Error creating race", error: String(error) });
     }
   });
 
   // Update race
   app.patch("/api/admin/races/:id", isAdmin, async (req, res) => {
     try {
+      console.log("Updating race, received data:", JSON.stringify(req.body));
+      
       const raceId = parseInt(req.params.id);
       const race = await storage.getRace(raceId);
       
@@ -532,13 +554,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const { date, ...restBody } = req.body;
       
+      console.log("Date value for update:", date);
+      
       // Ensure we have a proper date string in ISO format
       let parsedDate = date;
-      if (date && typeof date === 'string') {
+      if (date) {
         try {
-          // Create a date object and convert back to ISO string
-          parsedDate = new Date(date).toISOString();
+          // Handle both date objects and strings
+          if (typeof date === 'string') {
+            parsedDate = new Date(date).toISOString();
+          } else if (date instanceof Date) {
+            parsedDate = date.toISOString();
+          } else if (typeof date === 'object' && date.toISOString) {
+            parsedDate = date.toISOString();
+          }
+          console.log("Parsed date for update:", parsedDate);
         } catch (err) {
+          console.error("Date parsing error in update:", err);
           return res.status(400).json({ message: "Invalid date format" });
         }
       }
@@ -546,10 +578,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Combine sanitized data
       const sanitizedData = date ? { ...restBody, date: parsedDate } : restBody;
       
+      console.log("Sanitized data for update:", JSON.stringify(sanitizedData));
+      
       const updatedRace = await storage.updateRace(raceId, sanitizedData);
       res.json(updatedRace);
     } catch (error) {
-      res.status(500).json({ message: "Error updating race", error: error.message });
+      console.error("Race update error:", error);
+      res.status(500).json({ message: "Error updating race", error: String(error) });
     }
   });
 

@@ -37,15 +37,17 @@ export const insertRaceSchema = createInsertSchema(races)
     id: true,
     resultsSubmitted: true,
   })
-  .transform((data) => {
-    // Ensure date is a valid Date object or ISO string
-    if (typeof data.date === 'string') {
-      const dateObj = new Date(data.date);
-      if (!isNaN(dateObj.getTime())) {
-        return { ...data, date: dateObj.toISOString() };
-      }
-    }
-    return data;
+  .extend({
+    date: z.preprocess(
+      (arg) => {
+        if (typeof arg === 'string' || arg instanceof Date) return new Date(arg);
+        return arg;
+      },
+      z.date({
+        required_error: "Date is required",
+        invalid_type_error: "Invalid date format",
+      })
+    ),
   });
 
 // Team (Constructor/Chassis) model
