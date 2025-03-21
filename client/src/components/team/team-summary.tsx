@@ -1,4 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
+import { Edit } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UserTeamComplete } from "@shared/schema";
 
@@ -22,6 +25,15 @@ export default function TeamSummary({ team }: TeamSummaryProps) {
       </div>
       
       <CardContent className="p-4">
+        <div className="flex justify-between items-center mb-4">
+          <h4 className="text-sm text-neutral-500">Team Selection</h4>
+          <Button asChild size="sm" variant="outline">
+            <Link href="/teams">
+              <Edit className="mr-1 h-3 w-3" />
+              Edit Team
+            </Link>
+          </Button>
+        </div>
         <div className="grid grid-cols-2 gap-4 mb-4">
           {/* Driver 1 */}
           <div className="flex items-center p-3 bg-neutral-100 rounded-lg">
