@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Add 2025 F1 Races</title>
+  <title>Add 2025 F1 Races - Motorsport Stakes</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -11,6 +11,24 @@
       margin: 0 auto;
       padding: 20px;
       line-height: 1.6;
+      color: #333;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .nav-link {
+      color: #0066cc;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 500;
+    }
+    .nav-link:hover {
+      text-decoration: underline;
     }
     h1 {
       color: #333;
@@ -29,6 +47,10 @@
     }
     button:hover {
       background-color: #0055aa;
+    }
+    button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
     }
     #output {
       margin-top: 20px;
@@ -50,7 +72,12 @@
   </style>
 </head>
 <body>
-  <h1>Add 2025 F1 Race Calendar</h1>
+  <div class="header">
+    <h1>Motorsport Stakes</h1>
+    <a href="/" class="nav-link">← Back to Admin Panel</a>
+  </div>
+  
+  <h2>Add 2025 F1 Race Calendar</h2>
   <p>This utility will add all the 2025 Formula 1 races to the database. You must be logged in as an admin to use this.</p>
   
   <button id="addRaces">Add All Races</button>

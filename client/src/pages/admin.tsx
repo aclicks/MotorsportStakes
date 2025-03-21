@@ -22,8 +22,23 @@ export default function Admin() {
   return (
     <div className="p-6">
       <header className="mb-8">
-        <h1 className="text-2xl font-bold text-neutral-800">Admin Panel</h1>
-        <p className="text-neutral-500">Manage race results, calendar, and game data.</p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold text-neutral-800">Admin Panel</h1>
+            <p className="text-neutral-500">Manage race results, calendar, and game data.</p>
+          </div>
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-1"
+              onClick={() => window.open('/add-races.html', '_blank')}
+            >
+              <ExternalLink className="h-4 w-4" />
+              Import 2025 Races
+            </Button>
+          </div>
+        </div>
       </header>
 
       {/* Admin Navigation Tabs */}
