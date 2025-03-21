@@ -35,6 +35,7 @@ export interface IStorage {
   getUserByGoogleId(googleId: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, user: Partial<InsertUser>): Promise<User>;
+  deleteUserByEmail(email: string): Promise<boolean>;
   
   // Driver methods
   getDrivers(): Promise<Driver[]>;
@@ -326,6 +327,23 @@ export class MemStorage implements IStorage {
     };
     this.users.set(id, user);
     return user;
+  }
+  
+  async deleteUserByEmail(email: string): Promise<boolean> {
+    const user = await this.getUserByEmail(email);
+    if (!user) {
+      return false;
+    }
+    
+    // Delete user teams
+    const userTeams = await this.getUserTeams(user.id);
+    for (const team of userTeams) {
+      this.userTeams.delete(team.id);
+    }
+    
+    // Delete user
+    this.users.delete(user.id);
+    return true;
   }
 
   // Driver methods
