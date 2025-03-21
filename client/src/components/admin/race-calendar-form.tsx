@@ -18,23 +18,20 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Loader2 } from "lucide-react";
+import { Loader2, CalendarIcon } from "lucide-react";
 import { Race } from "@shared/schema";
 import { format } from "date-fns";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 // Define schema for race form
 const raceSchema = z.object({
   name: z.string().min(1, { message: "Name is required" }),
   location: z.string().min(1, { message: "Location is required" }),
-  date: z.string()
-    .refine((val) => !isNaN(Date.parse(val)), {
-      message: "Invalid date format",
-    })
-    .transform((val) => {
-      // Format as YYYY-MM-DD to ensure consistency
-      const date = new Date(val);
-      return date.toISOString().split('T')[0];
-    }),
+  date: z.date({
+    required_error: "Please select a date",
+  }),
   round: z.number().min(1, { message: "Round must be at least 1" }),
 });
 
@@ -56,7 +53,7 @@ export default function RaceCalendarForm() {
     defaultValues: {
       name: "",
       location: "",
-      date: new Date().toISOString().split("T")[0],
+      date: new Date(),
       round: 1,
     },
   });
@@ -124,7 +121,7 @@ export default function RaceCalendarForm() {
     form.reset({
       name: "",
       location: "",
-      date: new Date().toISOString().split("T")[0],
+      date: new Date(),
       round: 1,
     });
     setIsEditing(false);
@@ -138,7 +135,7 @@ export default function RaceCalendarForm() {
     form.reset({
       name: race.name,
       location: race.location,
-      date: new Date(race.date).toISOString().split("T")[0],
+      date: new Date(race.date),
       round: race.round,
     });
   };
@@ -196,11 +193,36 @@ export default function RaceCalendarForm() {
                   control={form.control}
                   name="date"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="flex flex-col">
                       <FormLabel>Date</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} />
-                      </FormControl>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={"outline"}
+                              className={cn(
+                                "w-full pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? (
+                                format(field.value, "PPP")
+                              ) : (
+                                <span>Pick a date</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
                       <FormMessage />
                     </FormItem>
                   )}
