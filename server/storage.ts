@@ -289,7 +289,7 @@ export class MemStorage implements IStorage {
     );
   }
   
-  async updateUser(id: number, user: Partial<InsertUser>): Promise<User> {
+  async updateUser(id: number, user: Partial<InsertUser> & { isAdmin?: boolean }): Promise<User> {
     const existingUser = await this.getUser(id);
     if (!existingUser) {
       throw new Error(`User with id ${id} not found`);

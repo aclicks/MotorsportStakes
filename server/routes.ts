@@ -232,6 +232,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get all users (temporary endpoint for setup)
+  app.get("/api/users", async (req, res) => {
+    try {
+      // This is a memory storage hack to get all users
+      const users = [];
+      for (let i = 1; i <= 100; i++) {
+        const user = await storage.getUser(i);
+        if (user) {
+          // Remove password for security
+          const { password, ...safeUser } = user;
+          users.push(safeUser);
+        }
+      }
+      res.json(users);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching users", error: String(error) });
+    }
+  });
+
   // Make a user admin by email (special endpoint) - initially open for first admin setup
   app.post("/api/make-admin", async (req, res) => {
     try {
