@@ -831,10 +831,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   private async createDemoData() {
+    // Import hashPassword from auth.ts
+    const { hashPassword } = await import('./auth');
+    
     // Admin user
     const adminUser = await this.createUser({
       username: "admin",
-      password: "$2b$10$X/hP9YiKZ8yTJl0mNDlkN.YX4EDmCQZ4wpzwp7NF6/oQxoo7CYS9S", // "admin123"
+      password: await hashPassword("admin123"),
       email: "admin@example.com",
     });
     
