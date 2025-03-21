@@ -71,22 +71,43 @@ export default function RaceResultsForm() {
     setSelectedRaceId(raceId);
   };
 
-  // Calculate valuation change (approximate function for display purposes)
+  // Calculate valuation change based on actual driver data
   const calculateValuationChange = (driver: any, position: number): number => {
-    // Extract the three-race average data (mocked data for display)
-    // In real implementation, this would be pulled from the driver's last three races
-    const lastRace1 = driver.lastRace1Position || Math.floor(Math.random() * 15) + 1;
-    const lastRace2 = driver.lastRace2Position || Math.floor(Math.random() * 15) + 1;
-    const lastRace3 = driver.lastRace3Position || Math.floor(Math.random() * 15) + 1;
+    // Use the actual race position history from the driver data
+    const lastRace1 = driver.lastRace1Position || 0;
+    const lastRace2 = driver.lastRace2Position || 0;
+    const lastRace3 = driver.lastRace3Position || 0;
     
-    // Calculate the average position from last three races
-    const raceCount = 3; // Assuming we always use 3 previous races
-    const lastAvg = (lastRace1 + lastRace2 + lastRace3) / raceCount;
+    // Count valid races (non-zero positions)
+    let validRaces = 0;
+    let totalPositions = 0;
+    
+    if (lastRace1 > 0) {
+      validRaces++;
+      totalPositions += lastRace1;
+    }
+    
+    if (lastRace2 > 0) {
+      validRaces++;
+      totalPositions += lastRace2;
+    }
+    
+    if (lastRace3 > 0) {
+      validRaces++;
+      totalPositions += lastRace3;
+    }
+    
+    // If no valid race history, assume zero change
+    if (validRaces === 0) return 0;
+    
+    // Calculate the average position from last valid races
+    const lastAvg = totalPositions / validRaces;
     
     // Calculate the difference (improvement or decline)
     const diff = Math.round(lastAvg - position);
     
-    // Approximate percentage change (this would match valuation table in real implementation)
+    // Apply percentage change based on the difference
+    // Using similar scaling to the actual valuation calculation
     return diff * 2.5;
   };
 
