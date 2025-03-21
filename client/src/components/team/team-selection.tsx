@@ -206,7 +206,10 @@ export function TeamSelection({
                 <div className="mt-4 bg-white border border-neutral-200 rounded-lg p-4">
                   <div className="flex items-center">
                     <div className="w-12 h-12 rounded-full bg-neutral-200 flex items-center justify-center">
-                      <i className="fas fa-cog text-neutral-400"></i>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-500">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                      </svg>
                     </div>
                     <div className="ml-4">
                       <p className="font-medium text-neutral-800">{selectedEngine.name}</p>
@@ -248,7 +251,12 @@ export function TeamSelection({
                 <div className="mt-4 bg-white border border-neutral-200 rounded-lg p-4">
                   <div className="flex items-center">
                     <div className="w-12 h-12 rounded-full bg-neutral-200 flex items-center justify-center">
-                      <i className="fas fa-car text-neutral-400"></i>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-500">
+                        <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.5-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"></path>
+                        <circle cx="7" cy="17" r="2"></circle>
+                        <path d="M9 17h6"></path>
+                        <circle cx="17" cy="17" r="2"></circle>
+                      </svg>
                     </div>
                     <div className="ml-4">
                       <p className="font-medium text-neutral-800">{selectedTeam.name}</p>
@@ -264,11 +272,24 @@ export function TeamSelection({
           </div>
         </div>
 
-        <div className="flex justify-end">
+        <div className="flex justify-between items-center pt-6 border-t border-neutral-200 mt-6">
+          <div>
+            {isOverBudget && (
+              <div className="text-sm text-red-500 font-medium">
+                Your team is over budget. Please adjust your selections.
+              </div>
+            )}
+            {!hasChanges && !isOverBudget && (
+              <div className="text-sm text-neutral-500">
+                Make changes to your team to save.
+              </div>
+            )}
+          </div>
           <Button
             onClick={handleSave}
-            className="bg-primary hover:bg-primary/90"
+            className="bg-primary hover:bg-primary/90 text-white px-8"
             disabled={isPending || isOverBudget || !hasChanges}
+            size="lg"
           >
             {isPending ? (
               <>
