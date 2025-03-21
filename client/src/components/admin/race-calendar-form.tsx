@@ -58,7 +58,13 @@ export default function RaceCalendarForm() {
   // Create race mutation
   const createRaceMutation = useMutation({
     mutationFn: async (data: RaceFormValues) => {
-      const res = await apiRequest("POST", "/api/admin/races", data);
+      // Convert date string to ISO format
+      const formattedData = {
+        ...data,
+        date: new Date(data.date).toISOString(),
+      };
+      
+      const res = await apiRequest("POST", "/api/admin/races", formattedData);
       return res.json();
     },
     onSuccess: () => {
@@ -81,7 +87,13 @@ export default function RaceCalendarForm() {
   // Update race mutation
   const updateRaceMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: RaceFormValues }) => {
-      const res = await apiRequest("PATCH", `/api/admin/races/${id}`, data);
+      // Convert date string to ISO format
+      const formattedData = {
+        ...data,
+        date: new Date(data.date).toISOString(),
+      };
+      
+      const res = await apiRequest("PATCH", `/api/admin/races/${id}`, formattedData);
       return res.json();
     },
     onSuccess: () => {
