@@ -249,6 +249,7 @@ export default function DriversTeamsForm() {
       id: 0,
       name: "",
       value: 150,
+      engineId: 0,
     });
     setIsEditingTeam(false);
   };
@@ -283,6 +284,7 @@ export default function DriversTeamsForm() {
       id: team.id,
       name: team.name,
       value: team.value,
+      engineId: team.engineId || 0,
     });
     setIsEditingTeam(true);
   };
@@ -351,12 +353,14 @@ export default function DriversTeamsForm() {
         data: {
           name: teamForm.name,
           value: teamForm.value,
+          engineId: teamForm.engineId || null,
         },
       });
     } else {
       createTeamMutation.mutate({
         name: teamForm.name,
         value: teamForm.value,
+        engineId: teamForm.engineId || null,
       });
     }
   };
@@ -713,6 +717,32 @@ export default function DriversTeamsForm() {
                           max={250}
                         />
                       </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="team-engine" className="text-right">
+                          Engine
+                        </Label>
+                        <Select
+                          value={teamForm.engineId ? teamForm.engineId.toString() : ""}
+                          onValueChange={(value) =>
+                            setTeamForm({
+                              ...teamForm,
+                              engineId: value ? parseInt(value) : 0,
+                            })
+                          }
+                        >
+                          <SelectTrigger className="col-span-3">
+                            <SelectValue placeholder="Select Engine" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">None</SelectItem>
+                            {engines.map((engine) => (
+                              <SelectItem key={engine.id} value={engine.id.toString()}>
+                                {engine.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
 
                     <DialogFooter>
@@ -746,6 +776,7 @@ export default function DriversTeamsForm() {
                     <TableHeader>
                       <TableRow className="bg-neutral-100">
                         <TableHead>Name</TableHead>
+                        <TableHead>Engine</TableHead>
                         <TableHead>Value</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
@@ -754,6 +785,7 @@ export default function DriversTeamsForm() {
                       {teams.map((team) => (
                         <TableRow key={team.id}>
                           <TableCell className="font-medium">{team.name}</TableCell>
+                          <TableCell>{engines.find(e => e.id === team.engineId)?.name || "None"}</TableCell>
                           <TableCell>{team.value}</TableCell>
                           <TableCell className="text-right">
                             <Button
