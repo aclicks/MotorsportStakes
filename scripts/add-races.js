@@ -6,145 +6,145 @@ const races = [
   {
     name: "FORMULA 1 LOUIS VUITTON AUSTRALIAN GRAND PRIX 2025",
     location: "Australia",
-    date: new Date("2025-03-16"), // Using end date
+    date: "2025-03-16", // Using ISO format string for date
     round: 1
   },
   {
     name: "FORMULA 1 HEINEKEN CHINESE GRAND PRIX 2025",
     location: "China",
-    date: new Date("2025-03-23"), 
+    date: "2025-03-23", 
     round: 2
   },
   {
     name: "FORMULA 1 LENOVO JAPANESE GRAND PRIX 2025",
     location: "Japan",
-    date: new Date("2025-04-06"),
+    date: "2025-04-06",
     round: 3
   },
   {
     name: "FORMULA 1 GULF AIR BAHRAIN GRAND PRIX 2025",
     location: "Bahrain",
-    date: new Date("2025-04-13"),
+    date: "2025-04-13",
     round: 4
   },
   {
     name: "FORMULA 1 STC SAUDI ARABIAN GRAND PRIX 2025",
     location: "Saudi Arabia",
-    date: new Date("2025-04-20"),
+    date: "2025-04-20",
     round: 5
   },
   {
     name: "FORMULA 1 CRYPTO.COM MIAMI GRAND PRIX 2025",
     location: "United States",
-    date: new Date("2025-05-04"),
+    date: "2025-05-04",
     round: 6
   },
   {
     name: "FORMULA 1 AWS GRAN PREMIO DEL MADE IN ITALY E DELL'EMILIA-ROMAGNA 2025",
     location: "Italy",
-    date: new Date("2025-05-18"),
+    date: "2025-05-18",
     round: 7
   },
   {
     name: "FORMULA 1 TAG HEUER GRAND PRIX DE MONACO 2025",
     location: "Monaco",
-    date: new Date("2025-05-25"),
+    date: "2025-05-25",
     round: 8
   },
   {
     name: "FORMULA 1 ARAMCO GRAN PREMIO DE ESPAÑA 2025",
     location: "Spain",
-    date: new Date("2025-06-01"),
+    date: "2025-06-01",
     round: 9
   },
   {
     name: "FORMULA 1 PIRELLI GRAND PRIX DU CANADA 2025",
     location: "Canada",
-    date: new Date("2025-06-15"),
+    date: "2025-06-15",
     round: 10
   },
   {
     name: "FORMULA 1 MSC CRUISES AUSTRIAN GRAND PRIX 2025",
     location: "Austria",
-    date: new Date("2025-06-29"),
+    date: "2025-06-29",
     round: 11
   },
   {
     name: "FORMULA 1 QATAR AIRWAYS BRITISH GRAND PRIX 2025",
     location: "Great Britain",
-    date: new Date("2025-07-06"),
+    date: "2025-07-06",
     round: 12
   },
   {
     name: "FORMULA 1 MOËT & CHANDON BELGIAN GRAND PRIX 2025",
     location: "Belgium",
-    date: new Date("2025-07-27"),
+    date: "2025-07-27",
     round: 13
   },
   {
     name: "FORMULA 1 LENOVO HUNGARIAN GRAND PRIX 2025",
     location: "Hungary",
-    date: new Date("2025-08-03"),
+    date: "2025-08-03",
     round: 14
   },
   {
     name: "FORMULA 1 HEINEKEN DUTCH GRAND PRIX 2025",
     location: "Netherlands",
-    date: new Date("2025-08-31"),
+    date: "2025-08-31",
     round: 15
   },
   {
     name: "FORMULA 1 PIRELLI GRAN PREMIO D'ITALIA 2025",
     location: "Italy",
-    date: new Date("2025-09-07"),
+    date: "2025-09-07",
     round: 16
   },
   {
     name: "FORMULA 1 QATAR AIRWAYS AZERBAIJAN GRAND PRIX 2025",
     location: "Azerbaijan",
-    date: new Date("2025-09-21"),
+    date: "2025-09-21",
     round: 17
   },
   {
     name: "FORMULA 1 SINGAPORE AIRLINES SINGAPORE GRAND PRIX 2025",
     location: "Singapore",
-    date: new Date("2025-10-05"),
+    date: "2025-10-05",
     round: 18
   },
   {
     name: "FORMULA 1 MSC CRUISES UNITED STATES GRAND PRIX 2025",
     location: "United States",
-    date: new Date("2025-10-19"),
+    date: "2025-10-19",
     round: 19
   },
   {
     name: "FORMULA 1 GRAN PREMIO DE LA CIUDAD DE MÉXICO 2025",
     location: "Mexico",
-    date: new Date("2025-10-26"),
+    date: "2025-10-26",
     round: 20
   },
   {
     name: "FORMULA 1 MSC CRUISES GRANDE PRÊMIO DE SÃO PAULO 2025",
     location: "Brazil",
-    date: new Date("2025-11-09"),
+    date: "2025-11-09",
     round: 21
   },
   {
     name: "FORMULA 1 HEINEKEN LAS VEGAS GRAND PRIX 2025",
     location: "United States",
-    date: new Date("2025-11-22"),
+    date: "2025-11-22",
     round: 22
   },
   {
     name: "FORMULA 1 QATAR AIRWAYS QATAR GRAND PRIX 2025",
     location: "Qatar",
-    date: new Date("2025-11-30"),
+    date: "2025-11-30",
     round: 23
   },
   {
     name: "FORMULA 1 ETIHAD AIRWAYS ABU DHABI GRAND PRIX 2025",
     location: "Abu Dhabi",
-    date: new Date("2025-12-07"),
+    date: "2025-12-07",
     round: 24
   }
 ];
@@ -174,6 +174,9 @@ const addRace = async (race) => {
   }
 };
 
+// Helper function to wait
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 // Function to add all races sequentially
 const addAllRaces = async () => {
   console.log("Starting to add races...");
@@ -181,10 +184,16 @@ const addAllRaces = async () => {
   
   for (const race of races) {
     try {
+      console.log(`Adding race: ${race.name} (Round ${race.round})...`);
       const result = await addRace(race);
       results.push(result);
+      
+      // Add a small delay between requests to avoid overwhelming the server
+      await sleep(500);
     } catch (error) {
       console.error(`Failed to add race ${race.name}, continuing with next race...`);
+      // Still add a delay even if there was an error
+      await sleep(500);
     }
   }
   
