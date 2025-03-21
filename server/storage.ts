@@ -76,7 +76,7 @@ export interface IStorage {
   applyValuations(raceId: number): Promise<void>;
   
   // Session store
-  sessionStore: session.SessionStore;
+  sessionStore: any; // session.Store
 }
 
 export class MemStorage implements IStorage {
@@ -90,7 +90,7 @@ export class MemStorage implements IStorage {
   private valuationTable: Map<number, ValuationTable>;
   private userTeams: Map<number, UserTeam>;
   
-  sessionStore: session.SessionStore;
+  sessionStore: any; // session.Store
   
   private userIdCounter: number;
   private driverIdCounter: number;
@@ -307,6 +307,7 @@ export class MemStorage implements IStorage {
       ...insertUser, 
       id, 
       isAdmin: false,
+      googleId: insertUser.googleId || null,
       createdAt: now
     };
     this.users.set(id, user);
@@ -483,7 +484,13 @@ export class MemStorage implements IStorage {
 
   async createPerformanceHistory(history: InsertPerformanceHistory): Promise<PerformanceHistory> {
     const id = this.performanceHistoryIdCounter++;
-    const newHistory: PerformanceHistory = { ...history, id };
+    const newHistory: PerformanceHistory = { 
+      ...history, 
+      id,
+      driverId: history.driverId ?? null,
+      teamId: history.teamId ?? null,
+      engineId: history.engineId ?? null
+    };
     this.performanceHistory.set(id, newHistory);
     return newHistory;
   }
@@ -527,7 +534,14 @@ export class MemStorage implements IStorage {
 
   async createUserTeam(team: InsertUserTeam): Promise<UserTeam> {
     const id = this.userTeamIdCounter++;
-    const newTeam: UserTeam = { ...team, id };
+    const newTeam: UserTeam = { 
+      ...team, 
+      id,
+      teamId: team.teamId ?? null,
+      engineId: team.engineId ?? null,
+      driver1Id: team.driver1Id ?? null,
+      driver2Id: team.driver2Id ?? null
+    };
     this.userTeams.set(id, newTeam);
     return newTeam;
   }

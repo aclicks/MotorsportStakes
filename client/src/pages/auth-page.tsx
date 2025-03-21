@@ -265,11 +265,15 @@ export default function AuthPage() {
                 <span className="px-2 bg-background text-gray-500">Or continue with</span>
               </div>
             </div>
-            <Button variant="outline" className="w-full opacity-70 cursor-not-allowed" disabled>
-              <i className="fab fa-google mr-2"></i> Google (Coming Soon)
+            <Button 
+              variant="outline" 
+              className="w-full" 
+              onClick={() => window.location.href = "/api/auth/google"}
+            >
+              <i className="fab fa-google mr-2"></i> Continue with Google
             </Button>
             <div className="text-xs text-center text-gray-500 mt-2">
-              Email/password authentication is available now
+              Sign in with Google or use email/password authentication
             </div>
           </CardFooter>
         </Card>
