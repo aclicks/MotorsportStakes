@@ -569,6 +569,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Calculate and apply valuations
       await storage.applyValuations(raceId);
       
+      // Update race to mark results as submitted
+      await storage.updateRace(raceId, { resultsSubmitted: true });
+      
       res.status(201).json({ message: "Race results submitted successfully" });
     } catch (error) {
       res.status(500).json({ message: "Error submitting race results", error: error.message });
