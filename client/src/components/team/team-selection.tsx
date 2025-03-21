@@ -38,11 +38,34 @@ export function TeamSelection({
   
   // Atualiza os estados quando o time muda (mudança entre abas)
   useEffect(() => {
-    setSelectedDriver1Id(team.driver1Id || null);
-    setSelectedDriver2Id(team.driver2Id || null);
+    // Verificar se o piloto selecionado foi aposentado
+    if (team.driver1Id) {
+      const driver1 = drivers.find(d => d.id === team.driver1Id);
+      if (driver1 && driver1.retired) {
+        // Se o piloto foi aposentado, limpar a seleção
+        setSelectedDriver1Id(null);
+      } else {
+        setSelectedDriver1Id(team.driver1Id);
+      }
+    } else {
+      setSelectedDriver1Id(null);
+    }
+    
+    // O mesmo para o driver 2
+    if (team.driver2Id) {
+      const driver2 = drivers.find(d => d.id === team.driver2Id);
+      if (driver2 && driver2.retired) {
+        setSelectedDriver2Id(null);
+      } else {
+        setSelectedDriver2Id(team.driver2Id);
+      }
+    } else {
+      setSelectedDriver2Id(null);
+    }
+    
     setSelectedEngineId(team.engineId || null);
     setSelectedTeamId(team.teamId || null);
-  }, [team.id, team.driver1Id, team.driver2Id, team.engineId, team.teamId]);
+  }, [team.id, team.driver1Id, team.driver2Id, team.engineId, team.teamId, drivers]);
 
   const selectedDriver1 = drivers.find((d) => d.id === selectedDriver1Id);
   const selectedDriver2 = drivers.find((d) => d.id === selectedDriver2Id);
@@ -59,11 +82,17 @@ export function TeamSelection({
   };
 
   const isOverBudget = calculateTotalCost() > team.currentCredits;
+  // Detectar aposentadoria de piloto como uma mudança
+  const driver1Retired = team.driver1Id && drivers.find(d => d.id === team.driver1Id)?.retired;
+  const driver2Retired = team.driver2Id && drivers.find(d => d.id === team.driver2Id)?.retired;
+  
   const hasChanges =
     selectedDriver1Id !== team.driver1Id ||
     selectedDriver2Id !== team.driver2Id ||
     selectedEngineId !== team.engineId ||
-    selectedTeamId !== team.teamId;
+    selectedTeamId !== team.teamId ||
+    driver1Retired ||
+    driver2Retired;
 
   const handleSave = () => {
     onSave({
@@ -75,8 +104,13 @@ export function TeamSelection({
   };
 
   // Filter out the already selected driver from the other driver dropdown
-  const availableDriversForDriver1 = drivers.filter((d) => d.id !== selectedDriver2Id);
-  const availableDriversForDriver2 = drivers.filter((d) => d.id !== selectedDriver1Id);
+  // Filtrar pilotos não aposentados e disponíveis para cada seleção
+  const availableDriversForDriver1 = drivers.filter(
+    (d) => d.id !== selectedDriver2Id && !d.retired
+  );
+  const availableDriversForDriver2 = drivers.filter(
+    (d) => d.id !== selectedDriver1Id && !d.retired
+  );
 
   return (
     <Card>
@@ -283,7 +317,12 @@ export function TeamSelection({
                 Your team is over budget. Please adjust your selections.
               </div>
             )}
-            {!hasChanges && !isOverBudget && (
+            {(!selectedDriver1Id && team.driver1Id || !selectedDriver2Id && team.driver2Id) && (
+              <div className="text-sm text-amber-500 font-medium">
+                A driver in your team has been retired. Please select a new driver.
+              </div>
+            )}
+            {!hasChanges && !isOverBudget && !((!selectedDriver1Id && team.driver1Id) || (!selectedDriver2Id && team.driver2Id)) && (
               <div className="text-sm text-neutral-500">
                 Make changes to your team to save.
               </div>
