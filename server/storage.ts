@@ -61,6 +61,7 @@ export interface IStorage {
   getNextRace(): Promise<Race | undefined>;
   createRace(race: InsertRace): Promise<Race>;
   updateRace(id: number, race: Partial<InsertRace>): Promise<Race>;
+  deleteRace(id: number): Promise<boolean>;
   
   // Race results methods
   getRaceResults(raceId: number): Promise<RaceResult[]>;
@@ -459,6 +460,28 @@ export class MemStorage implements IStorage {
     const updatedRace = { ...existingRace, ...race };
     this.races.set(id, updatedRace);
     return updatedRace;
+  }
+  
+  async deleteRace(id: number): Promise<boolean> {
+    const race = await this.getRace(id);
+    if (!race) {
+      return false;
+    }
+    
+    // First, delete all associated race results
+    await this.deleteRaceResults(id);
+    
+    // Delete any performance history related to this race
+    const allHistory = Array.from(this.performanceHistory.entries())
+      .filter(([_, history]) => history.raceId === id);
+    
+    for (const [historyId, _] of allHistory) {
+      this.performanceHistory.delete(historyId);
+    }
+    
+    // Finally, delete the race
+    this.races.delete(id);
+    return true;
   }
 
   // Race results methods
