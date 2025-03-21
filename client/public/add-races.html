@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add 2025 F1 Races</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    h1 {
+      color: #333;
+      border-bottom: 2px solid #ddd;
+      padding-bottom: 10px;
+    }
+    button {
+      background-color: #0066cc;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 20px;
+    }
+    button:hover {
+      background-color: #0055aa;
+    }
+    #output {
+      margin-top: 20px;
+      border: 1px solid #ddd;
+      padding: 15px;
+      border-radius: 4px;
+      background-color: #f9f9f9;
+      min-height: 100px;
+      max-height: 400px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+    .success {
+      color: green;
+    }
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <h1>Add 2025 F1 Race Calendar</h1>
+  <p>This utility will add all the 2025 Formula 1 races to the database. You must be logged in as an admin to use this.</p>
+  
+  <button id="addRaces">Add All Races</button>
+  <div id="output">Console output will appear here...</div>
+
+  <script src="/scripts/add-races.js"></script>
+  <script>
+    // Override console.log to output to our div
+    const originalConsoleLog = console.log;
+    const originalConsoleError = console.error;
+    const outputDiv = document.getElementById('output');
+    
+    console.log = function() {
+      // Call original console.log
+      originalConsoleLog.apply(console, arguments);
+      
+      // Add to our output div
+      const message = Array.from(arguments).join(' ');
+      const logElement = document.createElement('div');
+      logElement.classList.add('success');
+      logElement.textContent = message;
+      outputDiv.appendChild(logElement);
+      outputDiv.scrollTop = outputDiv.scrollHeight;
+    };
+    
+    console.error = function() {
+      // Call original console.error
+      originalConsoleError.apply(console, arguments);
+      
+      // Add to our output div
+      const message = Array.from(arguments).join(' ');
+      const logElement = document.createElement('div');
+      logElement.classList.add('error');
+      logElement.textContent = message;
+      outputDiv.appendChild(logElement);
+      outputDiv.scrollTop = outputDiv.scrollHeight;
+    };
+
+    // Add event listener to button
+    document.getElementById('addRaces').addEventListener('click', async () => {
+      try {
+        outputDiv.innerHTML = 'Starting race addition process...<br>';
+        const button = document.getElementById('addRaces');
+        button.disabled = true;
+        button.textContent = 'Adding Races...';
+        
+        await window.addAllRaces();
+        
+        button.textContent = 'Races Added!';
+        setTimeout(() => {
+          button.textContent = 'Add All Races';
+          button.disabled = false;
+        }, 3000);
+      } catch (error) {
+        console.error('Failed to add races:', error);
+        document.getElementById('addRaces').disabled = false;
+        document.getElementById('addRaces').textContent = 'Add All Races';
+      }
+    });
+  </script>
+</body>
+</html>
