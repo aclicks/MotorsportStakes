@@ -36,8 +36,9 @@ export function setupAuth(app: Express) {
     saveUninitialized: false,
     store: storage.sessionStore,
     cookie: {
-      secure: process.env.NODE_ENV === "production",
+      secure: true,
       maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
+      sameSite: "none"
     }
   };
 
@@ -67,6 +68,7 @@ export function setupAuth(app: Express) {
         clientID: process.env.GOOGLE_CLIENT_ID!,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
         callbackURL: "/api/auth/google/callback",
+        proxy: true,
         scope: ["profile", "email"],
       },
       async (accessToken, refreshToken, profile, done) => {
