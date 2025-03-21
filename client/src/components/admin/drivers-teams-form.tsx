@@ -50,7 +50,7 @@ export default function DriversTeamsForm() {
     id: number;
     name: string;
     number: number;
-    teamId: number;
+    teamId: number | null;
     value: number;
     retired: boolean;
     lastRace1Position: number | null;
@@ -60,7 +60,7 @@ export default function DriversTeamsForm() {
     id: 0,
     name: "",
     number: 0,
-    teamId: 0,
+    teamId: null,
     value: 150,
     retired: false,
     lastRace1Position: null,
@@ -234,7 +234,7 @@ export default function DriversTeamsForm() {
       id: 0,
       name: "",
       number: 0,
-      teamId: 0,
+      teamId: null,
       value: 150,
       retired: false,
       lastRace1Position: null,
@@ -300,7 +300,7 @@ export default function DriversTeamsForm() {
 
   // Submit functions
   const handleDriverSubmit = () => {
-    if (!driverForm.name || driverForm.number <= 0 || driverForm.teamId <= 0) {
+    if (!driverForm.name || driverForm.number <= 0 || !driverForm.teamId) {
       toast({
         title: "Validation Error",
         description: "Please fill all required fields correctly.",
@@ -324,16 +324,19 @@ export default function DriversTeamsForm() {
         },
       });
     } else {
-      createDriverMutation.mutate({
-        name: driverForm.name,
-        number: driverForm.number,
-        teamId: driverForm.teamId,
-        value: driverForm.value,
-        retired: driverForm.retired,
-        lastRace1Position: driverForm.lastRace1Position,
-        lastRace2Position: driverForm.lastRace2Position,
-        lastRace3Position: driverForm.lastRace3Position,
-      });
+      // Ensure teamId is not null before submitting
+      if (driverForm.teamId) {
+        createDriverMutation.mutate({
+          name: driverForm.name,
+          number: driverForm.number,
+          teamId: driverForm.teamId,
+          value: driverForm.value,
+          retired: driverForm.retired,
+          lastRace1Position: driverForm.lastRace1Position,
+          lastRace2Position: driverForm.lastRace2Position,
+          lastRace3Position: driverForm.lastRace3Position,
+        });
+      }
     }
   };
 
@@ -463,11 +466,11 @@ export default function DriversTeamsForm() {
                           Team
                         </Label>
                         <Select
-                          value={driverForm.teamId.toString()}
+                          value={driverForm.teamId ? driverForm.teamId.toString() : "none"}
                           onValueChange={(value) =>
                             setDriverForm({
                               ...driverForm,
-                              teamId: parseInt(value),
+                              teamId: value !== "none" ? parseInt(value) : null,
                             })
                           }
                         >
@@ -475,6 +478,7 @@ export default function DriversTeamsForm() {
                             <SelectValue placeholder="Select Team" />
                           </SelectTrigger>
                           <SelectContent>
+                            <SelectItem value="none">Select a team</SelectItem>
                             {teams.map((team) => (
                               <SelectItem key={team.id} value={team.id.toString()}>
                                 {team.name}
