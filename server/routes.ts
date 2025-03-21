@@ -8,7 +8,8 @@ import {
   insertEngineSchema, 
   insertTeamSchema,
   insertValuationTableSchema,
-  insertRaceResultSchema
+  insertRaceResultSchema,
+  insertUserTeamSchema
 } from "@shared/schema";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
@@ -325,6 +326,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(standings);
     } catch (error) {
       res.status(500).json({ message: "Error fetching engine standings", error: error.message });
+    }
+  });
+
+  // Create user team
+  app.post("/api/user-teams", isAuthenticated, async (req, res) => {
+    try {
+      const userData = insertUserTeamSchema.parse({
+        ...req.body,
+        userId: req.user!.id, // Ensure team is created for the authenticated user
+      });
+      
+      const userTeam = await storage.createUserTeam(userData);
+      res.status(201).json(userTeam);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: fromZodError(error).message });
+      }
+      res.status(500).json({ message: "Error creating team", error: (error as Error).message });
     }
   });
 
