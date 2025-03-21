@@ -641,6 +641,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Race not found" });
       }
       
+      // Check if this is the first race of the season by checking round number
+      const isFirstRace = race.round === 1;
+      
+      console.log(`Processing race ${race.name} (ID: ${raceId}, Round: ${race.round}), isFirstRace: ${isFirstRace}`);
+      
       // Delete previous results if any
       await storage.deleteRaceResults(raceId);
       
@@ -676,17 +681,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Calculate and apply valuations
-      await storage.applyValuations(raceId);
+      // For the first race of the season, handle differently
+      if (isFirstRace) {
+        console.log("This is the first race of the season, skipping valuation calculations");
+        
+        // Update race results to add zero valuation for all results
+        const savedResults = await storage.getRaceResults(raceId);
+        for (const result of savedResults) {
+          await storage.updateRaceResult(result.id, { valuation: 0 });
+        }
+        
+        // Mark race as submitted
+        const raceUpdate = updateRaceSchema.parse({ resultsSubmitted: true });
+        await storage.updateRace(raceId, raceUpdate);
+        
+        return res.status(201).json({ 
+          message: "Race results submitted successfully. As this is the first race of the season, all valuation changes are set to 0."
+        });
+      }
       
-      // Update race to mark results as submitted
-      // Use the new updateRaceSchema to validate
-      const raceUpdate = updateRaceSchema.parse({ resultsSubmitted: true });
-      await storage.updateRace(raceId, raceUpdate);
-      
-      res.status(201).json({ message: "Race results submitted successfully" });
+      // For non-first races, calculate and apply valuations
+      try {
+        await storage.applyValuations(raceId);
+        
+        // Update race to mark results as submitted
+        const raceUpdate = updateRaceSchema.parse({ resultsSubmitted: true });
+        await storage.updateRace(raceId, raceUpdate);
+        
+        res.status(201).json({ message: "Race results submitted successfully" });
+      } catch (error) {
+        console.error("Error applying valuations:", error);
+        res.status(500).json({ 
+          message: "Error applying valuations. Results were saved but valuations could not be calculated.",
+          error: error instanceof Error ? error.message : String(error)
+        });
+      }
     } catch (error) {
-      res.status(500).json({ message: "Error submitting race results", error: error.message });
+      console.error("Error in race results submission:", error);
+      res.status(500).json({ 
+        message: "Error submitting race results", 
+        error: error instanceof Error ? error.message : String(error)
+      });
     }
   });
 

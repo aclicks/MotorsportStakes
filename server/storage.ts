@@ -1551,136 +1551,243 @@ export class DatabaseStorage implements IStorage {
   }
   
   async applyValuations(raceId: number): Promise<void> {
-    const race = await this.getRace(raceId);
-    if (!race) {
-      throw new Error(`Corrida com id ${raceId} não encontrada`);
-    }
-    
-    // Obter todos os resultados para esta corrida
-    const results = await this.getRaceResults(raceId);
-    if (results.length === 0) {
-      throw new Error(`Nenhum resultado encontrado para a corrida ${raceId}`);
-    }
-    
-    // Marcar corrida como tendo resultados
-    await this.updateRace(raceId, { resultsSubmitted: true });
-    
-    // Calcular valorizações para pilotos
-    const allDrivers = await this.getDrivers();
-    for (const driver of allDrivers) {
-      const valuation = await this.calculateDriverValuation(driver.id, raceId);
+    try {
+      console.log(`Applying valuations for race ${raceId}`);
       
-      // Atualizar valor do piloto
-      driver.value += valuation;
-      if (driver.value < 100) driver.value = 100; // Valor mínimo
-      await this.updateDriver(driver.id, { value: driver.value });
-      
-      // Atualizar resultado com valorização
-      const result = results.find(r => r.driverId === driver.id);
-      if (result) {
-        const resultUpdate = updateRaceResultSchema.parse({ valuation: valuation });
-        await this.updateRaceResult(result.id, resultUpdate);
+      const race = await this.getRace(raceId);
+      if (!race) {
+        throw new Error(`Corrida com id ${raceId} não encontrada`);
       }
       
-      // Armazenar no histórico de performance
-      await this.createPerformanceHistory({
-        driverId: driver.id,
-        teamId: null,
-        engineId: null,
-        raceId,
-        position: result ? result.position : 0,
-      });
-    }
-    
-    // Calcular valorizações para motores
-    const allEngines = await this.getEngines();
-    for (const engine of allEngines) {
-      const valuation = await this.calculateEngineValuation(engine.id, raceId);
+      // Obter todos os resultados para esta corrida
+      const results = await this.getRaceResults(raceId);
+      if (results.length === 0) {
+        throw new Error(`Nenhum resultado encontrado para a corrida ${raceId}`);
+      }
       
-      // Atualizar valor do motor
-      engine.value += valuation;
-      if (engine.value < 100) engine.value = 100; // Valor mínimo
-      await this.updateEngine(engine.id, { value: engine.value });
+      console.log(`Found ${results.length} results for race ${raceId}`);
       
-      // Armazenar no histórico de performance (com posição média 0 já que não é aplicável)
-      await this.createPerformanceHistory({
-        driverId: null,
-        teamId: null,
-        engineId: engine.id,
-        raceId,
-        position: 0,
-      });
-    }
-    
-    // Calcular valorizações para times
-    const allTeams = await this.getTeams();
-    for (const team of allTeams) {
-      const valuation = await this.calculateTeamValuation(team.id, raceId);
+      // Check if this is the first race of the season
+      // Most reliable way is to check if round = 1
+      console.log(`Current race: ${race.name}, Round: ${race.round}`);
+      const isFirstRace = race.round === 1;
       
-      // Atualizar valor do time
-      team.value += valuation;
-      if (team.value < 100) team.value = 100; // Valor mínimo
-      await this.updateTeam(team.id, { value: team.value });
+      console.log(`Is first race of the season: ${isFirstRace}`);
       
-      // Armazenar no histórico de performance (com posição média 0 já que não é aplicável)
-      await this.createPerformanceHistory({
-        driverId: null,
-        teamId: team.id,
-        engineId: null,
-        raceId,
-        position: 0,
-      });
-    }
-    
-    // Atualizar créditos das equipes dos usuários com base em suas seleções
-    const allUserTeams = await db.select().from(userTeams);
-    for (const userTeam of allUserTeams) {
-      let creditsGained = 0;
+      // For the first race, use a flat valuation of 0 for all assets
+      if (isFirstRace) {
+        console.log("This is the first race of the season. Setting all valuations to 0.");
+        
+        // Mark race as having results
+        await this.updateRace(raceId, { resultsSubmitted: true });
+        
+        // Set zero valuation for all race results
+        for (const result of results) {
+          await this.updateRaceResult(result.id, { valuation: 0 });
+        }
+        
+        // Create performance history entries with zero valuations
+        const allDrivers = await this.getDrivers();
+        const allEngines = await this.getEngines();
+        const allTeams = await this.getTeams();
+        
+        // Store performance history for drivers
+        for (const driver of allDrivers) {
+          const result = results.find(r => r.driverId === driver.id);
+          await this.createPerformanceHistory({
+            driverId: driver.id,
+            teamId: null,
+            engineId: null,
+            raceId,
+            position: result ? result.position : 0,
+          });
+        }
+        
+        // Store performance history for engines (position 0 since not applicable)
+        for (const engine of allEngines) {
+          await this.createPerformanceHistory({
+            driverId: null,
+            teamId: null,
+            engineId: engine.id,
+            raceId,
+            position: 0,
+          });
+        }
+        
+        // Store performance history for teams (position 0 since not applicable)
+        for (const team of allTeams) {
+          await this.createPerformanceHistory({
+            driverId: null,
+            teamId: team.id,
+            engineId: null,
+            raceId,
+            position: 0,
+          });
+        }
+        
+        console.log("Completed first race processing with zero valuations.");
+        return;
+      }
       
-      // Adicionar valorização do piloto
-      if (userTeam.driver1Id) {
-        const driver = await this.getDriver(userTeam.driver1Id);
-        if (driver) {
-          const driverResult = results.find(r => r.driverId === driver.id);
-          if (driverResult && driverResult.valuation !== null) {
-            creditsGained += driverResult.valuation;
+      console.log("Starting regular valuation calculations...");
+      
+      // Marcar corrida como tendo resultados
+      await this.updateRace(raceId, { resultsSubmitted: true });
+      
+      // Calcular valorizações para pilotos
+      const allDrivers = await this.getDrivers();
+      for (const driver of allDrivers) {
+        console.log(`Calculating valuation for driver ${driver.name} (ID: ${driver.id})`);
+        const valuation = await this.calculateDriverValuation(driver.id, raceId);
+        console.log(`Driver ${driver.name} valuation: ${valuation}`);
+        
+        // Atualizar valor do piloto
+        const newValue = driver.value + valuation;
+        const finalValue = newValue < 100 ? 100 : newValue; // Valor mínimo
+        console.log(`Driver ${driver.name} value update: ${driver.value} -> ${finalValue}`);
+        await this.updateDriver(driver.id, { value: finalValue });
+        
+        // Atualizar resultado com valorização
+        const result = results.find(r => r.driverId === driver.id);
+        if (result) {
+          const resultUpdate = updateRaceResultSchema.parse({ valuation: valuation });
+          await this.updateRaceResult(result.id, resultUpdate);
+          console.log(`Updated race result for driver ${driver.name} with valuation ${valuation}`);
+        } else {
+          console.log(`No race result found for driver ${driver.name}`);
+        }
+        
+        // Armazenar no histórico de performance
+        await this.createPerformanceHistory({
+          driverId: driver.id,
+          teamId: null,
+          engineId: null,
+          raceId,
+          position: result ? result.position : 0,
+        });
+        console.log(`Created performance history for driver ${driver.name}`);
+      }
+      
+      console.log("Completed driver valuations");
+      
+      // Calcular valorizações para motores
+      const allEngines = await this.getEngines();
+      for (const engine of allEngines) {
+        console.log(`Calculating valuation for engine ${engine.name} (ID: ${engine.id})`);
+        const valuation = await this.calculateEngineValuation(engine.id, raceId);
+        console.log(`Engine ${engine.name} valuation: ${valuation}`);
+        
+        // Atualizar valor do motor
+        const newValue = engine.value + valuation;
+        const finalValue = newValue < 100 ? 100 : newValue; // Valor mínimo
+        console.log(`Engine ${engine.name} value update: ${engine.value} -> ${finalValue}`);
+        await this.updateEngine(engine.id, { value: finalValue });
+        
+        // Armazenar no histórico de performance (com posição média 0 já que não é aplicável)
+        await this.createPerformanceHistory({
+          driverId: null,
+          teamId: null,
+          engineId: engine.id,
+          raceId,
+          position: 0,
+        });
+        console.log(`Created performance history for engine ${engine.name}`);
+      }
+      
+      console.log("Completed engine valuations");
+      
+      // Calcular valorizações para times
+      const allTeams = await this.getTeams();
+      for (const team of allTeams) {
+        console.log(`Calculating valuation for team ${team.name} (ID: ${team.id})`);
+        const valuation = await this.calculateTeamValuation(team.id, raceId);
+        console.log(`Team ${team.name} valuation: ${valuation}`);
+        
+        // Atualizar valor do time
+        const newValue = team.value + valuation;
+        const finalValue = newValue < 100 ? 100 : newValue; // Valor mínimo
+        console.log(`Team ${team.name} value update: ${team.value} -> ${finalValue}`);
+        await this.updateTeam(team.id, { value: finalValue });
+        
+        // Armazenar no histórico de performance (com posição média 0 já que não é aplicável)
+        await this.createPerformanceHistory({
+          driverId: null,
+          teamId: team.id,
+          engineId: null,
+          raceId,
+          position: 0,
+        });
+        console.log(`Created performance history for team ${team.name}`);
+      }
+      
+      console.log("Completed team valuations");
+      
+      // Atualizar créditos das equipes dos usuários com base em suas seleções
+      const allUserTeams = await db.select().from(userTeams);
+      console.log(`Updating credits for ${allUserTeams.length} user teams`);
+      
+      for (const userTeam of allUserTeams) {
+        let creditsGained = 0;
+        console.log(`Processing user team ID: ${userTeam.id}, name: ${userTeam.name}`);
+        
+        // Adicionar valorização do piloto
+        if (userTeam.driver1Id) {
+          const driver = await this.getDriver(userTeam.driver1Id);
+          if (driver) {
+            const driverResult = results.find(r => r.driverId === driver.id);
+            if (driverResult && driverResult.valuation !== null) {
+              creditsGained += driverResult.valuation;
+              console.log(`Driver1 (${driver.name}) added ${driverResult.valuation} credits`);
+            }
           }
         }
-      }
-      
-      if (userTeam.driver2Id) {
-        const driver = await this.getDriver(userTeam.driver2Id);
-        if (driver) {
-          const driverResult = results.find(r => r.driverId === driver.id);
-          if (driverResult && driverResult.valuation !== null) {
-            creditsGained += driverResult.valuation;
+        
+        if (userTeam.driver2Id) {
+          const driver = await this.getDriver(userTeam.driver2Id);
+          if (driver) {
+            const driverResult = results.find(r => r.driverId === driver.id);
+            if (driverResult && driverResult.valuation !== null) {
+              creditsGained += driverResult.valuation;
+              console.log(`Driver2 (${driver.name}) added ${driverResult.valuation} credits`);
+            }
           }
         }
-      }
-      
-      // Adicionar valorização do motor
-      if (userTeam.engineId) {
-        const engine = await this.getEngine(userTeam.engineId);
-        if (engine) {
-          const valuation = await this.calculateEngineValuation(engine.id, raceId);
-          creditsGained += valuation;
+        
+        // Adicionar valorização do motor
+        if (userTeam.engineId) {
+          const engine = await this.getEngine(userTeam.engineId);
+          if (engine) {
+            const valuation = await this.calculateEngineValuation(engine.id, raceId);
+            creditsGained += valuation;
+            console.log(`Engine (${engine.name}) added ${valuation} credits`);
+          }
+        }
+        
+        // Adicionar valorização do time
+        if (userTeam.teamId) {
+          const team = await this.getTeam(userTeam.teamId);
+          if (team) {
+            const valuation = await this.calculateTeamValuation(team.id, raceId);
+            creditsGained += valuation;
+            console.log(`Team (${team.name}) added ${valuation} credits`);
+          }
+        }
+        
+        // Atualizar créditos
+        if (creditsGained !== 0) {
+          const newCredits = userTeam.currentCredits + creditsGained;
+          console.log(`Team ${userTeam.name} credits update: ${userTeam.currentCredits} -> ${newCredits}`);
+          await this.updateUserTeam(userTeam.id, { currentCredits: newCredits });
+        } else {
+          console.log(`No credits gained for team ${userTeam.name}`);
         }
       }
       
-      // Adicionar valorização do time
-      if (userTeam.teamId) {
-        const team = await this.getTeam(userTeam.teamId);
-        if (team) {
-          const valuation = await this.calculateTeamValuation(team.id, raceId);
-          creditsGained += valuation;
-        }
-      }
-      
-      // Atualizar créditos
-      if (creditsGained !== 0) {
-        userTeam.currentCredits += creditsGained;
-        await this.updateUserTeam(userTeam.id, { currentCredits: userTeam.currentCredits });
-      }
+      console.log("Completed user team credit updates");
+      console.log("Valuation application complete");
+    } catch (error) {
+      console.error("Error applying valuations:", error);
+      throw error;
     }
   }
 }
