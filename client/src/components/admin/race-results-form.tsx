@@ -31,9 +31,21 @@ export default function RaceResultsForm() {
   // Effect to initialize driver positions when drivers data is loaded or race is selected
   useEffect(() => {
     if (marketData?.drivers?.length > 0 && selectedRaceId) {
-      // Filter out retired drivers - we only want active drivers (20 drivers, not 22)
-      const activeDrivers = marketData.drivers.filter(driver => !driver.retired);
-      setDriversByPosition([...activeDrivers]);
+      // Get all drivers for race results - we need exactly 20 drivers
+      // In F1, there are 10 teams with 2 drivers each = 20 drivers
+      // Sort by team order, so teammates appear together
+      const allDrivers = [...marketData.drivers]
+        .sort((a, b) => {
+          // First sort by team ID to group drivers by team
+          if (a.teamId !== b.teamId) {
+            return a.teamId - b.teamId;
+          }
+          // Then sort by value (higher value drivers first)
+          return b.value - a.value;
+        })
+        .slice(0, 20); // Always take exactly 20 drivers
+        
+      setDriversByPosition(allDrivers);
     }
   }, [marketData, selectedRaceId]);
 
@@ -151,9 +163,9 @@ export default function RaceResultsForm() {
   // Handle reset to alphabetical order
   const handleAlphabeticalReset = () => {
     if (marketData?.drivers?.length > 0) {
-      // Filter out retired drivers, then sort alphabetically
-      const activeDrivers = marketData.drivers.filter(driver => !driver.retired);
-      const sortedDrivers = [...activeDrivers].sort((a, b) => a.name.localeCompare(b.name));
+      // Sort the existing driversByPosition array alphabetically
+      // This preserves the same 20 drivers we already have
+      const sortedDrivers = [...driversByPosition].sort((a, b) => a.name.localeCompare(b.name));
       setDriversByPosition(sortedDrivers);
     }
   };
