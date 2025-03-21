@@ -84,7 +84,7 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
       {/* Hero Section */}
-      <div className="w-full md:w-1/2 bg-secondary text-white flex items-center justify-center p-8">
+      <div className="w-full md:w-1/2 bg-black text-white flex items-center justify-center p-8">
         <div className="max-w-md">
           <div className="flex items-center mb-6">
             <i className="fas fa-flag-checkered text-primary text-2xl mr-3"></i>
