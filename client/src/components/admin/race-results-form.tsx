@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { Loader2, GripVertical, AlertCircle } from "lucide-react";
-import { Race, Driver } from "@shared/schema";
+import { Race, Driver, Team } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
 
 export default function RaceResultsForm() {
@@ -23,21 +23,13 @@ export default function RaceResultsForm() {
     queryKey: ["/api/races"],
   });
 
-  // Fetch all drivers and teams directly
-  const { data: driversData, isLoading: isLoadingDrivers } = useQuery<Driver[]>({
-    queryKey: ["/api/drivers"],
+  // Fetch market data which includes drivers with their teams
+  const { data: marketData, isLoading: isLoadingMarket } = useQuery({
+    queryKey: ["/api/market"],
   });
   
-  const { data: teamsData } = useQuery<Team[]>({
-    queryKey: ["/api/teams"],
-  });
-  
-  // Get drivers data and combine with team info
-  const teams: Team[] = teamsData || [];
-  const drivers: (Driver & { team?: Team })[] = (driversData || []).map(driver => {
-    const team = teams.find(team => team.id === driver.teamId);
-    return { ...driver, team };
-  });
+  // Get drivers with teams from market data
+  const drivers: (Driver & { team?: Team })[] = marketData?.drivers || [];
   
   // Effect to initialize driver positions when drivers data is loaded or race is selected
   useEffect(() => {
