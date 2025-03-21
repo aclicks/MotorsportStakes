@@ -6,7 +6,7 @@ import {
   Race, InsertRace, RaceResult, InsertRaceResult,
   PerformanceHistory, InsertPerformanceHistory, 
   ValuationTable, InsertValuationTable,
-  UserTeam, InsertUserTeam
+  UserTeam, InsertUserTeam, updateRaceSchema
 } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
@@ -1272,6 +1272,7 @@ export class DatabaseStorage implements IStorage {
     // Atualizar corrida para não ter resultados
     const race = await this.getRace(raceId);
     if (race) {
+      // Use valid schema fields directly
       await this.updateRace(raceId, { resultsSubmitted: false });
     }
   }
