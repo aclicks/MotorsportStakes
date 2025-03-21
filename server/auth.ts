@@ -101,6 +101,36 @@ export function setupAuth(app: Express) {
                 password: await hashPassword(randomPassword),
                 googleId: profile.id,
               });
+              
+              // Criar dois times para o usuário do Google
+              try {
+                // Time 1 com 1000 créditos iniciais
+                await storage.createUserTeam({
+                  userId: user.id,
+                  name: "Equipe Principal",
+                  initialCredits: 1000,
+                  currentCredits: 1000,
+                  driver1Id: null,
+                  driver2Id: null,
+                  engineId: null,
+                  teamId: null
+                });
+                
+                // Time 2 com 700 créditos iniciais
+                await storage.createUserTeam({
+                  userId: user.id,
+                  name: "Equipe Secundária",
+                  initialCredits: 700,
+                  currentCredits: 700,
+                  driver1Id: null,
+                  driver2Id: null,
+                  engineId: null,
+                  teamId: null
+                });
+              } catch (teamError: any) {
+                console.error("Erro ao criar times para o usuário Google:", teamError);
+                // Continuamos mesmo se falhar a criação dos times
+              }
             }
           }
           
@@ -138,6 +168,36 @@ export function setupAuth(app: Express) {
         ...req.body,
         password: await hashPassword(req.body.password),
       });
+      
+      // Criar dois times para o usuário
+      try {
+        // Time 1 com 1000 créditos iniciais
+        await storage.createUserTeam({
+          userId: user.id,
+          name: "Equipe Principal",
+          initialCredits: 1000,
+          currentCredits: 1000,
+          driver1Id: null,
+          driver2Id: null,
+          engineId: null,
+          teamId: null
+        });
+        
+        // Time 2 com 700 créditos iniciais
+        await storage.createUserTeam({
+          userId: user.id,
+          name: "Equipe Secundária",
+          initialCredits: 700,
+          currentCredits: 700,
+          driver1Id: null,
+          driver2Id: null,
+          engineId: null,
+          teamId: null
+        });
+      } catch (teamError: any) {
+        console.error("Erro ao criar times para o usuário:", teamError);
+        // Continuamos mesmo se falhar a criação dos times
+      }
 
       req.login(user, (err) => {
         if (err) return next(err);

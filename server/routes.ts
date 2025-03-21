@@ -24,7 +24,7 @@ const isAuthenticated = (req: Request, res: Response, next: Function) => {
 
 // Middleware to check if user is admin
 const isAdmin = (req: Request, res: Response, next: Function) => {
-  if (req.isAuthenticated() && req.user.isAdmin) {
+  if (req.isAuthenticated() && req.user && req.user.isAdmin) {
     return next();
   }
   res.status(403).json({ message: "Forbidden - Admin access required" });
@@ -37,6 +37,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get current user's teams
   app.get("/api/my-teams", isAuthenticated, async (req, res) => {
     try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      
       const teams = await storage.getUserTeams(req.user.id);
       
       // Enhance teams with complete data
@@ -76,13 +80,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(enhancedTeams);
     } catch (error) {
-      res.status(500).json({ message: "Error fetching teams", error: error.message });
+      res.status(500).json({ message: "Error fetching teams", error: (error as Error).message });
     }
   });
 
   // Update user team
   app.patch("/api/my-teams/:id", isAuthenticated, async (req, res) => {
     try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      
       const teamId = parseInt(req.params.id);
       const team = await storage.getUserTeam(teamId);
       
