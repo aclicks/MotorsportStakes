@@ -31,7 +31,9 @@ export default function RaceResultsForm() {
   // Effect to initialize driver positions when drivers data is loaded or race is selected
   useEffect(() => {
     if (marketData?.drivers?.length > 0 && selectedRaceId) {
-      setDriversByPosition([...marketData.drivers]);
+      // Filter out retired drivers - we only want active drivers (20 drivers, not 22)
+      const activeDrivers = marketData.drivers.filter(driver => !driver.retired);
+      setDriversByPosition([...activeDrivers]);
     }
   }, [marketData, selectedRaceId]);
 
@@ -149,7 +151,9 @@ export default function RaceResultsForm() {
   // Handle reset to alphabetical order
   const handleAlphabeticalReset = () => {
     if (marketData?.drivers?.length > 0) {
-      const sortedDrivers = [...marketData.drivers].sort((a, b) => a.name.localeCompare(b.name));
+      // Filter out retired drivers, then sort alphabetically
+      const activeDrivers = marketData.drivers.filter(driver => !driver.retired);
+      const sortedDrivers = [...activeDrivers].sort((a, b) => a.name.localeCompare(b.name));
       setDriversByPosition(sortedDrivers);
     }
   };
