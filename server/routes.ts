@@ -259,6 +259,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Error fetching users", error: String(error) });
     }
   });
+  
+  // Get player leaderboard
+  app.get("/api/leaderboard", async (req, res) => {
+    try {
+      // 1. Obter todos os usuários
+      const users = [];
+      for (let i = 1; i <= 100; i++) {
+        const user = await storage.getUser(i);
+        if (user) {
+          // Remove password for security
+          const { password, ...safeUser } = user;
+          users.push(safeUser);
+        }
+      }
+      
+      // 2. Para cada usuário, obter seus times e calcular o valor total
+      const leaderboardData = await Promise.all(users.map(async (user) => {
+        const teams = await storage.getUserTeams(user.id);
+        
+        // Calcular valor total dos times do usuário
+        let totalTeamValue = 0;
+        for (const team of teams) {
+          let teamValue = 0;
+          
+          if (team.driver1Id) {
+            const driver1 = await storage.getDriver(team.driver1Id);
+            if (driver1) teamValue += driver1.value;
+          }
+          
+          if (team.driver2Id) {
+            const driver2 = await storage.getDriver(team.driver2Id);
+            if (driver2) teamValue += driver2.value;
+          }
+          
+          if (team.engineId) {
+            const engine = await storage.getEngine(team.engineId);
+            if (engine) teamValue += engine.value;
+          }
+          
+          if (team.teamId) {
+            const chassis = await storage.getTeam(team.teamId);
+            if (chassis) teamValue += chassis.value;
+          }
+          
+          totalTeamValue += teamValue;
+        }
+        
+        // Calcular a pontuação do jogador
+        // Pontuação = Valor total dos times + número de times * 100
+        const score = totalTeamValue + (teams.length * 100);
+        
+        return {
+          userId: user.id,
+          username: user.username,
+          totalValue: totalTeamValue,
+          totalTeams: teams.length,
+          score
+        };
+      }));
+      
+      // 3. Ordenar por pontuação (maior para menor)
+      leaderboardData.sort((a, b) => b.score - a.score);
+      
+      // 4. Adicionar posição no ranking
+      const leaderboard = leaderboardData.map((item, index) => ({
+        rank: index + 1,
+        ...item
+      }));
+      
+      res.json(leaderboard);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching leaderboard", error: String(error) });
+    }
+  });
 
   // Make a user admin by email (special endpoint) - initially open for first admin setup
   app.post("/api/make-admin", async (req, res) => {

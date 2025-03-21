@@ -15,6 +15,9 @@ import { ProtectedRoute } from "./lib/protected-route";
 import { AuthProvider } from "./hooks/use-auth";
 import AppShell from "./components/layout/app-shell";
 
+// Importando a nova página de leaderboard
+import Leaderboard from "@/pages/leaderboard";
+
 function Router() {
   return (
     <Switch>
@@ -25,6 +28,7 @@ function Router() {
       <ProtectedRoute path="/races" component={() => <AppShell><Races /></AppShell>} />
       <ProtectedRoute path="/standings" component={() => <AppShell><Standings /></AppShell>} />
       <ProtectedRoute path="/statistics" component={() => <AppShell><Statistics /></AppShell>} />
+      <ProtectedRoute path="/leaderboard" component={() => <AppShell><Leaderboard /></AppShell>} />
       <ProtectedRoute path="/admin" component={() => <AppShell><Admin /></AppShell>} />
       <Route component={NotFound} />
     </Switch>
