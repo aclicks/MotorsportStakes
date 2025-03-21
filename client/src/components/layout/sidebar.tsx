@@ -99,6 +99,9 @@ export default function Sidebar({ isMobileMenuOpen, setIsMobileMenuOpen }: Sideb
           <NavLink href="/standings" icon="fas fa-trophy" onClick={closeMobileMenu}>
             Standings
           </NavLink>
+          <NavLink href="/statistics" icon="fas fa-chart-line" onClick={closeMobileMenu}>
+            Estatísticas
+          </NavLink>
           {user?.isAdmin && (
             <NavLink href="/admin" icon="fas fa-shield-alt" onClick={closeMobileMenu}>
               Admin Panel

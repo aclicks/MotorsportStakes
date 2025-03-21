@@ -336,6 +336,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Error fetching engine standings", error: error.message });
     }
   });
+  
+  // Get performance history for driver, team, or engine
+  app.get("/api/performance-history/:type/:id", async (req, res) => {
+    try {
+      const { type, id } = req.params;
+      const entityId = parseInt(id);
+      
+      if (!["driver", "team", "engine"].includes(type)) {
+        return res.status(400).json({ message: "Type must be driver, team, or engine" });
+      }
+      
+      if (isNaN(entityId)) {
+        return res.status(400).json({ message: "Invalid ID" });
+      }
+      
+      // Get the performance history
+      const history = await storage.getPerformanceHistory(entityId, type as 'driver' | 'team' | 'engine');
+      
+      // Get race information for each history entry
+      const enhancedHistory = await Promise.all(history.map(async (entry) => {
+        const race = await storage.getRace(entry.raceId);
+        return {
+          ...entry,
+          race
+        };
+      }));
+      
+      // Sort by race date
+      enhancedHistory.sort((a, b) => {
+        return new Date(a.race!.date).getTime() - new Date(b.race!.date).getTime();
+      });
+      
+      res.json(enhancedHistory);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching performance history", error: (error as Error).message });
+    }
+  });
 
   // Create user team
   app.post("/api/user-teams", isAuthenticated, async (req, res) => {
