@@ -263,11 +263,11 @@ export class MemStorage implements IStorage {
     
     // Create valuation table
     for (let i = -20; i <= 20; i++) {
-      let creditChange = 0;
+      let percentChange = 0;
       if (i < 0) {
-        creditChange = i * 2.5;
+        percentChange = i * 2.5;
       } else if (i > 0) {
-        creditChange = i * 2.5;
+        percentChange = i * 2.5;
       }
       
       await this.createValuationEntry({
@@ -277,7 +277,7 @@ export class MemStorage implements IStorage {
           : i > 0 
             ? `Current position ${i} places better than 3-race average` 
             : `Current position ${Math.abs(i)} places worse than 3-race average`,
-        creditChange: Math.round(creditChange),
+        percentageChange: Math.round(percentChange).toString(),
       });
     }
   }
@@ -652,7 +652,7 @@ export class MemStorage implements IStorage {
     
     // Look up valuation
     const valuation = await this.getValuationEntry(difference);
-    return valuation ? valuation.creditChange : 0;
+    return valuation ? parseFloat(valuation.percentageChange.toString()) : 0;
   }
 
   async calculateEngineValuation(engineId: number, raceId: number): Promise<number> {
@@ -989,11 +989,11 @@ export class DatabaseStorage implements IStorage {
     
     // Valuation table
     for (let i = -20; i <= 20; i++) {
-      let creditChange = 0;
+      let percentChange = 0;
       if (i < 0) {
-        creditChange = i * 2.5;
+        percentChange = i * 2.5;
       } else if (i > 0) {
-        creditChange = i * 2.5;
+        percentChange = i * 2.5;
       }
       
       await this.createValuationEntry({
@@ -1003,7 +1003,7 @@ export class DatabaseStorage implements IStorage {
           : i > 0 
             ? `Current position ${i} places better than 3-race average` 
             : `Current position ${Math.abs(i)} places worse than 3-race average`,
-        creditChange: Math.round(creditChange),
+        percentageChange: Math.round(percentChange).toString(),
       });
     }
   }
