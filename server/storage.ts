@@ -451,13 +451,16 @@ export class MemStorage implements IStorage {
     return newRace;
   }
 
-  async updateRace(id: number, race: Partial<InsertRace>): Promise<Race> {
+  async updateRace(id: number, race: Partial<InsertRace> & { resultsSubmitted?: boolean }): Promise<Race> {
     const existingRace = await this.getRace(id);
     if (!existingRace) {
       throw new Error(`Race with id ${id} not found`);
     }
     
-    const updatedRace = { ...existingRace, ...race };
+    // Parse with updateRaceSchema to ensure proper validation
+    const validatedRace = updateRaceSchema.parse(race);
+    
+    const updatedRace = { ...existingRace, ...validatedRace };
     this.races.set(id, updatedRace);
     return updatedRace;
   }
@@ -498,13 +501,16 @@ export class MemStorage implements IStorage {
     return newResult;
   }
 
-  async updateRaceResult(id: number, result: Partial<InsertRaceResult>): Promise<RaceResult> {
+  async updateRaceResult(id: number, result: Partial<InsertRaceResult> & { valuation?: number | null }): Promise<RaceResult> {
     const existingResult = this.raceResults.get(id);
     if (!existingResult) {
       throw new Error(`Race result with id ${id} not found`);
     }
     
-    const updatedResult = { ...existingResult, ...result };
+    // Parse with updateRaceResultSchema to ensure proper validation
+    const validatedResult = updateRaceResultSchema.parse(result);
+    
+    const updatedResult = { ...existingResult, ...validatedResult };
     this.raceResults.set(id, updatedResult);
     return updatedResult;
   }
@@ -1200,9 +1206,12 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
   
-  async updateRace(id: number, raceData: Partial<InsertRace>): Promise<Race> {
+  async updateRace(id: number, raceData: Partial<InsertRace> & { resultsSubmitted?: boolean }): Promise<Race> {
+    // Parse with updateRaceSchema to ensure proper validation
+    const validatedRace = updateRaceSchema.parse(raceData);
+    
     const result = await db.update(races)
-      .set(raceData)
+      .set(validatedRace)
       .where(eq(races.id, id))
       .returning();
       
@@ -1252,9 +1261,12 @@ export class DatabaseStorage implements IStorage {
     return inserted[0];
   }
   
-  async updateRaceResult(id: number, resultData: Partial<InsertRaceResult>): Promise<RaceResult> {
+  async updateRaceResult(id: number, resultData: Partial<InsertRaceResult> & { valuation?: number | null }): Promise<RaceResult> {
+    // Parse with updateRaceResultSchema to ensure proper validation
+    const validatedResult = updateRaceResultSchema.parse(resultData);
+    
     const result = await db.update(raceResults)
-      .set(resultData)
+      .set(validatedResult)
       .where(eq(raceResults.id, id))
       .returning();
       
