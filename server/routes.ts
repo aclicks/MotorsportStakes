@@ -33,6 +33,27 @@ const isAdmin = (req: Request, res: Response, next: Function) => {
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
   setupAuth(app);
+  
+  // Rota para excluir usuário
+  app.post("/api/delete-user", async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ message: "Email é obrigatório" });
+      }
+      
+      const success = await storage.deleteUserByEmail(email);
+      
+      if (success) {
+        res.status(200).json({ message: `Usuário com email ${email} foi excluído com sucesso` });
+      } else {
+        res.status(404).json({ message: `Usuário com email ${email} não encontrado ou não pôde ser excluído` });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Erro ao excluir usuário", error: (error as Error).message });
+    }
+  });
 
   // Get current user's teams
   app.get("/api/my-teams", isAuthenticated, async (req, res) => {

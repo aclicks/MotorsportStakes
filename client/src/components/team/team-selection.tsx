@@ -96,14 +96,13 @@ export function TeamSelection({
             </div>
             <div className="p-4">
               <Select
-                value={selectedDriver1Id?.toString() || ""}
+                value={selectedDriver1Id?.toString()}
                 onValueChange={(value) => setSelectedDriver1Id(value ? parseInt(value) : null)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select Driver" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Select Driver</SelectItem>
                   {availableDriversForDriver1.map((driver) => (
                     <SelectItem key={driver.id} value={driver.id.toString()}>
                       {driver.name} ({driver.value})
@@ -140,14 +139,13 @@ export function TeamSelection({
             </div>
             <div className="p-4">
               <Select
-                value={selectedDriver2Id?.toString() || ""}
+                value={selectedDriver2Id?.toString()}
                 onValueChange={(value) => setSelectedDriver2Id(value ? parseInt(value) : null)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select Driver" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Select Driver</SelectItem>
                   {availableDriversForDriver2.map((driver) => (
                     <SelectItem key={driver.id} value={driver.id.toString()}>
                       {driver.name} ({driver.value})
@@ -186,14 +184,13 @@ export function TeamSelection({
             </div>
             <div className="p-4">
               <Select
-                value={selectedEngineId?.toString() || ""}
+                value={selectedEngineId?.toString()}
                 onValueChange={(value) => setSelectedEngineId(value ? parseInt(value) : null)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select Engine" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Select Engine</SelectItem>
                   {engines.map((engine) => (
                     <SelectItem key={engine.id} value={engine.id.toString()}>
                       {engine.name} ({engine.value})
@@ -231,14 +228,13 @@ export function TeamSelection({
             </div>
             <div className="p-4">
               <Select
-                value={selectedTeamId?.toString() || ""}
+                value={selectedTeamId?.toString()}
                 onValueChange={(value) => setSelectedTeamId(value ? parseInt(value) : null)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select Chassis" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Select Chassis</SelectItem>
                   {teams.map((team) => (
                     <SelectItem key={team.id} value={team.id.toString()}>
                       {team.name} ({team.value})

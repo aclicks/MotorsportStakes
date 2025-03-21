@@ -1012,6 +1012,29 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
   
+  async deleteUserByEmail(email: string): Promise<boolean> {
+    try {
+      const user = await this.getUserByEmail(email);
+      if (!user) {
+        return false;
+      }
+      
+      // Primeiro excluir os times do usuário
+      const userTeamsList = await this.getUserTeams(user.id);
+      for (const team of userTeamsList) {
+        await db.delete(userTeams).where(eq(userTeams.id, team.id));
+      }
+      
+      // Agora excluir o usuário
+      await db.delete(users).where(eq(users.id, user.id));
+      
+      return true;
+    } catch (error) {
+      console.error("Erro ao excluir usuário:", error);
+      return false;
+    }
+  }
+  
   async createUser(user: InsertUser): Promise<User> {
     const result = await db.insert(users)
       .values({
