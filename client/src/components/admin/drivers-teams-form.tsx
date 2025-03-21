@@ -72,7 +72,7 @@ export default function DriversTeamsForm() {
     id: 0,
     name: "",
     value: 150,
-    engineId: 0,
+    engineId: null as number | null,
   });
   
   const [engineForm, setEngineForm] = useState({
@@ -249,7 +249,7 @@ export default function DriversTeamsForm() {
       id: 0,
       name: "",
       value: 150,
-      engineId: 0,
+      engineId: null,
     });
     setIsEditingTeam(false);
   };
@@ -284,7 +284,7 @@ export default function DriversTeamsForm() {
       id: team.id,
       name: team.name,
       value: team.value,
-      engineId: team.engineId || 0,
+      engineId: team.engineId !== undefined ? team.engineId : null,
     });
     setIsEditingTeam(true);
   };
@@ -722,11 +722,11 @@ export default function DriversTeamsForm() {
                           Engine
                         </Label>
                         <Select
-                          value={teamForm.engineId ? teamForm.engineId.toString() : ""}
+                          value={teamForm.engineId !== null ? teamForm.engineId.toString() : ""}
                           onValueChange={(value) =>
                             setTeamForm({
                               ...teamForm,
-                              engineId: value ? parseInt(value) : 0,
+                              engineId: value ? parseInt(value) : null,
                             })
                           }
                         >
