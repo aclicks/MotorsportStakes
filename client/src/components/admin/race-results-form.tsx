@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 export default function RaceResultsForm() {
   const { toast } = useToast();
   const [selectedRaceId, setSelectedRaceId] = useState<number | null>(null);
-  const [driversByPosition, setDriversByPosition] = useState<Driver[]>([]);
+  const [driversByPosition, setDriversByPosition] = useState<any[]>([]);
 
   // Fetch races
   const { data: races, isLoading: isLoadingRaces } = useQuery<Race[]>({
@@ -28,15 +28,12 @@ export default function RaceResultsForm() {
     queryKey: ["/api/market"],
   });
   
-  // Get drivers with teams from market data
-  const drivers: (Driver & { team?: Team })[] = marketData?.drivers || [];
-  
   // Effect to initialize driver positions when drivers data is loaded or race is selected
   useEffect(() => {
-    if (drivers.length > 0 && selectedRaceId) {
-      setDriversByPosition([...drivers]);
+    if (marketData?.drivers?.length > 0 && selectedRaceId) {
+      setDriversByPosition([...marketData.drivers]);
     }
-  }, [drivers, selectedRaceId]);
+  }, [marketData, selectedRaceId]);
 
   // Submit race results
   const submitResultsMutation = useMutation({
@@ -75,7 +72,7 @@ export default function RaceResultsForm() {
   };
 
   // Calculate valuation change (approximate function for display purposes)
-  const calculateValuationChange = (driver: Driver, position: number): number => {
+  const calculateValuationChange = (driver: any, position: number): number => {
     // Extract the three-race average data (mocked data for display)
     // In real implementation, this would be pulled from the driver's last three races
     const lastRace1 = driver.lastRace1Position || Math.floor(Math.random() * 15) + 1;
@@ -130,8 +127,8 @@ export default function RaceResultsForm() {
 
   // Handle reset to alphabetical order
   const handleAlphabeticalReset = () => {
-    if (drivers.length > 0) {
-      const sortedDrivers = [...drivers].sort((a, b) => a.name.localeCompare(b.name));
+    if (marketData?.drivers?.length > 0) {
+      const sortedDrivers = [...marketData.drivers].sort((a, b) => a.name.localeCompare(b.name));
       setDriversByPosition(sortedDrivers);
     }
   };
@@ -178,7 +175,7 @@ export default function RaceResultsForm() {
         </Alert>
       )}
 
-      {isLoadingDrivers || !selectedRaceId ? (
+      {isLoadingMarket || !selectedRaceId ? (
         <Skeleton className="h-[400px] w-full" />
       ) : (
         <div className="grid md:grid-cols-2 gap-6">
