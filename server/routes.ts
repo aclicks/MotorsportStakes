@@ -231,6 +231,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Error fetching valuation table", error: error.message });
     }
   });
+  
+  // Make a user admin by email (special endpoint) - initially open for first admin setup
+  app.post("/api/make-admin", async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+      }
+      
+      const user = await storage.getUserByEmail(email);
+      
+      if (!user) {
+        return res.status(404).json({ message: `User with email ${email} not found` });
+      }
+      
+      const updatedUser = await storage.updateUser(user.id, { isAdmin: true });
+      res.json({ message: `User ${updatedUser.username} (${email}) is now an admin`, user: updatedUser });
+    } catch (error) {
+      res.status(500).json({ message: "Error updating user", error: error.message });
+    }
+  });
 
   // Get driver standings
   app.get("/api/standings/drivers", async (req, res) => {

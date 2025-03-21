@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -48,12 +48,6 @@ export default function AuthPage() {
   const { user, loginMutation, registerMutation } = useAuth();
   const [_, navigate] = useLocation();
 
-  // Redirect if user is already logged in
-  if (user) {
-    navigate("/");
-    return null;
-  }
-
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -71,6 +65,18 @@ export default function AuthPage() {
       confirmPassword: "",
     },
   });
+
+  // Use useEffect for navigation to avoid React hooks errors
+  useEffect(() => {
+    if (user) {
+      navigate("/");
+    }
+  }, [user, navigate]);
+
+  // If user is already logged in, render nothing while redirect happens
+  if (user) {
+    return null;
+  }
 
   function onLoginSubmit(data: LoginFormValues) {
     loginMutation.mutate(data);
