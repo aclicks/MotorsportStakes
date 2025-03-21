@@ -42,13 +42,13 @@ export default function Teams() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/my-teams"] });
       toast({
-        title: "Team Updated",
-        description: "Your team has been updated successfully.",
+        title: "Time Atualizado",
+        description: "Seu time foi atualizado com sucesso.",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Update Failed",
+        title: "Falha na Atualização",
         description: error.message,
         variant: "destructive",
       });

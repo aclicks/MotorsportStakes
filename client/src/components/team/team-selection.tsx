@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -35,6 +35,14 @@ export function TeamSelection({
   const [selectedDriver2Id, setSelectedDriver2Id] = useState<number | null>(team.driver2Id || null);
   const [selectedEngineId, setSelectedEngineId] = useState<number | null>(team.engineId || null);
   const [selectedTeamId, setSelectedTeamId] = useState<number | null>(team.teamId || null);
+  
+  // Atualiza os estados quando o time muda (mudança entre abas)
+  useEffect(() => {
+    setSelectedDriver1Id(team.driver1Id || null);
+    setSelectedDriver2Id(team.driver2Id || null);
+    setSelectedEngineId(team.engineId || null);
+    setSelectedTeamId(team.teamId || null);
+  }, [team.id, team.driver1Id, team.driver2Id, team.engineId, team.teamId]);
 
   const selectedDriver1 = drivers.find((d) => d.id === selectedDriver1Id);
   const selectedDriver2 = drivers.find((d) => d.id === selectedDriver2Id);
@@ -290,10 +298,10 @@ export function TeamSelection({
             {isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
+                Salvando...
               </>
             ) : (
-              "Save Team"
+              "Salvar Time"
             )}
           </Button>
         </div>
