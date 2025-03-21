@@ -21,9 +21,9 @@ export default function ValuationTableForm() {
 
   // Update valuation entry mutation
   const updateValuationMutation = useMutation({
-    mutationFn: async ({ difference, creditChange }: { difference: number; creditChange: number }) => {
+    mutationFn: async ({ difference, percentageChange }: { difference: number; percentageChange: string }) => {
       const res = await apiRequest("PATCH", `/api/admin/valuation-table/${difference}`, {
-        creditChange,
+        percentageChange,
       });
       return res.json();
     },
@@ -55,9 +55,11 @@ export default function ValuationTableForm() {
 
   // Handle save button click
   const handleSave = (difference: number) => {
-    const creditChange = editValues[difference];
-    if (creditChange !== undefined) {
-      updateValuationMutation.mutate({ difference, creditChange });
+    const percentageValue = editValues[difference];
+    if (percentageValue !== undefined) {
+      // Convert to string for the numeric field in the database
+      const percentageChange = percentageValue.toString();
+      updateValuationMutation.mutate({ difference, percentageChange });
     }
   };
 
