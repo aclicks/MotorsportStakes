@@ -309,7 +309,8 @@ export default function DriversTeamsForm() {
       return;
     }
 
-    if (isEditingDriver) {
+    if (driverForm.id > 0) {
+      // This is an edit operation
       updateDriverMutation.mutate({
         id: driverForm.id,
         data: {
@@ -324,7 +325,7 @@ export default function DriversTeamsForm() {
         },
       });
     } else {
-      // Ensure teamId is not null before submitting
+      // This is a create operation
       if (driverForm.teamId) {
         createDriverMutation.mutate({
           name: driverForm.name,
@@ -350,7 +351,8 @@ export default function DriversTeamsForm() {
       return;
     }
 
-    if (isEditingTeam) {
+    if (teamForm.id > 0) {
+      // This is an edit operation
       updateTeamMutation.mutate({
         id: teamForm.id,
         data: {
@@ -360,6 +362,7 @@ export default function DriversTeamsForm() {
         },
       });
     } else {
+      // This is a create operation
       createTeamMutation.mutate({
         name: teamForm.name,
         value: teamForm.value,
@@ -378,7 +381,8 @@ export default function DriversTeamsForm() {
       return;
     }
 
-    if (isEditingEngine) {
+    if (engineForm.id > 0) {
+      // This is an edit operation
       updateEngineMutation.mutate({
         id: engineForm.id,
         data: {
@@ -387,6 +391,7 @@ export default function DriversTeamsForm() {
         },
       });
     } else {
+      // This is a create operation
       createEngineMutation.mutate({
         name: engineForm.name,
         value: engineForm.value,
@@ -416,10 +421,25 @@ export default function DriversTeamsForm() {
             </CardHeader>
             <CardContent>
               <div className="mb-6 flex justify-end">
-                <Dialog open={isEditingDriver} onOpenChange={setIsEditingDriver}>
+                <Dialog 
+                  open={isEditingDriver} 
+                  onOpenChange={(open) => {
+                    setIsEditingDriver(open);
+                    if (!open) {
+                      resetDriverForm();
+                    }
+                  }}
+                >
                   <DialogTrigger asChild>
-                    <Button className="bg-primary hover:bg-primary/90">
-                      {isEditingDriver ? "Edit Driver" : "Add Driver"}
+                    <Button 
+                      className="bg-primary hover:bg-primary/90"
+                      onClick={() => {
+                        if (!isEditingDriver) {
+                          resetDriverForm();
+                        }
+                      }}
+                    >
+                      Add Driver
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
@@ -674,10 +694,25 @@ export default function DriversTeamsForm() {
             </CardHeader>
             <CardContent>
               <div className="mb-6 flex justify-end">
-                <Dialog open={isEditingTeam} onOpenChange={setIsEditingTeam}>
+                <Dialog 
+                  open={isEditingTeam} 
+                  onOpenChange={(open) => {
+                    setIsEditingTeam(open);
+                    if (!open) {
+                      resetTeamForm();
+                    }
+                  }}
+                >
                   <DialogTrigger asChild>
-                    <Button className="bg-primary hover:bg-primary/90">
-                      {isEditingTeam ? "Edit Team" : "Add Team"}
+                    <Button 
+                      className="bg-primary hover:bg-primary/90"
+                      onClick={() => {
+                        if (!isEditingTeam) {
+                          resetTeamForm();
+                        }
+                      }}
+                    >
+                      Add Team
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
@@ -819,10 +854,25 @@ export default function DriversTeamsForm() {
             </CardHeader>
             <CardContent>
               <div className="mb-6 flex justify-end">
-                <Dialog open={isEditingEngine} onOpenChange={setIsEditingEngine}>
+                <Dialog 
+                  open={isEditingEngine} 
+                  onOpenChange={(open) => {
+                    setIsEditingEngine(open);
+                    if (!open) {
+                      resetEngineForm();
+                    }
+                  }}
+                >
                   <DialogTrigger asChild>
-                    <Button className="bg-primary hover:bg-primary/90">
-                      {isEditingEngine ? "Edit Engine" : "Add Engine"}
+                    <Button 
+                      className="bg-primary hover:bg-primary/90"
+                      onClick={() => {
+                        if (!isEditingEngine) {
+                          resetEngineForm();
+                        }
+                      }}
+                    >
+                      Add Engine
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
