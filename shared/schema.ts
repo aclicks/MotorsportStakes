@@ -37,6 +37,13 @@ export const insertRaceSchema = createInsertSchema(races)
     id: true,
     resultsSubmitted: true,
   })
+  
+// Schema for race updates that includes resultsSubmitted field
+export const updateRaceSchema = createInsertSchema(races)
+  .partial()
+  .extend({
+    resultsSubmitted: z.boolean().optional(),
+  })
   .extend({
     date: z.preprocess(
       (arg) => {
