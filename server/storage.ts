@@ -1414,45 +1414,90 @@ export class DatabaseStorage implements IStorage {
   
   // Métodos de lógica do jogo
   async calculateDriverValuation(driverId: number, raceId: number): Promise<number> {
-    // Obter resultado atual da corrida
-    const results = await this.getRaceResults(raceId);
-    const currentResult = results.find(r => r.driverId === driverId);
-    if (!currentResult) {
-      throw new Error(`Nenhum resultado encontrado para o piloto ${driverId} na corrida ${raceId}`);
-    }
-    
-    // Obter histórico de performance das 3 corridas anteriores
-    const allRaces = await this.getRaces();
-    const raceIndex = allRaces.findIndex(r => r.id === raceId);
-    if (raceIndex < 3) {
-      // Não há corridas suficientes para comparação
-      return 0;
-    }
-    
-    const previousRaces = allRaces.slice(raceIndex - 3, raceIndex);
-    const previousResults: number[] = [];
-    
-    for (const race of previousRaces) {
-      const raceResults = await this.getRaceResults(race.id);
-      const driverResult = raceResults.find(r => r.driverId === driverId);
-      if (driverResult) {
-        previousResults.push(driverResult.position);
+    try {
+      console.log(`Calculating valuation for driver ${driverId} in race ${raceId}`);
+      
+      // Obter resultado atual da corrida
+      const results = await this.getRaceResults(raceId);
+      console.log(`Found ${results.length} results for race ${raceId}`);
+      
+      const currentResult = results.find(r => r.driverId === driverId);
+      if (!currentResult) {
+        console.error(`No result found for driver ${driverId} in race ${raceId}`);
+        throw new Error(`Nenhum resultado encontrado para o piloto ${driverId} na corrida ${raceId}`);
       }
-    }
-    
-    if (previousResults.length === 0) {
+      
+      console.log(`Current result for driver ${driverId}: position ${currentResult.position}`);
+      
+      // Obter histórico de performance das 3 corridas anteriores
+      const allRaces = await this.getRaces();
+      console.log(`Found ${allRaces.length} total races`);
+      
+      // sort races by date
+      allRaces.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      
+      const raceIndex = allRaces.findIndex(r => r.id === raceId);
+      console.log(`Race index: ${raceIndex} out of ${allRaces.length} races`);
+      
+      if (raceIndex < 0) {
+        console.error(`Race with ID ${raceId} not found in race list`);
+        return 0;
+      }
+      
+      if (raceIndex < 3) {
+        // Não há corridas suficientes para comparação
+        console.log(`Not enough previous races for comparison (index: ${raceIndex})`);
+        return 0;
+      }
+      
+      const previousRaces = allRaces.slice(raceIndex - 3, raceIndex);
+      console.log(`Previous races for comparison: ${previousRaces.map(r => r.name).join(', ')}`);
+      
+      const previousResults: number[] = [];
+      
+      for (const race of previousRaces) {
+        console.log(`Checking results for previous race: ${race.name} (ID: ${race.id})`);
+        const raceResults = await this.getRaceResults(race.id);
+        console.log(`Found ${raceResults.length} results for race ${race.id}`);
+        
+        const driverResult = raceResults.find(r => r.driverId === driverId);
+        if (driverResult) {
+          console.log(`Found previous result for driver ${driverId}: position ${driverResult.position}`);
+          previousResults.push(driverResult.position);
+        } else {
+          console.log(`No previous result found for driver ${driverId} in race ${race.id}`);
+        }
+      }
+      
+      if (previousResults.length === 0) {
+        console.log(`No previous results found for driver ${driverId}, returning 0`);
+        return 0;
+      }
+      
+      // Calcular média dos resultados anteriores
+      const averagePosition = previousResults.reduce((sum, pos) => sum + pos, 0) / previousResults.length;
+      console.log(`Average position from previous races: ${averagePosition}`);
+      
+      // Calcular diferença
+      const difference = Math.round(averagePosition - currentResult.position);
+      console.log(`Position difference: ${difference}`);
+      
+      // Buscar valorização
+      const valuation = await this.getValuationEntry(difference);
+      
+      if (!valuation) {
+        console.log(`No valuation entry found for difference ${difference}, returning 0`);
+        return 0;
+      }
+      
+      console.log(`Found valuation entry for difference ${difference}: ${valuation.percentageChange}`);
+      return valuation ? parseFloat(valuation.percentageChange.toString()) : 0;
+    } catch (error) {
+      console.error(`Error calculating driver valuation: ${error.message}`);
+      console.error(error.stack);
+      // Return 0 instead of throwing to prevent the entire process from failing
       return 0;
     }
-    
-    // Calcular média dos resultados anteriores
-    const averagePosition = previousResults.reduce((sum, pos) => sum + pos, 0) / previousResults.length;
-    
-    // Calcular diferença
-    const difference = Math.round(averagePosition - currentResult.position);
-    
-    // Buscar valorização
-    const valuation = await this.getValuationEntry(difference);
-    return valuation ? parseFloat(valuation.percentageChange.toString()) : 0;
   }
   
   async calculateEngineValuation(engineId: number, raceId: number): Promise<number> {
