@@ -72,6 +72,7 @@ export default function DriversTeamsForm() {
     id: 0,
     name: "",
     value: 150,
+    engineId: 0,
   });
   
   const [engineForm, setEngineForm] = useState({
