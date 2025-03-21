@@ -46,7 +46,17 @@ export default function DriversTeamsForm() {
   const [isEditingEngine, setIsEditingEngine] = useState(false);
   
   // State for form values
-  const [driverForm, setDriverForm] = useState({
+  const [driverForm, setDriverForm] = useState<{
+    id: number;
+    name: string;
+    number: number;
+    teamId: number;
+    value: number;
+    retired: boolean;
+    lastRace1Position: number | null;
+    lastRace2Position: number | null;
+    lastRace3Position: number | null;
+  }>({
     id: 0,
     name: "",
     number: 0,
@@ -304,6 +314,10 @@ export default function DriversTeamsForm() {
           number: driverForm.number,
           teamId: driverForm.teamId,
           value: driverForm.value,
+          retired: driverForm.retired,
+          lastRace1Position: driverForm.lastRace1Position,
+          lastRace2Position: driverForm.lastRace2Position,
+          lastRace3Position: driverForm.lastRace3Position,
         },
       });
     } else {
@@ -312,6 +326,10 @@ export default function DriversTeamsForm() {
         number: driverForm.number,
         teamId: driverForm.teamId,
         value: driverForm.value,
+        retired: driverForm.retired,
+        lastRace1Position: driverForm.lastRace1Position,
+        lastRace2Position: driverForm.lastRace2Position,
+        lastRace3Position: driverForm.lastRace3Position,
       });
     }
   };
@@ -479,6 +497,96 @@ export default function DriversTeamsForm() {
                           max={250}
                         />
                       </div>
+                      
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="retired" className="text-right">
+                          Retired
+                        </Label>
+                        <div className="col-span-3 flex items-center">
+                          <input
+                            type="checkbox"
+                            id="retired"
+                            checked={driverForm.retired}
+                            onChange={(e) =>
+                              setDriverForm({
+                                ...driverForm,
+                                retired: e.target.checked,
+                              })
+                            }
+                            className="h-4 w-4 mr-2"
+                          />
+                          <Label htmlFor="retired" className="text-sm">
+                            Mark driver as retired (unavailable for selection)
+                          </Label>
+                        </div>
+                      </div>
+                      
+                      {!isEditingDriver && (
+                        <>
+                          <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="lastRace1" className="text-right">
+                              Last Race 1 Position
+                            </Label>
+                            <Input
+                              id="lastRace1"
+                              type="number"
+                              value={driverForm.lastRace1Position || ''}
+                              onChange={(e) =>
+                                setDriverForm({
+                                  ...driverForm,
+                                  lastRace1Position: e.target.value ? parseInt(e.target.value) : null,
+                                })
+                              }
+                              className="col-span-3"
+                              min={1}
+                              max={20}
+                              placeholder="Position (1-20)"
+                            />
+                          </div>
+                          
+                          <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="lastRace2" className="text-right">
+                              Last Race 2 Position
+                            </Label>
+                            <Input
+                              id="lastRace2"
+                              type="number"
+                              value={driverForm.lastRace2Position || ''}
+                              onChange={(e) =>
+                                setDriverForm({
+                                  ...driverForm,
+                                  lastRace2Position: e.target.value ? parseInt(e.target.value) : null,
+                                })
+                              }
+                              className="col-span-3"
+                              min={1}
+                              max={20}
+                              placeholder="Position (1-20)"
+                            />
+                          </div>
+                          
+                          <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="lastRace3" className="text-right">
+                              Last Race 3 Position
+                            </Label>
+                            <Input
+                              id="lastRace3"
+                              type="number"
+                              value={driverForm.lastRace3Position || ''}
+                              onChange={(e) =>
+                                setDriverForm({
+                                  ...driverForm,
+                                  lastRace3Position: e.target.value ? parseInt(e.target.value) : null,
+                                })
+                              }
+                              className="col-span-3"
+                              min={1}
+                              max={20}
+                              placeholder="Position (1-20)"
+                            />
+                          </div>
+                        </>
+                      )}
                     </div>
 
                     <DialogFooter>
@@ -515,18 +623,20 @@ export default function DriversTeamsForm() {
                         <TableHead>Name</TableHead>
                         <TableHead>Team</TableHead>
                         <TableHead>Value</TableHead>
+                        <TableHead>Status</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {drivers.map((driver) => (
-                        <TableRow key={driver.id}>
+                        <TableRow key={driver.id} className={driver.retired ? "bg-neutral-100/40" : ""}>
                           <TableCell className="font-medium">{driver.number}</TableCell>
                           <TableCell>{driver.name}</TableCell>
                           <TableCell>
                             {teams.find((t) => t.id === driver.teamId)?.name || "Unknown"}
                           </TableCell>
                           <TableCell>{driver.value}</TableCell>
+                          <TableCell>{driver.retired ? "Retired" : "Active"}</TableCell>
                           <TableCell className="text-right">
                             <Button
                               variant="outline"
