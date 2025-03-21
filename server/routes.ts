@@ -9,7 +9,8 @@ import {
   insertTeamSchema,
   insertValuationTableSchema,
   insertRaceResultSchema,
-  insertUserTeamSchema
+  insertUserTeamSchema,
+  updateRaceSchema
 } from "@shared/schema";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
@@ -588,7 +589,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log("Sanitized data for update:", JSON.stringify(sanitizedData));
       
-      const updatedRace = await storage.updateRace(raceId, sanitizedData);
+      // Use the schema to validate the update
+      const validatedData = updateRaceSchema.parse(sanitizedData);
+      const updatedRace = await storage.updateRace(raceId, validatedData);
       res.json(updatedRace);
     } catch (error) {
       console.error("Race update error:", error);
@@ -677,7 +680,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.applyValuations(raceId);
       
       // Update race to mark results as submitted
-      await storage.updateRace(raceId, { resultsSubmitted: true });
+      // Use the new updateRaceSchema to validate
+      const raceUpdate = updateRaceSchema.parse({ resultsSubmitted: true });
+      await storage.updateRace(raceId, raceUpdate);
       
       res.status(201).json({ message: "Race results submitted successfully" });
     } catch (error) {
