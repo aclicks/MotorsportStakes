@@ -39,12 +39,12 @@ export function setupAuth(app: Express) {
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || "motorsport-stakes-secret",
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: true, // Alterado para true para garantir que todas as sessões sejam salvas
     store: storage.sessionStore,
     cookie: {
-      secure: !isDevelopment, // Only use secure in production
+      secure: false, // Desativado secure para desenvolvimento
       maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
-      sameSite: isDevelopment ? "lax" : "none"
+      sameSite: "lax" // Fixado em lax para melhor compatibilidade
     }
   };
 

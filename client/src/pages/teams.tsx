@@ -13,14 +13,17 @@ export default function Teams() {
   // Fetch user teams
   const { 
     data: teams, 
-    isLoading 
+    isLoading,
+    isError,
+    error
   } = useQuery<UserTeamComplete[]>({
     queryKey: ["/api/my-teams"],
     onSuccess: (data) => {
       if (data.length > 0 && !activeTeamId) {
         setActiveTeamId(data[0].id);
       }
-    }
+    },
+    retry: 1 // Limitando retentativas para evitar loop infinito em caso de erro de autenticação
   });
 
   // Fetch market data
@@ -54,6 +57,33 @@ export default function Teams() {
 
   // Find active team
   const activeTeam = teams?.find(team => team.id === activeTeamId);
+
+  // Se houver um erro de autenticação (401)
+  if (isError) {
+    const isAuthError = error?.message?.includes("401") || error?.message?.includes("Unauthorized");
+    
+    if (isAuthError) {
+      return (
+        <div className="p-6">
+          <div className="max-w-md mx-auto mt-20 text-center">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-red-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m0 0v2m0-2h2m-2 0H9m3-4V8a3 3 0 00-3-3H6.5a2.5 2.5 0 000 5H9m9 0h3.5a2.5 2.5 0 000-5H18c-1.9 0-3.5 1.6-3.5 3.5m0 10V14" />
+            </svg>
+            <h2 className="text-2xl font-bold text-neutral-800 mb-2">Erro de Autenticação</h2>
+            <p className="text-neutral-500 mb-6">
+              Você precisa estar logado para acessar esta página. Por favor, faça login ou crie uma conta.
+            </p>
+            <a 
+              href="/auth" 
+              className="inline-block px-6 py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary/90 transition-colors"
+            >
+              Ir para página de login
+            </a>
+          </div>
+        </div>
+      );
+    }
+  }
 
   return (
     <div className="p-6">
