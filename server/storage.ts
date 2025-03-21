@@ -1425,7 +1425,7 @@ export class DatabaseStorage implements IStorage {
     
     // Buscar valorização
     const valuation = await this.getValuationEntry(difference);
-    return valuation ? valuation.creditChange : 0;
+    return valuation ? parseFloat(valuation.percentageChange.toString()) : 0;
   }
   
   async calculateEngineValuation(engineId: number, raceId: number): Promise<number> {
