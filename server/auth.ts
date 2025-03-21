@@ -30,15 +30,16 @@ async function comparePasswords(supplied: string, stored: string) {
 }
 
 export function setupAuth(app: Express) {
+  const isDevelopment = process.env.NODE_ENV !== "production";
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || "motorsport-stakes-secret",
     resave: false,
     saveUninitialized: false,
     store: storage.sessionStore,
     cookie: {
-      secure: true,
+      secure: !isDevelopment, // Only use secure in production
       maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
-      sameSite: "none"
+      sameSite: isDevelopment ? "lax" : "none"
     }
   };
 
