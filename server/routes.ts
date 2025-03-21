@@ -492,7 +492,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create race
   app.post("/api/admin/races", isAdmin, async (req, res) => {
     try {
-      const raceData = insertRaceSchema.parse(req.body);
+      const { date, ...restBody } = req.body;
+      
+      // Ensure we have a proper date string in ISO format
+      let parsedDate = date;
+      if (typeof date === 'string') {
+        try {
+          // Create a date object and convert back to ISO string
+          parsedDate = new Date(date).toISOString();
+        } catch (err) {
+          return res.status(400).json({ message: "Invalid date format" });
+        }
+      }
+      
+      // Combine sanitized data
+      const sanitizedData = { ...restBody, date: parsedDate };
+      
+      // Validate and parse the data
+      const raceData = insertRaceSchema.parse(sanitizedData);
       const race = await storage.createRace(raceData);
       res.status(201).json(race);
     } catch (error) {
@@ -513,8 +530,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Race not found" });
       }
       
-      const raceData = req.body;
-      const updatedRace = await storage.updateRace(raceId, raceData);
+      const { date, ...restBody } = req.body;
+      
+      // Ensure we have a proper date string in ISO format
+      let parsedDate = date;
+      if (date && typeof date === 'string') {
+        try {
+          // Create a date object and convert back to ISO string
+          parsedDate = new Date(date).toISOString();
+        } catch (err) {
+          return res.status(400).json({ message: "Invalid date format" });
+        }
+      }
+      
+      // Combine sanitized data
+      const sanitizedData = date ? { ...restBody, date: parsedDate } : restBody;
+      
+      const updatedRace = await storage.updateRace(raceId, sanitizedData);
       res.json(updatedRace);
     } catch (error) {
       res.status(500).json({ message: "Error updating race", error: error.message });

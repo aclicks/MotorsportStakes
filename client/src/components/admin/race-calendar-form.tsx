@@ -26,9 +26,15 @@ import { format } from "date-fns";
 const raceSchema = z.object({
   name: z.string().min(1, { message: "Name is required" }),
   location: z.string().min(1, { message: "Location is required" }),
-  date: z.string().refine((val) => !isNaN(Date.parse(val)), {
-    message: "Invalid date format",
-  }),
+  date: z.string()
+    .refine((val) => !isNaN(Date.parse(val)), {
+      message: "Invalid date format",
+    })
+    .transform((val) => {
+      // Format as YYYY-MM-DD to ensure consistency
+      const date = new Date(val);
+      return date.toISOString().split('T')[0];
+    }),
   round: z.number().min(1, { message: "Round must be at least 1" }),
 });
 

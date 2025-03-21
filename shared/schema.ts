@@ -31,10 +31,22 @@ export const races = pgTable("races", {
   resultsSubmitted: boolean("results_submitted").default(false).notNull(),
 });
 
-export const insertRaceSchema = createInsertSchema(races).omit({
-  id: true,
-  resultsSubmitted: true,
-});
+// Create a custom insert schema with date validation
+export const insertRaceSchema = createInsertSchema(races)
+  .omit({
+    id: true,
+    resultsSubmitted: true,
+  })
+  .transform((data) => {
+    // Ensure date is a valid Date object or ISO string
+    if (typeof data.date === 'string') {
+      const dateObj = new Date(data.date);
+      if (!isNaN(dateObj.getTime())) {
+        return { ...data, date: dateObj.toISOString() };
+      }
+    }
+    return data;
+  });
 
 // Team (Constructor/Chassis) model
 export const teams = pgTable("teams", {
