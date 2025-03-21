@@ -23,14 +23,22 @@ export default function RaceResultsForm() {
     queryKey: ["/api/races"],
   });
 
-  // Fetch drivers
-  const { data: marketData, isLoading: isLoadingMarket } = useQuery({
-    queryKey: ["/api/market"],
+  // Fetch all drivers and teams directly
+  const { data: driversData, isLoading: isLoadingDrivers } = useQuery<Driver[]>({
+    queryKey: ["/api/drivers"],
   });
-
-  // Get drivers from market data
-  const drivers: Driver[] = marketData?.drivers || [];
-
+  
+  const { data: teamsData } = useQuery<Team[]>({
+    queryKey: ["/api/teams"],
+  });
+  
+  // Get drivers data and combine with team info
+  const teams: Team[] = teamsData || [];
+  const drivers: (Driver & { team?: Team })[] = (driversData || []).map(driver => {
+    const team = teams.find(team => team.id === driver.teamId);
+    return { ...driver, team };
+  });
+  
   // Effect to initialize driver positions when drivers data is loaded or race is selected
   useEffect(() => {
     if (drivers.length > 0 && selectedRaceId) {
@@ -178,7 +186,7 @@ export default function RaceResultsForm() {
         </Alert>
       )}
 
-      {isLoadingMarket || !selectedRaceId ? (
+      {isLoadingDrivers || !selectedRaceId ? (
         <Skeleton className="h-[400px] w-full" />
       ) : (
         <div className="grid md:grid-cols-2 gap-6">
