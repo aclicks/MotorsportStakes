@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "../hooks/use-auth";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import {
@@ -265,9 +265,12 @@ export default function AuthPage() {
                 <span className="px-2 bg-background text-gray-500">Or continue with</span>
               </div>
             </div>
-            <Button variant="outline" className="w-full">
-              <i className="fab fa-google mr-2"></i> Google
+            <Button variant="outline" className="w-full opacity-70 cursor-not-allowed" disabled>
+              <i className="fab fa-google mr-2"></i> Google (Coming Soon)
             </Button>
+            <div className="text-xs text-center text-gray-500 mt-2">
+              Email/password authentication is available now
+            </div>
           </CardFooter>
         </Card>
       </div>
