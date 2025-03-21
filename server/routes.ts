@@ -255,10 +255,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get valuation table
   app.get("/api/valuation-table", async (req, res) => {
     try {
+      console.log("Fetching valuation table...");
       const valuationTable = await storage.getValuationTable();
+      console.log("Valuation table data:", valuationTable);
       res.json(valuationTable);
     } catch (error) {
-      res.status(500).json({ message: "Error fetching valuation table", error: error.message });
+      console.error("Error fetching valuation table:", error);
+      res.status(500).json({ message: "Error fetching valuation table", error: String(error) });
     }
   });
   

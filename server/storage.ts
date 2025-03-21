@@ -552,8 +552,11 @@ export class MemStorage implements IStorage {
 
   // Valuation table methods
   async getValuationTable(): Promise<ValuationTable[]> {
-    return Array.from(this.valuationTable.values())
-      .sort((a, b) => a.difference - b.difference);
+    console.log("Memory storage - fetching valuation table");
+    const entries = Array.from(this.valuationTable.values());
+    console.log(`Memory storage - found ${entries.length} entries`);
+    console.log("Memory storage - sample entry:", entries.length > 0 ? JSON.stringify(entries[0]) : "none");
+    return entries.sort((a, b) => a.difference - b.difference);
   }
 
   async getValuationEntry(difference: number): Promise<ValuationTable | undefined> {
@@ -1309,9 +1312,20 @@ export class DatabaseStorage implements IStorage {
   
   // Métodos da tabela de valorização
   async getValuationTable(): Promise<ValuationTable[]> {
-    return await db.select()
-      .from(valuationTable)
-      .orderBy(asc(valuationTable.difference));
+    console.log("Database storage - fetching valuation table");
+    try {
+      const entries = await db.select()
+        .from(valuationTable)
+        .orderBy(asc(valuationTable.difference));
+      
+      console.log(`Database storage - found ${entries.length} entries`);
+      console.log("Database storage - sample entry:", entries.length > 0 ? JSON.stringify(entries[0]) : "none");
+      
+      return entries;
+    } catch (error) {
+      console.error("Database storage - error fetching valuation table:", error);
+      throw error;
+    }
   }
   
   async getValuationEntry(difference: number): Promise<ValuationTable | undefined> {
