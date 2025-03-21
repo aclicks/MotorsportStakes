@@ -722,11 +722,11 @@ export default function DriversTeamsForm() {
                           Engine
                         </Label>
                         <Select
-                          value={teamForm.engineId !== null ? teamForm.engineId.toString() : ""}
+                          value={teamForm.engineId !== null ? teamForm.engineId.toString() : "none"}
                           onValueChange={(value) =>
                             setTeamForm({
                               ...teamForm,
-                              engineId: value ? parseInt(value) : null,
+                              engineId: value !== "none" ? parseInt(value) : null,
                             })
                           }
                         >
@@ -734,7 +734,7 @@ export default function DriversTeamsForm() {
                             <SelectValue placeholder="Select Engine" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">None</SelectItem>
+                            <SelectItem value="none">None</SelectItem>
                             {engines.map((engine) => (
                               <SelectItem key={engine.id} value={engine.id.toString()}>
                                 {engine.name}
