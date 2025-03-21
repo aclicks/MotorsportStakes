@@ -1,5 +1,6 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
+import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { Express } from "express";
 import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
@@ -58,6 +59,50 @@ export function setupAuth(app: Express) {
         return done(error);
       }
     }),
+  );
+  
+  passport.use(
+    new GoogleStrategy(
+      {
+        clientID: process.env.GOOGLE_CLIENT_ID!,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+        callbackURL: "/api/auth/google/callback",
+        scope: ["profile", "email"],
+      },
+      async (accessToken, refreshToken, profile, done) => {
+        try {
+          // Try to find user with Google ID
+          let user = await storage.getUserByGoogleId(profile.id);
+          
+          if (!user) {
+            // Try to find user with the email from Google
+            const email = profile.emails?.[0]?.value;
+            if (email) {
+              user = await storage.getUserByEmail(email);
+            }
+            
+            if (user) {
+              // Update existing user with Google ID
+              user = await storage.updateUser(user.id, { googleId: profile.id });
+            } else {
+              // Create new user
+              const randomPassword = randomBytes(16).toString("hex");
+              user = await storage.createUser({
+                username: profile.displayName.replace(/\s+/g, "_").toLowerCase() || `google_${profile.id}`,
+                email: email || "",
+                password: await hashPassword(randomPassword),
+                isAdmin: false,
+                googleId: profile.id,
+              });
+            }
+          }
+          
+          return done(null, user);
+        } catch (error) {
+          return done(error as Error);
+        }
+      }
+    )
   );
 
   passport.serializeUser((user, done) => done(null, user.id));
