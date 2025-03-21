@@ -127,6 +127,13 @@ export const insertRaceResultSchema = createInsertSchema(raceResults).omit({
   valuation: true,
 });
 
+// Schema for race result updates that includes valuation field
+export const updateRaceResultSchema = createInsertSchema(raceResults)
+  .partial()
+  .extend({
+    valuation: z.number().nullable().optional(),
+  });
+
 // Relações dos resultados das corridas
 export const raceResultsRelations = relations(raceResults, ({ one }) => ({
   race: one(races, {

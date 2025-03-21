@@ -6,7 +6,7 @@ import {
   Race, InsertRace, RaceResult, InsertRaceResult,
   PerformanceHistory, InsertPerformanceHistory, 
   ValuationTable, InsertValuationTable,
-  UserTeam, InsertUserTeam, updateRaceSchema
+  UserTeam, InsertUserTeam, updateRaceSchema, updateRaceResultSchema
 } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
@@ -1521,7 +1521,8 @@ export class DatabaseStorage implements IStorage {
       // Atualizar resultado com valorização
       const result = results.find(r => r.driverId === driver.id);
       if (result) {
-        await this.updateRaceResult(result.id, { valuation: valuation });
+        const resultUpdate = updateRaceResultSchema.parse({ valuation: valuation });
+        await this.updateRaceResult(result.id, resultUpdate);
       }
       
       // Armazenar no histórico de performance
