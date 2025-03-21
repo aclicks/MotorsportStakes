@@ -1210,6 +1210,28 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
   
+  async deleteRace(id: number): Promise<boolean> {
+    try {
+      // First, delete all associated race results
+      await this.deleteRaceResults(id);
+      
+      // Delete performance history related to this race
+      await db
+        .delete(performanceHistory)
+        .where(eq(performanceHistory.raceId, id));
+      
+      // Finally, delete the race itself
+      const result = await db
+        .delete(races)
+        .where(eq(races.id, id));
+      
+      return true;
+    } catch (error) {
+      console.error("Error deleting race:", error);
+      return false;
+    }
+  }
+  
   // Métodos de resultados de corrida
   async getRaceResults(raceId: number): Promise<RaceResult[]> {
     return await db.select()

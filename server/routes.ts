@@ -587,6 +587,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Error updating race", error: String(error) });
     }
   });
+  
+  // Delete race
+  app.delete("/api/admin/races/:id", isAdmin, async (req, res) => {
+    try {
+      console.log("Deleting race");
+      
+      const raceId = parseInt(req.params.id);
+      const race = await storage.getRace(raceId);
+      
+      if (!race) {
+        return res.status(404).json({ message: "Race not found" });
+      }
+      
+      // If race had results submitted, we need to check if it's safe to delete
+      if (race.resultsSubmitted) {
+        return res.status(400).json({ 
+          message: "Cannot delete race with submitted results. This would affect team valuations and player credits. Remove race results first." 
+        });
+      }
+      
+      const success = await storage.deleteRace(raceId);
+      
+      if (success) {
+        res.status(200).json({ message: "Race deleted successfully" });
+      } else {
+        res.status(500).json({ message: "Failed to delete race" });
+      }
+    } catch (error) {
+      console.error("Race deletion error:", error);
+      res.status(500).json({ message: "Error deleting race", error: String(error) });
+    }
+  });
 
   // Submit race results
   app.post("/api/admin/races/:id/results", isAdmin, async (req, res) => {
