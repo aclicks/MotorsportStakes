@@ -556,18 +556,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log("Date value for update:", date);
       
-      // Ensure we have a proper date string in ISO format
-      let parsedDate = date;
+      // Ensure we have a proper Date object
+      let parsedDate;
       if (date) {
         try {
-          // Handle both date objects and strings
+          // Convert the string ISO date to a Date object
           if (typeof date === 'string') {
-            parsedDate = new Date(date).toISOString();
+            parsedDate = new Date(date);
           } else if (date instanceof Date) {
-            parsedDate = date.toISOString();
+            parsedDate = date;
           } else if (typeof date === 'object' && date.toISOString) {
-            parsedDate = date.toISOString();
+            parsedDate = new Date(date.toISOString());
           }
+          
+          if (isNaN(parsedDate.getTime())) {
+            throw new Error("Invalid date");
+          }
+          
           console.log("Parsed date for update:", parsedDate);
         } catch (err) {
           console.error("Date parsing error in update:", err);
