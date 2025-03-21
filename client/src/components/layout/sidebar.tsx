@@ -16,16 +16,16 @@ const NavLink = ({ href, icon, children, onClick }: NavLinkProps) => {
   return (
     <li>
       <Link href={href}>
-        <a
+        <div
           onClick={onClick}
           className={cn(
-            "flex items-center p-3 rounded-lg text-neutral-300 hover:bg-neutral-700 transition-colors",
+            "flex items-center p-3 rounded-lg text-neutral-300 hover:bg-neutral-700 transition-colors cursor-pointer",
             isActive && "bg-neutral-700 text-white"
           )}
         >
           <i className={`${icon} w-5 text-center mr-3`}></i>
           <span>{children}</span>
-        </a>
+        </div>
       </Link>
     </li>
   );

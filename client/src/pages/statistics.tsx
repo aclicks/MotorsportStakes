@@ -40,21 +40,26 @@ export default function Statistics() {
   const [entityType, setEntityType] = useState<"driver" | "team" | "engine">("driver");
   const [selectedId, setSelectedId] = useState<string>("");
 
+  // Define tipos para os dados de classificação
+  type DriverStanding = { position: number; driver: Driver & { team?: Team } };
+  type TeamStanding = { position: number; team: Team };
+  type EngineStanding = { position: number; engine: Engine };
+
   // Fetch drivers, teams, and engines for dropdowns
-  const { data: driversData, isLoading: isLoadingDrivers } = useQuery({
+  const { data: driversData, isLoading: isLoadingDrivers } = useQuery<DriverStanding[]>({
     queryKey: ["/api/standings/drivers"],
   });
-  const drivers = driversData?.map(item => item.driver);
+  const drivers = driversData ? driversData.map(item => item.driver) : [];
 
-  const { data: teamsData, isLoading: isLoadingTeams } = useQuery({
+  const { data: teamsData, isLoading: isLoadingTeams } = useQuery<TeamStanding[]>({
     queryKey: ["/api/standings/teams"],
   });
-  const teams = teamsData?.map(item => item.team);
+  const teams = teamsData ? teamsData.map(item => item.team) : [];
 
-  const { data: enginesData, isLoading: isLoadingEngines } = useQuery({
+  const { data: enginesData, isLoading: isLoadingEngines } = useQuery<EngineStanding[]>({
     queryKey: ["/api/standings/engines"],
   });
-  const engines = enginesData?.map(item => item.engine);
+  const engines = enginesData ? enginesData.map(item => item.engine) : [];
 
   // Fetch performance history for selected entity
   const { data: history, isLoading: isLoadingHistory } = useQuery<EnhancedPerformanceHistory[]>({
@@ -70,17 +75,19 @@ export default function Statistics() {
   }));
 
   // Find the name of the selected entity
-  const getEntityName = () => {
+  const getEntityName = (): string => {
     if (!selectedId) return "";
     
     const id = parseInt(selectedId);
     switch (entityType) {
       case "driver":
-        return drivers?.find(d => d.id === id)?.name || "";
+        return drivers?.find((d: Driver) => d.id === id)?.name || "";
       case "team":
-        return teams?.find(t => t.id === id)?.name || "";
+        return teams?.find((t: Team) => t.id === id)?.name || "";
       case "engine":
-        return engines?.find(e => e.id === id)?.name || "";
+        return engines?.find((e: Engine) => e.id === id)?.name || "";
+      default:
+        return "";
     }
   };
 
@@ -121,7 +128,7 @@ export default function Statistics() {
                         <Skeleton className="h-5 w-full" />
                       </div>
                     ) : (
-                      drivers?.map((driver) => (
+                      drivers.map((driver: Driver) => (
                         <SelectItem key={driver.id} value={driver.id.toString()}>
                           {driver.name} ({driver.number})
                         </SelectItem>
@@ -144,7 +151,7 @@ export default function Statistics() {
                         <Skeleton className="h-5 w-full" />
                       </div>
                     ) : (
-                      teams?.map((team) => (
+                      teams.map((team: Team) => (
                         <SelectItem key={team.id} value={team.id.toString()}>
                           {team.name}
                         </SelectItem>
@@ -167,7 +174,7 @@ export default function Statistics() {
                         <Skeleton className="h-5 w-full" />
                       </div>
                     ) : (
-                      engines?.map((engine) => (
+                      engines.map((engine: Engine) => (
                         <SelectItem key={engine.id} value={engine.id.toString()}>
                           {engine.name}
                         </SelectItem>
