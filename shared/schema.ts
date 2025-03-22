@@ -44,16 +44,17 @@ export const updateRaceSchema = createInsertSchema(races)
   .extend({
     resultsSubmitted: z.boolean().optional(),
   })
+  // Make the date optional but validate it if provided
   .extend({
     date: z.preprocess(
       (arg) => {
+        if (arg === undefined) return undefined;
         if (typeof arg === 'string' || arg instanceof Date) return new Date(arg);
         return arg;
       },
       z.date({
-        required_error: "Date is required",
         invalid_type_error: "Invalid date format",
-      })
+      }).optional(),
     ),
   });
 
