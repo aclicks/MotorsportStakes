@@ -14,7 +14,8 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  Legend, 
+  Legend,
+  ReferenceLine,
   ResponsiveContainer 
 } from "recharts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -73,6 +74,11 @@ export default function Statistics() {
     position: entry.position,
     date: entry.race?.date ? format(new Date(entry.race.date), "dd MMM yyyy") : "",
   }));
+  
+  // Calculate average position for the entity
+  const averagePosition = chartData && chartData.length > 0
+    ? Number((chartData.reduce((sum, entry) => sum + entry.position, 0) / chartData.length).toFixed(2))
+    : undefined;
 
   // Find the name of the selected entity
   const getEntityName = (): string => {
@@ -187,9 +193,16 @@ export default function Statistics() {
 
             {selectedId && (
               <div className="mt-6">
-                <h3 className="text-lg font-medium mb-4">
-                  Histórico de Desempenho: {getEntityName()}
-                </h3>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-medium">
+                    Histórico de Desempenho: {getEntityName()}
+                  </h3>
+                  {averagePosition !== undefined && (
+                    <div className="bg-primary/10 text-primary px-4 py-2 rounded-md">
+                      <span className="font-medium">Posição Média:</span> {averagePosition}
+                    </div>
+                  )}
+                </div>
                 {isLoadingHistory ? (
                   <Skeleton className="h-[400px] w-full" />
                 ) : !history || history.length === 0 ? (
@@ -207,22 +220,86 @@ export default function Statistics() {
                         bottom: 5,
                       }}
                     >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.4} />
+                      <XAxis 
+                        dataKey="name" 
+                        tick={{ fill: '#666' }}
+                        tickSize={8}
+                        axisLine={{ stroke: '#999' }}
+                        tickMargin={10}
+                      />
                       {/* Posição invertida para melhor visualização (menor = melhor) */}
-                      <YAxis reversed domain={[1, 20]} />
+                      <YAxis 
+                        reversed 
+                        domain={[1, 20]}
+                        tick={{ fill: '#666' }}
+                        axisLine={{ stroke: '#999' }}
+                        tickSize={8}
+                        tickCount={10}
+                        label={{ 
+                          value: 'Posição Final', 
+                          angle: -90, 
+                          position: 'insideLeft',
+                          style: { textAnchor: 'middle', fill: '#666' }
+                        }}
+                      />
                       <Tooltip
-                        formatter={(value: number) => [`Posição: ${value}`, 'Posição']}
-                        labelFormatter={(label) => `Corrida: ${label}`}
+                        formatter={(value: number) => {
+                          return [
+                            `${value}ª Posição`, 
+                            value < (averagePosition || 10) 
+                              ? 'Acima da Média 🔼' 
+                              : value > (averagePosition || 10) 
+                                ? 'Abaixo da Média 🔽' 
+                                : 'Na Média ◼️'
+                          ];
+                        }}
+                        labelFormatter={(label, entries) => {
+                          const entry = entries[0]?.payload;
+                          return entry?.date 
+                            ? `${label} | ${entry.date}` 
+                            : `${label}`;
+                        }}
+                        contentStyle={{ 
+                          backgroundColor: "rgba(255, 255, 255, 0.8)",
+                          borderRadius: "5px",
+                          padding: "10px",
+                          border: "1px solid #ccc" 
+                        }}
                       />
                       <Legend />
                       <Line
                         type="monotone"
                         dataKey="position"
-                        stroke="#8884d8"
-                        activeDot={{ r: 8 }}
+                        stroke="var(--primary)"
+                        strokeWidth={3}
+                        dot={{ 
+                          stroke: 'var(--primary)', 
+                          strokeWidth: 2, 
+                          r: 6,
+                          fill: 'white' 
+                        }}
+                        activeDot={{ 
+                          r: 8, 
+                          stroke: 'var(--primary)',
+                          strokeWidth: 2,
+                          fill: 'var(--primary)' 
+                        }}
                         name="Posição"
                       />
+                      {averagePosition !== undefined && (
+                        <ReferenceLine
+                          y={averagePosition}
+                          stroke="#ff7300"
+                          strokeDasharray="3 3"
+                          label={{
+                            value: `Média: ${averagePosition}`,
+                            fill: '#ff7300',
+                            fontSize: 12,
+                            position: 'insideBottomRight'
+                          }}
+                        />
+                      )}
                     </LineChart>
                   </ResponsiveContainer>
                 )}
