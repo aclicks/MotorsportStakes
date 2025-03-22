@@ -224,29 +224,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return { ...driver, team, averagePosition };
       }));
       
-      // Enhance engines with average position
+      // Calculate team data first to use for engine average calculations
+      const teamsWithEngines = await Promise.all(teams.map(async (team) => {
+        const engine = team.engineId ? await storage.getEngine(team.engineId) : null;
+        return { ...team, engine };
+      }));
+      
+      // Enhance engines with average position based on teams using this engine
       const enginesWithAverage = await Promise.all(engines.map(async (engine) => {
-        const history = await storage.getPerformanceHistory(engine.id, 'engine');
+        // Find teams using this engine
+        const engineTeams = teamsWithEngines.filter(team => team.engineId === engine.id);
         
         let averagePosition = null;
-        if (history.length > 0) {
-          const positions = history.map(entry => entry.position);
-          averagePosition = positions.reduce((sum, pos) => sum + pos, 0) / positions.length;
-          averagePosition = Math.round(averagePosition * 100) / 100;
+        if (engineTeams.length > 0) {
+          // Get average positions from teams with this engine
+          const teamsWithDriversAvg = engineTeams.filter(team => {
+            // Find all drivers belonging to this team
+            const teamDrivers = driversWithTeams.filter(driver => driver.teamId === team.id);
+            
+            // At least one driver must have an average position
+            return teamDrivers.some(driver => driver.averagePosition !== null);
+          });
+          
+          if (teamsWithDriversAvg.length > 0) {
+            // Calculate team averages first using the same method as above
+            const teamAverages = teamsWithDriversAvg.map(team => {
+              const teamDrivers = driversWithTeams.filter(driver => driver.teamId === team.id);
+              const driversWithPositions = teamDrivers.filter(driver => driver.averagePosition !== null);
+              
+              if (driversWithPositions.length > 0) {
+                return driversWithPositions.reduce(
+                  (sum, driver) => sum + (driver.averagePosition || 0), 0
+                ) / driversWithPositions.length;
+              }
+              return null;
+            }).filter(avg => avg !== null) as number[];
+            
+            // Average of team averages
+            if (teamAverages.length > 0) {
+              averagePosition = Math.round(
+                (teamAverages.reduce((sum, pos) => sum + pos, 0) / teamAverages.length) * 100
+              ) / 100;
+            }
+          }
         }
         
         return { ...engine, averagePosition };
       }));
       
-      // Enhance teams with average position
+      // Enhance teams with average position based on their drivers' average positions
       const teamsWithAverage = await Promise.all(teams.map(async (team) => {
-        const history = await storage.getPerformanceHistory(team.id, 'team');
+        // Find drivers belonging to this team
+        const teamDrivers = driversWithTeams.filter(driver => driver.teamId === team.id);
         
         let averagePosition = null;
-        if (history.length > 0) {
-          const positions = history.map(entry => entry.position);
-          averagePosition = positions.reduce((sum, pos) => sum + pos, 0) / positions.length;
-          averagePosition = Math.round(averagePosition * 100) / 100;
+        if (teamDrivers.length > 0) {
+          // Filter out drivers without average positions
+          const driversWithPositions = teamDrivers.filter(driver => driver.averagePosition !== null);
+          
+          if (driversWithPositions.length > 0) {
+            // Calculate average of the drivers' average positions
+            const totalAverage = driversWithPositions.reduce(
+              (sum, driver) => sum + (driver.averagePosition || 0), 0
+            ) / driversWithPositions.length;
+            
+            averagePosition = Math.round(totalAverage * 100) / 100;
+          }
         }
         
         return { ...team, averagePosition };
