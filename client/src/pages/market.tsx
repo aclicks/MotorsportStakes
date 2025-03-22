@@ -6,9 +6,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Driver, Engine, Team } from "@shared/schema";
 
 interface MarketData {
-  drivers: (Driver & { team?: Team })[];
-  engines: Engine[];
-  teams: Team[];
+  drivers: (Driver & { team?: Team; averagePosition?: number })[];
+  engines: (Engine & { averagePosition?: number })[];
+  teams: (Team & { averagePosition?: number })[];
 }
 
 export default function Market() {
@@ -47,6 +47,7 @@ export default function Market() {
                         <TableHead>Driver</TableHead>
                         <TableHead>Team</TableHead>
                         <TableHead className="text-right">Value</TableHead>
+                        <TableHead className="text-right">Avg Position</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -61,6 +62,9 @@ export default function Market() {
                           <TableCell>{driver.team?.name}</TableCell>
                           <TableCell className="text-right font-medium text-success">
                             {driver.value}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {driver.averagePosition !== undefined ? driver.averagePosition : "—"}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -80,6 +84,7 @@ export default function Market() {
                       <TableRow className="bg-neutral-100">
                         <TableHead>Engine</TableHead>
                         <TableHead className="text-right">Value</TableHead>
+                        <TableHead className="text-right">Avg Position</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -95,6 +100,9 @@ export default function Market() {
                           </TableCell>
                           <TableCell className="text-right font-medium text-success">
                             {engine.value}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {engine.averagePosition !== undefined ? engine.averagePosition : "—"}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -114,6 +122,7 @@ export default function Market() {
                       <TableRow className="bg-neutral-100">
                         <TableHead>Chassis</TableHead>
                         <TableHead className="text-right">Value</TableHead>
+                        <TableHead className="text-right">Avg Position</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -129,6 +138,9 @@ export default function Market() {
                           </TableCell>
                           <TableCell className="text-right font-medium text-success">
                             {team.value}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {team.averagePosition !== undefined ? team.averagePosition : "—"}
                           </TableCell>
                         </TableRow>
                       ))}

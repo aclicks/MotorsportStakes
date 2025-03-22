@@ -21,8 +21,8 @@ interface TeamWithAverage extends Team {
 interface TeamSelectionProps {
   team: UserTeamComplete;
   drivers: DriverWithTeam[];
-  engines: Engine[];
-  teams: Team[];
+  engines: EngineWithAverage[];
+  teams: TeamWithAverage[];
   onSave: (data: {
     driver1Id: number | null;
     driver2Id: number | null;
@@ -78,8 +78,8 @@ export function TeamSelection({
 
   const selectedDriver1 = drivers.find((d) => d.id === selectedDriver1Id);
   const selectedDriver2 = drivers.find((d) => d.id === selectedDriver2Id);
-  const selectedEngine = engines.find((e) => e.id === selectedEngineId);
-  const selectedTeam = teams.find((t) => t.id === selectedTeamId);
+  const selectedEngine = engines.find((e) => e.id === selectedEngineId) as EngineWithAverage | undefined;
+  const selectedTeam = teams.find((t) => t.id === selectedTeamId) as TeamWithAverage | undefined;
 
   const calculateTotalCost = () => {
     let cost = 0;
