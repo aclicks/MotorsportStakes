@@ -1516,9 +1516,11 @@ export class DatabaseStorage implements IStorage {
       
       console.log(`Found valuation entry for difference ${difference}: ${valuation.percentageChange}`);
       return valuation ? parseFloat(valuation.percentageChange.toString()) : 0;
-    } catch (error) {
-      console.error(`Error calculating driver valuation: ${error.message}`);
-      console.error(error.stack);
+    } catch (error: any) {
+      console.error(`Error calculating driver valuation: ${error.message || 'Unknown error'}`);
+      if (error.stack) {
+        console.error(error.stack);
+      }
       // Return 0 instead of throwing to prevent the entire process from failing
       return 0;
     }
@@ -1598,76 +1600,17 @@ export class DatabaseStorage implements IStorage {
       
       console.log(`Is first race of the season: ${isFirstRace}`);
       
-      // For the first race, use a flat valuation of 0 for all assets
-      if (isFirstRace) {
-        console.log("This is the first race of the season. Setting all valuations to 0.");
-        
-        // Mark race as having results
-        const raceUpdate = updateRaceSchema.parse({ resultsSubmitted: true });
-        await this.updateRace(raceId, raceUpdate);
-        
-        // Set zero valuation for all race results
-        for (const result of results) {
-          await this.updateRaceResult(result.id, { valuation: 0 });
-        }
-        
-        // Create performance history entries with zero valuations
-        const allDrivers = await this.getDrivers();
-        const allEngines = await this.getEngines();
-        const allTeams = await this.getTeams();
-        
-        // Store performance history for drivers
-        for (const driver of allDrivers) {
-          const result = results.find(r => r.driverId === driver.id);
-          await this.createPerformanceHistory({
-            driverId: driver.id,
-            teamId: null,
-            engineId: null,
-            raceId,
-            position: result ? result.position : 0,
-          });
-        }
-        
-        // Store performance history for engines (position 0 since not applicable)
-        for (const engine of allEngines) {
-          await this.createPerformanceHistory({
-            driverId: null,
-            teamId: null,
-            engineId: engine.id,
-            raceId,
-            position: 0,
-          });
-        }
-        
-        // Store performance history for teams (position 0 since not applicable)
-        for (const team of allTeams) {
-          await this.createPerformanceHistory({
-            driverId: null,
-            teamId: team.id,
-            engineId: null,
-            raceId,
-            position: 0,
-          });
-        }
-        
-        // Update user team credits for first race
-        console.log("Updating user team credits for first race (with zero valuations)");
-        const allUserTeams = await db.select().from(userTeams);
-        console.log(`Found ${allUserTeams.length} user teams to update`);
-        
-        // For first race, we don't change value but still need to establish baseline
-        for (const userTeam of allUserTeams) {
-          console.log(`Processing first race data for user team: ${userTeam.name} (ID: ${userTeam.id})`);
-        }
-        
-        console.log("Completed first race processing with zero valuations.");
-        return;
-      }
+      // Even for the first race, we'll calculate valuations using ghost results
+      console.log(`Processing race ${raceId}, round ${race.round}`);
+      
+      // Mark race as having results
+      const raceUpdate = updateRaceSchema.parse({ resultsSubmitted: true });
+      await this.updateRace(raceId, raceUpdate);
+      
+      // No special handling for first race anymore since we use ghost results
+      // We'll calculate valuations normally for all races including the first one
       
       console.log("Starting regular valuation calculations...");
-      
-      // Marcar corrida como tendo resultados
-      await this.updateRace(raceId, { resultsSubmitted: true });
       
       // Calcular valorizações para pilotos
       const allDrivers = await this.getDrivers();
@@ -1820,8 +1763,8 @@ export class DatabaseStorage implements IStorage {
       
       console.log("Completed user team credit updates");
       console.log("Valuation application complete");
-    } catch (error) {
-      console.error("Error applying valuations:", error);
+    } catch (error: any) {
+      console.error("Error applying valuations:", error.message || error);
       throw error;
     }
   }
