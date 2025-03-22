@@ -1,6 +1,6 @@
 import { 
   users, drivers, engines, teams, races, raceResults, 
-  performanceHistory, valuationTable, userTeams,
+  performanceHistory, valuationTable, userTeams, gameSettings,
   User, InsertUser, Driver, InsertDriver, 
   Engine, InsertEngine, Team, InsertTeam, 
   Race, InsertRace, RaceResult, InsertRaceResult,
@@ -111,6 +111,7 @@ export class MemStorage implements IStorage {
   private performanceHistory: Map<number, PerformanceHistory>;
   private valuationTable: Map<number, ValuationTable>;
   private userTeams: Map<number, UserTeam>;
+  private gameSettings: Map<string, string>;
   
   sessionStore: any; // session.Store
   
@@ -133,6 +134,7 @@ export class MemStorage implements IStorage {
     this.performanceHistory = new Map();
     this.valuationTable = new Map();
     this.userTeams = new Map();
+    this.gameSettings = new Map();
     
     this.userIdCounter = 1;
     this.driverIdCounter = 1;
@@ -286,6 +288,9 @@ export class MemStorage implements IStorage {
         percentageChange: Math.round(percentChange).toString(),
       });
     }
+    
+    // Initialize game settings with betting open by default
+    this.gameSettings.set('betting_open', 'true');
   }
 
   // User methods
@@ -1777,46 +1782,11 @@ export class DatabaseStorage implements IStorage {
   
   // Game settings methods
   async getGameSetting(key: string): Promise<string | null> {
-    try {
-      const [setting] = await db
-        .select()
-        .from(gameSettings)
-        .where(eq(gameSettings.key, key));
-      
-      return setting ? setting.value : null;
-    } catch (error) {
-      console.error(`Error fetching game setting ${key}:`, error);
-      return null;
-    }
+    return this.gameSettings.get(key) || null;
   }
   
   async updateGameSetting(key: string, value: string): Promise<void> {
-    try {
-      // Check if the setting exists
-      const [existing] = await db
-        .select()
-        .from(gameSettings)
-        .where(eq(gameSettings.key, key));
-      
-      if (existing) {
-        // Update existing setting
-        await db
-          .update(gameSettings)
-          .set({ value, updatedAt: new Date() })
-          .where(eq(gameSettings.key, key));
-      } else {
-        // Create new setting
-        await db
-          .insert(gameSettings)
-          .values({
-            key,
-            value,
-          });
-      }
-    } catch (error) {
-      console.error(`Error updating game setting ${key}:`, error);
-      throw new Error(`Failed to update game setting ${key}`);
-    }
+    this.gameSettings.set(key, value);
   }
   
   // Specific methods for betting status

@@ -724,7 +724,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get betting status
+  app.get("/api/betting-status", async (req, res) => {
+    try {
+      const isOpen = await storage.isBettingOpen();
+      res.json({ isOpen });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      res.status(500).json({ message: "Error getting betting status", error: errorMessage });
+    }
+  });
+
   // ADMIN ROUTES
+  
+  // Update betting status
+  app.post("/api/admin/betting-status", isAdmin, async (req, res) => {
+    try {
+      const { isOpen } = req.body;
+      
+      if (typeof isOpen !== 'boolean') {
+        return res.status(400).json({ message: "isOpen must be a boolean" });
+      }
+      
+      await storage.setBettingStatus(isOpen);
+      res.json({ 
+        message: `Betting is now ${isOpen ? 'open' : 'closed'}`,
+        isOpen
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      res.status(500).json({ message: "Error updating betting status", error: errorMessage });
+    }
+  });
 
   // Create race
   app.post("/api/admin/races", isAdmin, async (req, res) => {
