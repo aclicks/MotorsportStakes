@@ -216,9 +216,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         let averagePosition = null;
         if (history.length > 0) {
-          const positions = history.map(entry => entry.position);
-          averagePosition = positions.reduce((sum, pos) => sum + pos, 0) / positions.length;
-          averagePosition = Math.round(averagePosition * 100) / 100;
+          // Filter out any invalid positions (like 0 or null)
+          const validPositions = history
+            .map(entry => entry.position)
+            .filter(pos => pos !== null && pos !== undefined && pos > 0);
+            
+          if (validPositions.length > 0) {
+            averagePosition = validPositions.reduce((sum, pos) => sum + pos, 0) / validPositions.length;
+            averagePosition = Math.round(averagePosition * 100) / 100;
+          }
         }
         
         return { ...driver, team, averagePosition };
@@ -237,35 +243,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         let averagePosition = null;
         if (engineTeams.length > 0) {
-          // Get average positions from teams with this engine
-          const teamsWithDriversAvg = engineTeams.filter(team => {
-            // Find all drivers belonging to this team
-            const teamDrivers = driversWithTeams.filter(driver => driver.teamId === team.id);
-            
-            // At least one driver must have an average position
-            return teamDrivers.some(driver => driver.averagePosition !== null);
-          });
+          // Find all drivers from teams using this engine
+          const allEngineDrivers = driversWithTeams.filter(driver => 
+            engineTeams.some(team => team.id === driver.teamId)
+          );
           
-          if (teamsWithDriversAvg.length > 0) {
-            // Calculate team averages first using the same method as above
-            const teamAverages = teamsWithDriversAvg.map(team => {
-              const teamDrivers = driversWithTeams.filter(driver => driver.teamId === team.id);
-              const driversWithPositions = teamDrivers.filter(driver => driver.averagePosition !== null);
-              
-              if (driversWithPositions.length > 0) {
-                return driversWithPositions.reduce(
-                  (sum, driver) => sum + (driver.averagePosition || 0), 0
-                ) / driversWithPositions.length;
-              }
-              return null;
-            }).filter(avg => avg !== null) as number[];
-            
-            // Average of team averages
-            if (teamAverages.length > 0) {
-              averagePosition = Math.round(
-                (teamAverages.reduce((sum, pos) => sum + pos, 0) / teamAverages.length) * 100
-              ) / 100;
-            }
+          // Only consider drivers with valid average positions
+          const driversWithPositions = allEngineDrivers.filter(driver => 
+            driver.averagePosition !== null && driver.averagePosition !== undefined
+          );
+          
+          // Calculate direct average of all drivers using this engine
+          if (driversWithPositions.length > 0) {
+            averagePosition = Math.round(
+              (driversWithPositions.reduce(
+                (sum, driver) => sum + (driver.averagePosition || 0), 0
+              ) / driversWithPositions.length) * 100
+            ) / 100;
           }
         }
         
@@ -280,7 +274,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         let averagePosition = null;
         if (teamDrivers.length > 0) {
           // Filter out drivers without average positions
-          const driversWithPositions = teamDrivers.filter(driver => driver.averagePosition !== null);
+          const driversWithPositions = teamDrivers.filter(driver => 
+            driver.averagePosition !== null && driver.averagePosition !== undefined
+          );
           
           if (driversWithPositions.length > 0) {
             // Calculate average of the drivers' average positions
@@ -607,7 +603,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Calculate average position if we have results
           let avgPosition = 0;
           if (teamResults.length > 0) {
-            avgPosition = teamResults.reduce((sum, result) => sum + result.position, 0) / teamResults.length;
+            // Filter out any invalid positions (like 0 or null)
+            const validPositions = teamResults
+              .map(result => result.position)
+              .filter(pos => pos !== null && pos !== undefined && pos > 0);
+              
+            if (validPositions.length > 0) {
+              avgPosition = validPositions.reduce((sum, pos) => sum + pos, 0) / validPositions.length;
+            }
           }
           
           return {
@@ -660,7 +663,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Calculate average position if we have results
           let avgPosition = 0;
           if (engineResults.length > 0) {
-            avgPosition = engineResults.reduce((sum, result) => sum + result.position, 0) / engineResults.length;
+            // Filter out any invalid positions (like 0 or null)
+            const validPositions = engineResults
+              .map(result => result.position)
+              .filter(pos => pos !== null && pos !== undefined && pos > 0);
+              
+            if (validPositions.length > 0) {
+              avgPosition = validPositions.reduce((sum, pos) => sum + pos, 0) / validPositions.length;
+            }
           }
           
           return {
