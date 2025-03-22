@@ -1417,6 +1417,13 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log(`Calculating valuation for driver ${driverId} in race ${raceId}`);
       
+      // Get the race to check if it's the first race (round 1)
+      const race = await this.getRace(raceId);
+      if (!race) {
+        console.error(`Race with ID ${raceId} not found`);
+        return 0;
+      }
+      
       // Obter resultado atual da corrida
       const results = await this.getRaceResults(raceId);
       console.log(`Found ${results.length} results for race ${raceId}`);
@@ -1444,39 +1451,56 @@ export class DatabaseStorage implements IStorage {
         return 0;
       }
       
-      if (raceIndex < 3) {
-        // Não há corridas suficientes para comparação
-        console.log(`Not enough previous races for comparison (index: ${raceIndex})`);
-        return 0;
-      }
+      // Check if this is the first race (round 1)
+      const isFirstRace = race.round === 1;
+      console.log(`Is first race (round 1): ${isFirstRace}`);
       
-      const previousRaces = allRaces.slice(raceIndex - 3, raceIndex);
-      console.log(`Previous races for comparison: ${previousRaces.map(r => r.name).join(', ')}`);
+      let previousResults: number[] = [];
       
-      const previousResults: number[] = [];
-      
-      for (const race of previousRaces) {
-        console.log(`Checking results for previous race: ${race.name} (ID: ${race.id})`);
-        const raceResults = await this.getRaceResults(race.id);
-        console.log(`Found ${raceResults.length} results for race ${race.id}`);
+      if (isFirstRace) {
+        // For the first race, create 3 "ghost" results with position 10
+        console.log(`Creating ghost results for first race comparison`);
+        previousResults = [10, 10, 10]; // Three ghost results with position 10
+        console.log(`Using ghost results: ${previousResults.join(', ')}`);
+      } else {
+        // For subsequent races, get actual previous race results
+        const previousRaces = allRaces.slice(raceIndex - 3, raceIndex);
+        console.log(`Previous races for comparison: ${previousRaces.map(r => r.name).join(', ')}`);
         
-        const driverResult = raceResults.find(r => r.driverId === driverId);
-        if (driverResult) {
-          console.log(`Found previous result for driver ${driverId}: position ${driverResult.position}`);
-          previousResults.push(driverResult.position);
-        } else {
-          console.log(`No previous result found for driver ${driverId} in race ${race.id}`);
+        for (const race of previousRaces) {
+          console.log(`Checking results for previous race: ${race.name} (ID: ${race.id})`);
+          
+          // Special handling for races before the first actual race
+          if (race.round < 1) {
+            // This is a "phantom" race before the first real race
+            console.log(`Adding ghost result (position 10) for race before first real race`);
+            previousResults.push(10);
+            continue;
+          }
+          
+          const raceResults = await this.getRaceResults(race.id);
+          console.log(`Found ${raceResults.length} results for race ${race.id}`);
+          
+          const driverResult = raceResults.find(r => r.driverId === driverId);
+          if (driverResult) {
+            console.log(`Found previous result for driver ${driverId}: position ${driverResult.position}`);
+            previousResults.push(driverResult.position);
+          } else {
+            // If no result found for this driver, assume average position (10)
+            console.log(`No previous result found for driver ${driverId} in race ${race.id}, using position 10`);
+            previousResults.push(10);
+          }
         }
       }
       
       if (previousResults.length === 0) {
-        console.log(`No previous results found for driver ${driverId}, returning 0`);
-        return 0;
+        console.log(`No previous results found for driver ${driverId}, using ghost results`);
+        previousResults = [10, 10, 10]; // Default to three position 10 results
       }
       
       // Calcular média dos resultados anteriores
       const averagePosition = previousResults.reduce((sum, pos) => sum + pos, 0) / previousResults.length;
-      console.log(`Average position from previous races: ${averagePosition}`);
+      console.log(`Average position from previous races (including ghost results if needed): ${averagePosition}`);
       
       // Calcular diferença
       const difference = Math.round(averagePosition - currentResult.position);
