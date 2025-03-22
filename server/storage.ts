@@ -1782,11 +1782,49 @@ export class DatabaseStorage implements IStorage {
   
   // Game settings methods
   async getGameSetting(key: string): Promise<string | null> {
-    return this.gameSettings.get(key) || null;
+    try {
+      const [setting] = await db
+        .select()
+        .from(gameSettings)
+        .where(eq(gameSettings.key, key));
+      
+      return setting ? setting.value : null;
+    } catch (error) {
+      console.error(`Error retrieving game setting ${key}:`, error);
+      return null;
+    }
   }
   
   async updateGameSetting(key: string, value: string): Promise<void> {
-    this.gameSettings.set(key, value);
+    try {
+      // Check if the setting already exists
+      const existingSetting = await db
+        .select()
+        .from(gameSettings)
+        .where(eq(gameSettings.key, key));
+      
+      if (existingSetting.length > 0) {
+        // Update existing setting
+        await db
+          .update(gameSettings)
+          .set({ 
+            value, 
+            updatedAt: new Date() 
+          })
+          .where(eq(gameSettings.key, key));
+      } else {
+        // Insert new setting
+        await db
+          .insert(gameSettings)
+          .values({
+            key,
+            value,
+            updatedAt: new Date()
+          });
+      }
+    } catch (error) {
+      console.error(`Error updating game setting ${key}:`, error);
+    }
   }
   
   // Specific methods for betting status
