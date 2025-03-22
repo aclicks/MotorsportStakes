@@ -692,6 +692,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           console.log("First race processing completed successfully");
           
+          // Update race to mark results as submitted (in case it wasn't done in applyValuations)
+          const raceUpdate = updateRaceSchema.parse({ resultsSubmitted: true });
+          await storage.updateRace(raceId, raceUpdate);
+          
           return res.status(201).json({ 
             message: "Race results submitted successfully. As this is the first race of the season, all valuation changes are set to 0."
           });
