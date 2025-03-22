@@ -91,6 +91,12 @@ export interface IStorage {
   calculateTeamValuation(teamId: number, raceId: number): Promise<number>;
   applyValuations(raceId: number): Promise<void>;
   
+  // Game settings methods
+  getGameSetting(key: string): Promise<string | null>;
+  updateGameSetting(key: string, value: string): Promise<void>;
+  isBettingOpen(): Promise<boolean>;
+  setBettingStatus(isOpen: boolean): Promise<void>;
+  
   // Session store
   sessionStore: any; // session.Store
 }
@@ -1767,6 +1773,60 @@ export class DatabaseStorage implements IStorage {
       console.error("Error applying valuations:", error.message || error);
       throw error;
     }
+  }
+  
+  // Game settings methods
+  async getGameSetting(key: string): Promise<string | null> {
+    try {
+      const [setting] = await db
+        .select()
+        .from(gameSettings)
+        .where(eq(gameSettings.key, key));
+      
+      return setting ? setting.value : null;
+    } catch (error) {
+      console.error(`Error fetching game setting ${key}:`, error);
+      return null;
+    }
+  }
+  
+  async updateGameSetting(key: string, value: string): Promise<void> {
+    try {
+      // Check if the setting exists
+      const [existing] = await db
+        .select()
+        .from(gameSettings)
+        .where(eq(gameSettings.key, key));
+      
+      if (existing) {
+        // Update existing setting
+        await db
+          .update(gameSettings)
+          .set({ value, updatedAt: new Date() })
+          .where(eq(gameSettings.key, key));
+      } else {
+        // Create new setting
+        await db
+          .insert(gameSettings)
+          .values({
+            key,
+            value,
+          });
+      }
+    } catch (error) {
+      console.error(`Error updating game setting ${key}:`, error);
+      throw new Error(`Failed to update game setting ${key}`);
+    }
+  }
+  
+  // Specific methods for betting status
+  async isBettingOpen(): Promise<boolean> {
+    const value = await this.getGameSetting('betting_open');
+    return value === 'true';
+  }
+  
+  async setBettingStatus(isOpen: boolean): Promise<void> {
+    await this.updateGameSetting('betting_open', isOpen ? 'true' : 'false');
   }
 }
 

@@ -260,6 +260,18 @@ export type UserTeam = typeof userTeams.$inferSelect;
 export type InsertUserTeam = z.infer<typeof insertUserTeamSchema>;
 
 // Enhanced types for frontend
+// Game settings table for global configurations
+export const gameSettings = pgTable("game_settings", {
+  id: serial("id").primaryKey(),
+  key: text("key").notNull().unique(),
+  value: text("value").notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertGameSettingsSchema = createInsertSchema(gameSettings);
+export type GameSetting = typeof gameSettings.$inferSelect;
+export type InsertGameSetting = z.infer<typeof insertGameSettingsSchema>;
+
 export type DriverWithTeam = Driver & { team: Team };
 export type UserTeamComplete = UserTeam & {
   driver1?: DriverWithTeam;
