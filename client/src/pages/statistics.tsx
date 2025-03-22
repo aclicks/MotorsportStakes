@@ -68,14 +68,14 @@ export default function Statistics() {
     enabled: !!selectedId,
   });
 
-  // Prepare data for the chart
+  // Prepare data for the chart - filter out positions that are 0 (invalid)
   const chartData = history?.map((entry) => ({
     name: entry.race?.name || `Race ${entry.raceId}`,
     position: entry.position,
     date: entry.race?.date ? format(new Date(entry.race.date), "dd MMM yyyy") : "",
-  }));
+  })).filter(entry => entry.position > 0);
   
-  // Calculate average position for the entity
+  // Calculate average position for the entity - only consider valid positions
   const averagePosition = chartData && chartData.length > 0
     ? Number((chartData.reduce((sum, entry) => sum + entry.position, 0) / chartData.length).toFixed(2))
     : undefined;
@@ -205,9 +205,9 @@ export default function Statistics() {
                 </div>
                 {isLoadingHistory ? (
                   <Skeleton className="h-[400px] w-full" />
-                ) : !history || history.length === 0 ? (
+                ) : !history || history.length === 0 || !chartData || chartData.length === 0 ? (
                   <div className="text-center py-12 text-neutral-500">
-                    Sem dados históricos disponíveis para esta seleção.
+                    Sem dados históricos disponíveis para esta seleção ou todos os dados de posição são inválidos (posição 0).
                   </div>
                 ) : (
                   <ResponsiveContainer width="100%" height={400}>
