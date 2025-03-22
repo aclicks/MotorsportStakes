@@ -64,7 +64,7 @@ export default function Statistics() {
 
   // Fetch performance history for selected entity
   const { data: history, isLoading: isLoadingHistory } = useQuery<EnhancedPerformanceHistory[]>({
-    queryKey: ["/api/performance-history", entityType, selectedId],
+    queryKey: [selectedId ? `/api/performance-history/${entityType}/${selectedId}` : "/api/performance-history"],
     enabled: !!selectedId,
   });
 
