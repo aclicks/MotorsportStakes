@@ -17,18 +17,34 @@ import { fromZodError } from "zod-validation-error";
 
 // Middleware to check if user is authenticated
 const isAuthenticated = (req: Request, res: Response, next: Function) => {
-  if (req.isAuthenticated()) {
-    return next();
+  try {
+    if (req.isAuthenticated() && req.user) {
+      return next();
+    }
+    // If user is not authenticated or user data is missing, return 401
+    return res.status(401).json({ message: "Unauthorized - Please log in" });
+  } catch (error) {
+    console.error("Authentication middleware error:", error);
+    return res.status(500).json({ message: "Internal server error during authentication check" });
   }
-  res.status(401).json({ message: "Unauthorized" });
 };
 
 // Middleware to check if user is admin
 const isAdmin = (req: Request, res: Response, next: Function) => {
-  if (req.isAuthenticated() && req.user && req.user.isAdmin) {
-    return next();
+  try {
+    if (req.isAuthenticated() && req.user && req.user.isAdmin === true) {
+      return next();
+    }
+    // If user is authenticated but not admin
+    if (req.isAuthenticated()) {
+      return res.status(403).json({ message: "Forbidden - Admin access required" });
+    }
+    // If user is not authenticated at all
+    return res.status(401).json({ message: "Unauthorized - Please log in" });
+  } catch (error) {
+    console.error("Admin check middleware error:", error);
+    return res.status(500).json({ message: "Internal server error during admin access check" });
   }
-  res.status(403).json({ message: "Forbidden - Admin access required" });
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -63,25 +79,110 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Not authenticated" });
       }
       
-      const teams = await storage.getUserTeams(req.user.id);
+      // Fetch user teams
+      let teams = await storage.getUserTeams(req.user.id);
+      
+      // If user has no teams for some reason, create default teams
+      if (!teams || teams.length === 0) {
+        console.log(`No teams found for user ID ${req.user.id}, creating default teams`);
+        try {
+          // Create main team with 1000 credits
+          await storage.createUserTeam({
+            userId: req.user.id,
+            name: "Equipe Principal",
+            initialCredits: 1000,
+            currentCredits: 1000,
+            driver1Id: null,
+            driver2Id: null,
+            engineId: null,
+            teamId: null
+          });
+          
+          // Create secondary team with 700 credits
+          await storage.createUserTeam({
+            userId: req.user.id,
+            name: "Equipe Secundária",
+            initialCredits: 700,
+            currentCredits: 700,
+            driver1Id: null,
+            driver2Id: null,
+            engineId: null,
+            teamId: null
+          });
+          
+          // Fetch newly created teams
+          const newTeams = await storage.getUserTeams(req.user.id);
+          if (!newTeams || newTeams.length === 0) {
+            return res.status(500).json({ message: "Failed to create default teams" });
+          }
+          
+          // Continue with the newly created teams
+          teams = newTeams;
+        } catch (teamError) {
+          console.error("Error creating default teams:", teamError);
+          return res.status(500).json({ message: "Failed to create default teams" });
+        }
+      }
       
       // Enhance teams with complete data
       const enhancedTeams = await Promise.all(teams.map(async (team) => {
-        const driver1 = team.driver1Id ? await storage.getDriver(team.driver1Id) : undefined;
-        const driver2 = team.driver2Id ? await storage.getDriver(team.driver2Id) : undefined;
-        const engine = team.engineId ? await storage.getEngine(team.engineId) : undefined;
-        const chassis = team.teamId ? await storage.getTeam(team.teamId) : undefined;
+        // Get related entities with null checks and error handling
+        let driver1, driver2, engine, chassis;
+        
+        try {
+          driver1 = team.driver1Id ? await storage.getDriver(team.driver1Id) : undefined;
+        } catch (err) {
+          console.error(`Error fetching driver1 (ID: ${team.driver1Id}) for team ${team.id}:`, err);
+          driver1 = undefined;
+        }
+        
+        try {
+          driver2 = team.driver2Id ? await storage.getDriver(team.driver2Id) : undefined;
+        } catch (err) {
+          console.error(`Error fetching driver2 (ID: ${team.driver2Id}) for team ${team.id}:`, err);
+          driver2 = undefined;
+        }
+        
+        try {
+          engine = team.engineId ? await storage.getEngine(team.engineId) : undefined;
+        } catch (err) {
+          console.error(`Error fetching engine (ID: ${team.engineId}) for team ${team.id}:`, err);
+          engine = undefined;
+        }
+        
+        try {
+          chassis = team.teamId ? await storage.getTeam(team.teamId) : undefined;
+        } catch (err) {
+          console.error(`Error fetching chassis (ID: ${team.teamId}) for team ${team.id}:`, err);
+          chassis = undefined;
+        }
         
         // If drivers exist, add their team information
-        const driver1WithTeam = driver1 && {
-          ...driver1,
-          team: driver1.teamId ? await storage.getTeam(driver1.teamId) : undefined
-        };
+        let driver1WithTeam, driver2WithTeam;
         
-        const driver2WithTeam = driver2 && {
-          ...driver2,
-          team: driver2.teamId ? await storage.getTeam(driver2.teamId) : undefined
-        };
+        if (driver1 && driver1.teamId) {
+          try {
+            const driverTeam = await storage.getTeam(driver1.teamId);
+            driver1WithTeam = { ...driver1, team: driverTeam };
+          } catch (err) {
+            console.error(`Error fetching team for driver1 (ID: ${driver1.id}):`, err);
+            driver1WithTeam = { ...driver1, team: undefined };
+          }
+        } else {
+          driver1WithTeam = driver1;
+        }
+        
+        if (driver2 && driver2.teamId) {
+          try {
+            const driverTeam = await storage.getTeam(driver2.teamId);
+            driver2WithTeam = { ...driver2, team: driverTeam };
+          } catch (err) {
+            console.error(`Error fetching team for driver2 (ID: ${driver2.id}):`, err);
+            driver2WithTeam = { ...driver2, team: undefined };
+          }
+        } else {
+          driver2WithTeam = driver2;
+        }
         
         // Calculate total value
         let totalValue = 0;
@@ -102,7 +203,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(enhancedTeams);
     } catch (error) {
-      res.status(500).json({ message: "Error fetching teams", error: (error as Error).message });
+      console.error("Error in /api/my-teams:", error);
+      res.status(500).json({ 
+        message: "Error fetching teams", 
+        error: error instanceof Error ? error.message : String(error)
+      });
     }
   });
 

@@ -36,15 +36,19 @@ export async function comparePasswords(supplied: string, stored: string) {
 
 export function setupAuth(app: Express) {
   const isDevelopment = process.env.NODE_ENV !== "production";
+  const cookieMaxAge = 1000 * 60 * 60 * 24 * 7; // 1 week
+  
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || "motorsport-stakes-secret",
     resave: false,
-    saveUninitialized: true, // Alterado para true para garantir que todas as sessões sejam salvas
+    saveUninitialized: false, // Only save if we have data
     store: storage.sessionStore,
+    rolling: true, // Reset cookie expiration on every response
     cookie: {
-      secure: false, // Desativado secure para desenvolvimento
-      maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
-      sameSite: "lax" // Fixado em lax para melhor compatibilidade
+      secure: !isDevelopment, // Only use secure in production
+      httpOnly: true, // Prevent client-side JS from reading cookie
+      maxAge: cookieMaxAge,
+      sameSite: "lax" // Good balance between security and usability
     }
   };
 
@@ -146,9 +150,15 @@ export function setupAuth(app: Express) {
   passport.deserializeUser(async (id: number, done) => {
     try {
       const user = await storage.getUser(id);
+      if (!user) {
+        // User not found in database, handle gracefully by clearing session
+        return done(null, false);
+      }
       done(null, user);
     } catch (error) {
-      done(error);
+      console.error('Error deserializing user:', error);
+      // Return false instead of the error to prevent crashes
+      done(null, false);
     }
   });
 
