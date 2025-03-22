@@ -3,7 +3,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Driver, Engine, Team, UserTeamComplete } from "@shared/schema";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertTriangle } from "lucide-react";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription, 
+  DialogFooter 
+} from "@/components/ui/dialog";
 
 interface DriverWithTeam extends Driver {
   team?: Team;
@@ -46,6 +54,7 @@ export function TeamSelection({
   const [selectedDriver2Id, setSelectedDriver2Id] = useState<number | null>(team.driver2Id || null);
   const [selectedEngineId, setSelectedEngineId] = useState<number | null>(team.engineId || null);
   const [selectedTeamId, setSelectedTeamId] = useState<number | null>(team.teamId || null);
+  const [showDriverWarning, setShowDriverWarning] = useState(false);
   
   // Atualiza os estados quando o time muda (mudança entre abas)
   useEffect(() => {
@@ -125,11 +134,46 @@ export function TeamSelection({
 
   return (
     <Card>
+      {/* Driver restriction warning dialog */}
+      <Dialog open={showDriverWarning} onOpenChange={setShowDriverWarning}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center">
+              <AlertTriangle className="h-5 w-5 text-amber-500 mr-2" />
+              Driver Selection Restriction
+            </DialogTitle>
+            <DialogDescription className="pt-2">
+              <p className="mb-4">
+                In the Motorsport Stakes game, you cannot select the same driver across multiple teams.
+              </p>
+              <p className="mb-4">
+                Each driver can only be selected once across all your teams. This encourages diverse team compositions and creates more strategic choices.
+              </p>
+              <p>
+                You can use different engines and chassis across your teams, but drivers must be unique to each team.
+              </p>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button onClick={() => setShowDriverWarning(false)}>I understand</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <CardContent className="pt-6 p-6">
         <div className="flex flex-col md:flex-row justify-between mb-6">
           <div>
             <h2 className="text-lg font-semibold text-neutral-800">{team.name}</h2>
-            <p className="text-neutral-500">Select 2 drivers, 1 engine, and 1 chassis.</p>
+            <p className="text-neutral-500">
+              Select 2 drivers, 1 engine, and 1 chassis. 
+              <Button 
+                variant="link" 
+                className="text-primary p-0 h-auto font-normal"
+                onClick={() => setShowDriverWarning(true)}
+              >
+                Driver restrictions apply
+              </Button>
+            </p>
           </div>
           <div className="mt-4 md:mt-0">
             <div className="bg-secondary text-white px-4 py-2 rounded-lg">
