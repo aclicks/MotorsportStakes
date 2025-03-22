@@ -75,6 +75,9 @@ export default function Statistics() {
     date: entry.race?.date ? format(new Date(entry.race.date), "dd MMM yyyy") : "",
   })).filter(entry => entry.position > 0);
   
+  // Log data for debugging
+  console.log(`Statistics chart data for ${entityType} ${selectedId}:`, chartData);
+  
   // Get the average position from standings data when no valid history data
   let averagePosition: number | undefined;
   

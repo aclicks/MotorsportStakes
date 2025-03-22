@@ -561,24 +561,146 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid ID" });
       }
       
-      // Get the performance history
-      const history = await storage.getPerformanceHistory(entityId, type as 'driver' | 'team' | 'engine');
-      
-      // Get race information for each history entry
-      const enhancedHistory = await Promise.all(history.map(async (entry) => {
-        const race = await storage.getRace(entry.raceId);
-        return {
-          ...entry,
-          race
-        };
-      }));
-      
-      // Sort by race date
-      enhancedHistory.sort((a, b) => {
-        return new Date(a.race!.date).getTime() - new Date(b.race!.date).getTime();
-      });
-      
-      res.json(enhancedHistory);
+      if (type === "driver") {
+        // For drivers, get the regular performance history
+        const history = await storage.getPerformanceHistory(entityId, 'driver');
+        
+        // Get race information for each history entry
+        const enhancedHistory = await Promise.all(history.map(async (entry) => {
+          const race = await storage.getRace(entry.raceId);
+          return {
+            ...entry,
+            race
+          };
+        }));
+        
+        // Sort by race date
+        enhancedHistory.sort((a, b) => {
+          return new Date(a.race!.date).getTime() - new Date(b.race!.date).getTime();
+        });
+        
+        return res.json(enhancedHistory);
+      }
+      else if (type === "team") {
+        // For teams, calculate the average position of the two drivers
+        const races = await storage.getRaces();
+        const team = await storage.getTeam(entityId);
+        
+        if (!team) {
+          return res.status(404).json({ message: "Team not found" });
+        }
+        
+        // Get all drivers from this team
+        const allDrivers = await storage.getDrivers();
+        const teamDrivers = allDrivers.filter(driver => driver.teamId === entityId);
+        
+        // Prepare history data for each race
+        const historyData = await Promise.all(races.map(async (race) => {
+          // Get results for this race
+          const raceResults = await storage.getRaceResults(race.id);
+          
+          // Find results for the team's drivers
+          const teamResults = raceResults.filter(result => 
+            teamDrivers.some(driver => driver.id === result.driverId)
+          );
+          
+          // Calculate average position if we have results
+          let avgPosition = 0;
+          if (teamResults.length > 0) {
+            avgPosition = teamResults.reduce((sum, result) => sum + result.position, 0) / teamResults.length;
+          }
+          
+          return {
+            id: 0, // Placeholder ID
+            driverId: null,
+            teamId: entityId,
+            engineId: null,
+            raceId: race.id,
+            position: avgPosition,
+            race
+          };
+        }));
+        
+        // Filter out races without results and sort by date
+        const validHistory = historyData
+          .filter(entry => entry.position > 0)
+          .sort((a, b) => new Date(a.race.date).getTime() - new Date(b.race.date).getTime());
+        
+        return res.json(validHistory);
+      } 
+      else if (type === "engine") {
+        // For engines, calculate the average position of all cars using this engine
+        const races = await storage.getRaces();
+        const engine = await storage.getEngine(entityId);
+        
+        if (!engine) {
+          return res.status(404).json({ message: "Engine not found" });
+        }
+        
+        // Get all teams using this engine
+        const allTeams = await storage.getTeams();
+        const engineTeams = allTeams.filter(team => team.engineId === entityId);
+        
+        // Get all drivers from these teams
+        const allDrivers = await storage.getDrivers();
+        const engineDrivers = allDrivers.filter(driver => 
+          engineTeams.some(team => team.id === driver.teamId)
+        );
+        
+        // Prepare history data for each race
+        const historyData = await Promise.all(races.map(async (race) => {
+          // Get results for this race
+          const raceResults = await storage.getRaceResults(race.id);
+          
+          // Find results for the engine's drivers
+          const engineResults = raceResults.filter(result => 
+            engineDrivers.some(driver => driver.id === result.driverId)
+          );
+          
+          // Calculate average position if we have results
+          let avgPosition = 0;
+          if (engineResults.length > 0) {
+            avgPosition = engineResults.reduce((sum, result) => sum + result.position, 0) / engineResults.length;
+          }
+          
+          return {
+            id: 0, // Placeholder ID
+            driverId: null,
+            teamId: null,
+            engineId: entityId,
+            raceId: race.id,
+            position: avgPosition,
+            race
+          };
+        }));
+        
+        // Filter out races without results and sort by date
+        const validHistory = historyData
+          .filter(entry => entry.position > 0)
+          .sort((a, b) => new Date(a.race.date).getTime() - new Date(b.race.date).getTime());
+        
+        return res.json(validHistory);
+      } 
+      else {
+        // Default case (should never happen due to the check above)
+        const history = await storage.getPerformanceHistory(entityId, type as 'driver' | 'team' | 'engine');
+        
+        // Get race information for each history entry
+        const enhancedHistory = await Promise.all(history.map(async (entry) => {
+          const race = await storage.getRace(entry.raceId);
+          return {
+            ...entry,
+            race
+          };
+        }));
+        
+        // Sort by race date
+        enhancedHistory.sort((a, b) => {
+          return new Date(a.race!.date).getTime() - new Date(b.race!.date).getTime();
+        });
+        
+        return res.json(enhancedHistory);
+      }
     } catch (error) {
       res.status(500).json({ message: "Error fetching performance history", error: (error as Error).message });
     }
