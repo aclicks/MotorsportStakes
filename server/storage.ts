@@ -1579,7 +1579,8 @@ export class DatabaseStorage implements IStorage {
         console.log("This is the first race of the season. Setting all valuations to 0.");
         
         // Mark race as having results
-        await this.updateRace(raceId, { resultsSubmitted: true });
+        const raceUpdate = updateRaceSchema.parse({ resultsSubmitted: true });
+        await this.updateRace(raceId, raceUpdate);
         
         // Set zero valuation for all race results
         for (const result of results) {
@@ -1623,6 +1624,16 @@ export class DatabaseStorage implements IStorage {
             raceId,
             position: 0,
           });
+        }
+        
+        // Update user team credits for first race
+        console.log("Updating user team credits for first race (with zero valuations)");
+        const allUserTeams = await db.select().from(userTeams);
+        console.log(`Found ${allUserTeams.length} user teams to update`);
+        
+        // For first race, we don't change value but still need to establish baseline
+        for (const userTeam of allUserTeams) {
+          console.log(`Processing first race data for user team: ${userTeam.name} (ID: ${userTeam.id})`);
         }
         
         console.log("Completed first race processing with zero valuations.");

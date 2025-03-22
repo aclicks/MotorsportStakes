@@ -683,21 +683,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // For the first race of the season, handle differently
       if (isFirstRace) {
-        console.log("This is the first race of the season, skipping valuation calculations");
+        console.log("This is the first race of the season, using special handling");
         
-        // Update race results to add zero valuation for all results
-        const savedResults = await storage.getRaceResults(raceId);
-        for (const result of savedResults) {
-          await storage.updateRaceResult(result.id, { valuation: 0 });
+        try {
+          // Use the specialized handling in applyValuations for first race
+          // This will set valuations to 0 and create performance history
+          await storage.applyValuations(raceId);
+          
+          console.log("First race processing completed successfully");
+          
+          return res.status(201).json({ 
+            message: "Race results submitted successfully. As this is the first race of the season, all valuation changes are set to 0."
+          });
+        } catch (error) {
+          console.error("Error processing first race:", error);
+          return res.status(500).json({
+            message: "Error processing first race results",
+            error: error instanceof Error ? error.message : String(error)
+          });
         }
-        
-        // Mark race as submitted
-        const raceUpdate = updateRaceSchema.parse({ resultsSubmitted: true });
-        await storage.updateRace(raceId, raceUpdate);
-        
-        return res.status(201).json({ 
-          message: "Race results submitted successfully. As this is the first race of the season, all valuation changes are set to 0."
-        });
       }
       
       // For non-first races, calculate and apply valuations
