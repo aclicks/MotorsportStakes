@@ -7,6 +7,15 @@ import { Loader2 } from "lucide-react";
 
 interface DriverWithTeam extends Driver {
   team?: Team;
+  averagePosition?: number;
+}
+
+interface EngineWithAverage extends Engine {
+  averagePosition?: number;
+}
+
+interface TeamWithAverage extends Team {
+  averagePosition?: number;
 }
 
 interface TeamSelectionProps {
@@ -165,8 +174,13 @@ export function TeamSelection({
                         {selectedDriver1.team?.name || "No Team"}
                       </p>
                     </div>
-                    <div className="ml-auto">
+                    <div className="ml-auto flex flex-col items-end">
                       <span className="text-lg font-bold text-primary">{selectedDriver1.value}</span>
+                      {selectedDriver1.averagePosition !== undefined && (
+                        <span className="text-xs text-neutral-500">
+                          Avg Pos: {selectedDriver1.averagePosition}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -208,8 +222,13 @@ export function TeamSelection({
                         {selectedDriver2.team?.name || "No Team"}
                       </p>
                     </div>
-                    <div className="ml-auto">
+                    <div className="ml-auto flex flex-col items-end">
                       <span className="text-lg font-bold text-primary">{selectedDriver2.value}</span>
+                      {selectedDriver2.averagePosition !== undefined && (
+                        <span className="text-xs text-neutral-500">
+                          Avg Pos: {selectedDriver2.averagePosition}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -254,8 +273,13 @@ export function TeamSelection({
                       <p className="font-medium text-neutral-800">{selectedEngine.name}</p>
                       <p className="text-sm text-neutral-500">Engine</p>
                     </div>
-                    <div className="ml-auto">
+                    <div className="ml-auto flex flex-col items-end">
                       <span className="text-lg font-bold text-primary">{selectedEngine.value}</span>
+                      {selectedEngine.averagePosition !== undefined && (
+                        <span className="text-xs text-neutral-500">
+                          Avg Pos: {selectedEngine.averagePosition}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -300,8 +324,13 @@ export function TeamSelection({
                       <p className="font-medium text-neutral-800">{selectedTeam.name}</p>
                       <p className="text-sm text-neutral-500">Chassis</p>
                     </div>
-                    <div className="ml-auto">
+                    <div className="ml-auto flex flex-col items-end">
                       <span className="text-lg font-bold text-primary">{selectedTeam.value}</span>
+                      {selectedTeam.averagePosition !== undefined && (
+                        <span className="text-xs text-neutral-500">
+                          Avg Pos: {selectedTeam.averagePosition}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>

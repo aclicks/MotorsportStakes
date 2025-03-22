@@ -171,6 +171,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get average position for an entity (driver, team, engine)
+  app.get("/api/average-position/:type/:id", async (req, res) => {
+    try {
+      const { type, id } = req.params;
+      const entityId = parseInt(id);
+      
+      if (!["driver", "team", "engine"].includes(type)) {
+        return res.status(400).json({ message: "Type must be driver, team, or engine" });
+      }
+      
+      if (isNaN(entityId)) {
+        return res.status(400).json({ message: "Invalid ID" });
+      }
+      
+      // Get the performance history
+      const history = await storage.getPerformanceHistory(entityId, type as 'driver' | 'team' | 'engine');
+      
+      if (history.length === 0) {
+        return res.json({ averagePosition: null });
+      }
+      
+      // Calculate average position
+      const positions = history.map(entry => entry.position);
+      const averagePosition = positions.reduce((sum, pos) => sum + pos, 0) / positions.length;
+      
+      res.json({ averagePosition: Math.round(averagePosition * 100) / 100 });
+    } catch (error) {
+      res.status(500).json({ message: "Error calculating average position", error: (error as Error).message });
+    }
+  });
+
   // Get market data (all available drivers, engines, chassis)
   app.get("/api/market", async (req, res) => {
     try {
@@ -178,16 +209,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const engines = await storage.getEngines();
       const teams = await storage.getTeams();
       
-      // Enhance drivers with team data
+      // Enhance drivers with team data and average position
       const driversWithTeams = await Promise.all(drivers.map(async (driver) => {
         const team = driver.teamId ? await storage.getTeam(driver.teamId) : undefined;
-        return { ...driver, team };
+        const history = await storage.getPerformanceHistory(driver.id, 'driver');
+        
+        let averagePosition = null;
+        if (history.length > 0) {
+          const positions = history.map(entry => entry.position);
+          averagePosition = positions.reduce((sum, pos) => sum + pos, 0) / positions.length;
+          averagePosition = Math.round(averagePosition * 100) / 100;
+        }
+        
+        return { ...driver, team, averagePosition };
+      }));
+      
+      // Enhance engines with average position
+      const enginesWithAverage = await Promise.all(engines.map(async (engine) => {
+        const history = await storage.getPerformanceHistory(engine.id, 'engine');
+        
+        let averagePosition = null;
+        if (history.length > 0) {
+          const positions = history.map(entry => entry.position);
+          averagePosition = positions.reduce((sum, pos) => sum + pos, 0) / positions.length;
+          averagePosition = Math.round(averagePosition * 100) / 100;
+        }
+        
+        return { ...engine, averagePosition };
+      }));
+      
+      // Enhance teams with average position
+      const teamsWithAverage = await Promise.all(teams.map(async (team) => {
+        const history = await storage.getPerformanceHistory(team.id, 'team');
+        
+        let averagePosition = null;
+        if (history.length > 0) {
+          const positions = history.map(entry => entry.position);
+          averagePosition = positions.reduce((sum, pos) => sum + pos, 0) / positions.length;
+          averagePosition = Math.round(averagePosition * 100) / 100;
+        }
+        
+        return { ...team, averagePosition };
       }));
       
       res.json({
         drivers: driversWithTeams,
-        engines,
-        teams
+        engines: enginesWithAverage,
+        teams: teamsWithAverage
       });
     } catch (error) {
       res.status(500).json({ message: "Error fetching market data", error: error.message });
