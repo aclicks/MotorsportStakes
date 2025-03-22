@@ -231,6 +231,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const { driver1Id, driver2Id, engineId, teamId: chassisId } = req.body;
       
+      // Check for duplicate driver selection within the same team
+      if (driver1Id && driver2Id && driver1Id === driver2Id) {
+        return res.status(400).json({ 
+          message: "Cannot select the same driver twice in the same team" 
+        });
+      }
+      
+      // Check for duplicate driver selection across user's teams
+      // Get all of the user's teams
+      const userTeams = await storage.getUserTeams(req.user.id);
+      
+      // Filter out the current team being updated
+      const otherTeams = userTeams.filter(t => t.id !== teamId);
+      
+      // Check if selected drivers are already used in any of the user's other teams
+      for (const otherTeam of otherTeams) {
+        // Check driver1Id against both drivers in other team
+        if (driver1Id && (driver1Id === otherTeam.driver1Id || driver1Id === otherTeam.driver2Id)) {
+          return res.status(400).json({ 
+            message: `Driver cannot be selected in both teams. This driver is already in your "${otherTeam.name}" team.` 
+          });
+        }
+        
+        // Check driver2Id against both drivers in other team
+        if (driver2Id && (driver2Id === otherTeam.driver1Id || driver2Id === otherTeam.driver2Id)) {
+          return res.status(400).json({ 
+            message: `Driver cannot be selected in both teams. This driver is already in your "${otherTeam.name}" team.` 
+          });
+        }
+      }
+      
       // Validate credit balance
       let totalCost = 0;
       
@@ -272,7 +303,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(updatedTeam);
     } catch (error) {
-      res.status(500).json({ message: "Error updating team", error: error.message });
+      console.error("Error updating team:", error);
+      res.status(500).json({ 
+        message: "Error updating team", 
+        error: error instanceof Error ? error.message : String(error)  
+      });
     }
   });
 
