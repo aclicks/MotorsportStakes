@@ -30,6 +30,7 @@ interface TeamSelectionProps {
     teamId: number | null;
   }) => void;
   isPending: boolean;
+  disabled?: boolean;
 }
 
 export function TeamSelection({
@@ -39,6 +40,7 @@ export function TeamSelection({
   teams,
   onSave,
   isPending,
+  disabled = false,
 }: TeamSelectionProps) {
   const [selectedDriver1Id, setSelectedDriver1Id] = useState<number | null>(team.driver1Id || null);
   const [selectedDriver2Id, setSelectedDriver2Id] = useState<number | null>(team.driver2Id || null);
@@ -149,6 +151,7 @@ export function TeamSelection({
               <Select
                 value={selectedDriver1Id?.toString()}
                 onValueChange={(value) => setSelectedDriver1Id(value ? parseInt(value) : null)}
+                disabled={disabled}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select Driver" />
@@ -197,6 +200,7 @@ export function TeamSelection({
               <Select
                 value={selectedDriver2Id?.toString()}
                 onValueChange={(value) => setSelectedDriver2Id(value ? parseInt(value) : null)}
+                disabled={disabled}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select Driver" />
@@ -247,6 +251,7 @@ export function TeamSelection({
               <Select
                 value={selectedEngineId?.toString()}
                 onValueChange={(value) => setSelectedEngineId(value ? parseInt(value) : null)}
+                disabled={disabled}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select Engine" />
@@ -296,6 +301,7 @@ export function TeamSelection({
               <Select
                 value={selectedTeamId?.toString()}
                 onValueChange={(value) => setSelectedTeamId(value ? parseInt(value) : null)}
+                disabled={disabled}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select Chassis" />
@@ -351,7 +357,12 @@ export function TeamSelection({
                 A driver in your team has been retired. Please select a new driver.
               </div>
             )}
-            {!hasChanges && !isOverBudget && !((!selectedDriver1Id && team.driver1Id) || (!selectedDriver2Id && team.driver2Id)) && (
+            {disabled && (
+              <div className="text-sm text-amber-500 font-medium">
+                Betting is currently closed. You cannot make changes to your team.
+              </div>
+            )}
+            {!disabled && !hasChanges && !isOverBudget && !((!selectedDriver1Id && team.driver1Id) || (!selectedDriver2Id && team.driver2Id)) && (
               <div className="text-sm text-neutral-500">
                 Make changes to your team to save.
               </div>
@@ -360,7 +371,7 @@ export function TeamSelection({
           <Button
             onClick={handleSave}
             className="bg-primary hover:bg-primary/90 text-white px-8"
-            disabled={isPending || isOverBudget || !hasChanges}
+            disabled={isPending || isOverBudget || !hasChanges || disabled}
             size="lg"
           >
             {isPending ? (

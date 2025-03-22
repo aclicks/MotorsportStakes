@@ -138,6 +138,9 @@ export class MemStorage implements IStorage {
     
     this.userIdCounter = 1;
     this.driverIdCounter = 1;
+    
+    // Initialize game settings
+    this.gameSettings.set('betting_open', 'true');
     this.engineIdCounter = 1;
     this.teamIdCounter = 1;
     this.raceIdCounter = 1;
@@ -288,9 +291,6 @@ export class MemStorage implements IStorage {
         percentageChange: Math.round(percentChange).toString(),
       });
     }
-    
-    // Initialize game settings with betting open by default
-    this.gameSettings.set('betting_open', 'true');
   }
 
   // User methods
@@ -857,6 +857,25 @@ export class MemStorage implements IStorage {
       this.userTeams.set(userTeam.id, userTeam);
     }
   }
+
+  // Game settings methods
+  async getGameSetting(key: string): Promise<string | null> {
+    return this.gameSettings.get(key) || null;
+  }
+  
+  async updateGameSetting(key: string, value: string): Promise<void> {
+    this.gameSettings.set(key, value);
+  }
+  
+  // Specific methods for betting status
+  async isBettingOpen(): Promise<boolean> {
+    const value = await this.getGameSetting('betting_open');
+    return value === 'true';
+  }
+  
+  async setBettingStatus(isOpen: boolean): Promise<void> {
+    await this.updateGameSetting('betting_open', isOpen ? 'true' : 'false');
+  }
 }
 
 // Implementação da classe DatabaseStorage usando PostgreSQL e Drizzle ORM
@@ -1026,6 +1045,9 @@ export class DatabaseStorage implements IStorage {
         percentageChange: Math.round(percentChange).toString(),
       });
     }
+    
+    // Initialize game settings
+    await this.updateGameSetting('betting_open', 'true');
   }
   
   // Métodos de usuário
@@ -1783,12 +1805,13 @@ export class DatabaseStorage implements IStorage {
   // Game settings methods
   async getGameSetting(key: string): Promise<string | null> {
     try {
-      const [setting] = await db
+      const settings = await db
         .select()
         .from(gameSettings)
-        .where(eq(gameSettings.key, key));
+        .where(eq(gameSettings.key, key))
+        .limit(1);
       
-      return setting ? setting.value : null;
+      return settings.length > 0 ? settings[0].value : null;
     } catch (error) {
       console.error(`Error retrieving game setting ${key}:`, error);
       return null;
@@ -1801,7 +1824,8 @@ export class DatabaseStorage implements IStorage {
       const existingSetting = await db
         .select()
         .from(gameSettings)
-        .where(eq(gameSettings.key, key));
+        .where(eq(gameSettings.key, key))
+        .limit(1);
       
       if (existingSetting.length > 0) {
         // Update existing setting

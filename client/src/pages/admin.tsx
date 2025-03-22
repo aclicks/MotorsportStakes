@@ -8,6 +8,7 @@ import RaceResultsForm from "@/components/admin/race-results-form";
 import RaceCalendarForm from "@/components/admin/race-calendar-form";
 import ValuationTableForm from "@/components/admin/valuation-table-form";
 import DriversTeamsForm from "@/components/admin/drivers-teams-form";
+import BettingStatusForm from "@/components/admin/betting-status-form";
 import { Redirect } from "wouter";
 
 export default function Admin() {
@@ -40,6 +41,11 @@ export default function Admin() {
           </div>
         </div>
       </header>
+
+      {/* Betting Status Control */}
+      <div className="mb-6">
+        <BettingStatusForm />
+      </div>
 
       {/* Admin Navigation Tabs */}
       <div className="mb-6">
