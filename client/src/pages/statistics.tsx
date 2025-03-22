@@ -75,10 +75,31 @@ export default function Statistics() {
     date: entry.race?.date ? format(new Date(entry.race.date), "dd MMM yyyy") : "",
   })).filter(entry => entry.position > 0);
   
-  // Calculate average position for the entity - only consider valid positions
-  const averagePosition = chartData && chartData.length > 0
-    ? Number((chartData.reduce((sum, entry) => sum + entry.position, 0) / chartData.length).toFixed(2))
-    : undefined;
+  // Get the average position from standings data when no valid history data
+  let averagePosition: number | undefined;
+  
+  // First try to get it from race history data
+  if (chartData && chartData.length > 0) {
+    averagePosition = Number((chartData.reduce((sum, entry) => sum + entry.position, 0) / chartData.length).toFixed(2));
+  } 
+  // If no valid race history data, try to get the position from standings
+  else if (selectedId) {
+    const id = parseInt(selectedId);
+    switch (entityType) {
+      case "driver":
+        const driverStanding = driversData?.find(item => item.driver.id === id);
+        averagePosition = driverStanding?.position;
+        break;
+      case "team":
+        const teamStanding = teamsData?.find(item => item.team.id === id);
+        averagePosition = teamStanding?.position;
+        break;
+      case "engine":
+        const engineStanding = enginesData?.find(item => item.engine.id === id);
+        averagePosition = engineStanding?.position;
+        break;
+    }
+  }
 
   // Find the name of the selected entity
   const getEntityName = (): string => {
@@ -207,7 +228,14 @@ export default function Statistics() {
                   <Skeleton className="h-[400px] w-full" />
                 ) : !history || history.length === 0 || !chartData || chartData.length === 0 ? (
                   <div className="text-center py-12 text-neutral-500">
-                    Sem dados históricos disponíveis para esta seleção ou todos os dados de posição são inválidos (posição 0).
+                    {averagePosition !== undefined ? (
+                      <>
+                        <p className="mb-2">Sem dados históricos de corridas disponíveis para este {entityType === "driver" ? "piloto" : entityType === "team" ? "equipe" : "motor"}.</p>
+                        <p>Posição atual no campeonato: <span className="font-semibold text-primary">{averagePosition}º lugar</span></p>
+                      </>
+                    ) : (
+                      "Sem dados históricos disponíveis para esta seleção ou todos os dados de posição são inválidos (posição 0)."
+                    )}
                   </div>
                 ) : (
                   <ResponsiveContainer width="100%" height={400}>
