@@ -3,7 +3,10 @@ import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, RefreshCw } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import RaceResultsForm from "@/components/admin/race-results-form";
 import RaceCalendarForm from "@/components/admin/race-calendar-form";
 import ValuationTableForm from "@/components/admin/valuation-table-form";
@@ -14,6 +17,43 @@ import { Redirect } from "wouter";
 export default function Admin() {
   const [activeTab, setActiveTab] = useState("race-results");
   const { user } = useAuth();
+  const { toast } = useToast();
+
+  // Revert Chinese GP valuations to Australian GP values
+  const revertChineseGPMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/admin/revert-chinese-gp-valuations", {});
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Chinese GP Valuations Reverted",
+        description: "Successfully reverted Chinese GP valuations to Australian GP values.",
+      });
+      
+      // Invalidate relevant queries
+      queryClient.invalidateQueries({ queryKey: ["/api/market"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/my-teams"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/standings/drivers"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/standings/teams"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/standings/engines"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/leaderboard"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Reversion Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Handle revert Chinese GP valuations action
+  const handleRevertChineseGP = () => {
+    if (confirm("Are you sure you want to revert Chinese GP valuations to Australian GP values? This action cannot be undone.")) {
+      revertChineseGPMutation.mutate();
+    }
+  };
 
   // Redirect if not admin
   if (user && !user.isAdmin) {
@@ -29,6 +69,16 @@ export default function Admin() {
             <p className="text-neutral-500">Manage race results, calendar, and game data.</p>
           </div>
           <div className="flex gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-1"
+              onClick={handleRevertChineseGP}
+              disabled={revertChineseGPMutation.isPending}
+            >
+              <RefreshCw className={`h-4 w-4 ${revertChineseGPMutation.isPending ? 'animate-spin' : ''}`} />
+              {revertChineseGPMutation.isPending ? 'Reverting...' : 'Revert Chinese GP'}
+            </Button>
             <Button
               variant="outline"
               size="sm"
