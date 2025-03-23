@@ -83,6 +83,7 @@ export default function Statistics() {
   });
 
   // Get the current value of the selected entity
+  let databaseValue: number | undefined;
   let currentValue: number | undefined;
   let entityPositionInStandings: number | undefined;
   
@@ -91,17 +92,17 @@ export default function Statistics() {
     switch (entityType) {
       case "driver":
         const driverStanding = driversData?.find(item => item.driver.id === id);
-        currentValue = driverStanding?.driver.value;
+        databaseValue = driverStanding?.driver.value;
         entityPositionInStandings = driverStanding?.position;
         break;
       case "team":
         const teamStanding = teamsData?.find(item => item.team.id === id);
-        currentValue = teamStanding?.team.value;
+        databaseValue = teamStanding?.team.value;
         entityPositionInStandings = teamStanding?.position;
         break;
       case "engine":
         const engineStanding = enginesData?.find(item => item.engine.id === id);
-        currentValue = engineStanding?.engine.value;
+        databaseValue = engineStanding?.engine.value;
         entityPositionInStandings = engineStanding?.position;
         break;
     }
@@ -152,15 +153,26 @@ export default function Statistics() {
   if (valueData && valueData.length > 0) {
     // Use actual asset value history data
     chartData = valueData;
+    
+    // Get the most recent value for the "Valor Atual" display
+    const latestValueData = [...valueData].sort((a, b) => b.timestamp - a.timestamp)[0];
+    if (latestValueData) {
+      currentValue = latestValueData.value;
+    }
+    
     console.log(`Using real asset value history data for ${entityType} ${selectedId}:`, chartData);
-  } else if (positionData && positionData.length > 0 && currentValue) {
-    // Fallback to position data with current value
+  } else if (positionData && positionData.length > 0 && databaseValue) {
+    // Fallback to position data with database value
     chartData = positionData.map(race => ({
       name: race.name,
       date: race.date,
-      value: currentValue
+      value: databaseValue
     }));
+    currentValue = databaseValue;
     console.log(`Using fallback data for ${entityType} ${selectedId}:`, chartData);
+  } else {
+    // No data available, use database value if available
+    currentValue = databaseValue;
   }
   
   // Log data for debugging
