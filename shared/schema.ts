@@ -75,6 +75,7 @@ export const engines = pgTable("engines", {
   id: serial("id").primaryKey(),
   name: text("name").notNull().unique(),
   value: integer("value").notNull(),
+  valueUpdatedAt: timestamp("value_updated_at"),
 });
 
 export const insertEngineSchema = createInsertSchema(engines).omit({
@@ -100,6 +101,7 @@ export const drivers = pgTable("drivers", {
   lastRace1Position: integer("last_race1_position"),
   lastRace2Position: integer("last_race2_position"),
   lastRace3Position: integer("last_race3_position"),
+  valueUpdatedAt: timestamp("value_updated_at"),
 });
 
 export const insertDriverSchema = createInsertSchema(drivers).omit({

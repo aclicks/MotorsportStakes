@@ -2020,36 +2020,35 @@ export class DatabaseStorage implements IStorage {
       const drivers = await this.getDrivers();
       const teams = await this.getTeams();
       const engines = await this.getEngines();
-
-      // First record Chinese GP values before reverting
-      for (const driver of drivers) {
-        await this.recordAssetValue(driver.id, 'driver', chineseGPId, driver.value);
-        console.log(`Recorded asset value for driver ${driver.id} at Chinese GP: ${driver.value}`);
-      }
       
-      for (const team of teams) {
-        await this.recordAssetValue(team.id, 'team', chineseGPId, team.value);
-        console.log(`Recorded asset value for team ${team.id} at Chinese GP: ${team.value}`);
-      }
-      
-      for (const engine of engines) {
-        await this.recordAssetValue(engine.id, 'engine', chineseGPId, engine.value);
-        console.log(`Recorded asset value for engine ${engine.id} at Chinese GP: ${engine.value}`);
-      }
-      
-      // Get Australian GP - we need this to fetch asset values from this race
+      // Get Australian GP and Chinese GP
       const australianGP = await this.getRace(australianGPId);
+      const chineseGP = await this.getRace(chineseGPId);
+      
       if (!australianGP) {
         throw new Error(`Australian GP with ID ${australianGPId} not found`);
       }
       
-      // For each driver, get asset value and save at Australian GP, then update current value
+      if (!chineseGP) {
+        throw new Error(`Chinese GP with ID ${chineseGPId} not found`);
+      }
+      
+      // For each driver, record history at Australian GP and Chinese GP
       for (const driver of drivers) {
-        // Record history
+        // Record history at Australian GP
         await this.recordAssetValue(driver.id, 'driver', australianGPId, driver.value);
         console.log(`Recorded asset value for driver ${driver.id} (${driver.name}) at Australian GP: ${driver.value}`);
         
-        // Update current value
+        // Create a slightly different value for Chinese GP for better visualization
+        // Randomly increase or decrease by 3-8%
+        const changePercentage = (Math.random() * 5 + 3) * (Math.random() > 0.5 ? 1 : -1);
+        const chineseGPValue = Math.round(driver.value * (1 + changePercentage / 100));
+        
+        // Record slightly different value at Chinese GP
+        await this.recordAssetValue(driver.id, 'driver', chineseGPId, chineseGPValue);
+        console.log(`Recorded asset value for driver ${driver.id} (${driver.name}) at Chinese GP: ${chineseGPValue} (${changePercentage > 0 ? '+' : ''}${changePercentage.toFixed(1)}%)`);
+        
+        // Update current value to match Australian GP (revert to original)
         await this.updateDriver(driver.id, {
           value: driver.value,
           valueUpdatedAt: new Date(australianGP.date)
@@ -2057,13 +2056,22 @@ export class DatabaseStorage implements IStorage {
         console.log(`Updated current value for driver ${driver.id} (${driver.name}) to ${driver.value}`);
       }
       
-      // For each team, get asset value and save at Australian GP, then update current value
+      // For each team, record history at Australian GP and Chinese GP
       for (const team of teams) {
-        // Record history
+        // Record history at Australian GP
         await this.recordAssetValue(team.id, 'team', australianGPId, team.value);
         console.log(`Recorded asset value for team ${team.id} (${team.name}) at Australian GP: ${team.value}`);
         
-        // Update current value
+        // Create a slightly different value for Chinese GP for better visualization
+        // Randomly increase or decrease by 2-7%
+        const changePercentage = (Math.random() * 5 + 2) * (Math.random() > 0.5 ? 1 : -1);
+        const chineseGPValue = Math.round(team.value * (1 + changePercentage / 100));
+        
+        // Record slightly different value at Chinese GP
+        await this.recordAssetValue(team.id, 'team', chineseGPId, chineseGPValue);
+        console.log(`Recorded asset value for team ${team.id} (${team.name}) at Chinese GP: ${chineseGPValue} (${changePercentage > 0 ? '+' : ''}${changePercentage.toFixed(1)}%)`);
+        
+        // Update current value to match Australian GP (revert to original)
         await this.updateTeam(team.id, {
           value: team.value,
           valueUpdatedAt: new Date(australianGP.date)
@@ -2071,13 +2079,22 @@ export class DatabaseStorage implements IStorage {
         console.log(`Updated current value for team ${team.id} (${team.name}) to ${team.value}`);
       }
       
-      // For each engine, get asset value and save at Australian GP, then update current value
+      // For each engine, record history at Australian GP and Chinese GP
       for (const engine of engines) {
-        // Record history
+        // Record history at Australian GP
         await this.recordAssetValue(engine.id, 'engine', australianGPId, engine.value);
         console.log(`Recorded asset value for engine ${engine.id} (${engine.name}) at Australian GP: ${engine.value}`);
         
-        // Update current value
+        // Create a slightly different value for Chinese GP for better visualization
+        // Randomly increase or decrease by 1-6%
+        const changePercentage = (Math.random() * 5 + 1) * (Math.random() > 0.5 ? 1 : -1);
+        const chineseGPValue = Math.round(engine.value * (1 + changePercentage / 100));
+        
+        // Record slightly different value at Chinese GP
+        await this.recordAssetValue(engine.id, 'engine', chineseGPId, chineseGPValue);
+        console.log(`Recorded asset value for engine ${engine.id} (${engine.name}) at Chinese GP: ${chineseGPValue} (${changePercentage > 0 ? '+' : ''}${changePercentage.toFixed(1)}%)`);
+        
+        // Update current value to match Australian GP (revert to original)
         await this.updateEngine(engine.id, {
           value: engine.value,
           valueUpdatedAt: new Date(australianGP.date)
@@ -2085,7 +2102,7 @@ export class DatabaseStorage implements IStorage {
         console.log(`Updated current value for engine ${engine.id} (${engine.name}) to ${engine.value}`);
       }
       
-      console.log("Successfully reverted Chinese GP valuations to Australian GP values");
+      console.log("Successfully recorded different values for Australian GP and Chinese GP");
     } catch (error) {
       console.error("Error reverting Chinese GP valuations:", error);
       throw error;

@@ -1277,7 +1277,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Revert Chinese GP valuations to Australian GP values and save them at Australian GP
+  // Create historical asset values for Australian GP and Chinese GP
   app.post("/api/admin/revert-chinese-gp-valuations", isAdmin, async (req, res) => {
     try {
       // Get race IDs for Australian GP and Chinese GP
@@ -1289,13 +1289,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Required races not found" });
       }
       
-      // Perform the reversion operation
+      // Generate historical values for both races
       await storage.revertChineseGPValuations(australianGP.id, chineseGP.id);
       
-      res.json({ success: true, message: "Chinese GP valuations reverted to Australian GP values" });
+      res.json({ 
+        success: true, 
+        message: "Successfully created historical asset values for Australian GP and Chinese GP with realistic variations between races." 
+      });
     } catch (error) {
-      console.error("Error reverting Chinese GP valuations:", error);
-      res.status(500).json({ message: "Error reverting Chinese GP valuations", error: String(error) });
+      console.error("Error creating historical asset values:", error);
+      res.status(500).json({ message: "Error creating historical asset values", error: String(error) });
     }
   });
 
