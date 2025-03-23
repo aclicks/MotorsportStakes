@@ -790,6 +790,9 @@ export class MemStorage implements IStorage {
       // Removed minimum value restriction
       this.drivers.set(driver.id, driver);
       
+      // Record the new asset value in history
+      await this.recordAssetValue(driver.id, 'driver', raceId, driver.value);
+      
       // Update result with valuation
       const result = results.find(r => r.driverId === driver.id);
       if (result) {
@@ -821,6 +824,9 @@ export class MemStorage implements IStorage {
       // Removed minimum value restriction
       this.engines.set(engine.id, engine);
       
+      // Record the new asset value in history
+      await this.recordAssetValue(engine.id, 'engine', raceId, engine.value);
+      
       // Store in performance history (with average position 0 since it's not applicable)
       await this.createPerformanceHistory({
         driverId: null,
@@ -844,6 +850,9 @@ export class MemStorage implements IStorage {
       team.value += valuationAmount;
       // Removed minimum value restriction
       this.teams.set(team.id, team);
+      
+      // Record the new asset value in history
+      await this.recordAssetValue(team.id, 'team', raceId, team.value);
       
       // Store in performance history (with average position 0 since it's not applicable)
       await this.createPerformanceHistory({
@@ -1883,6 +1892,9 @@ export class DatabaseStorage implements IStorage {
         console.log(`Driver ${driver.name} value update: ${driver.value} -> ${newValue}`);
         await this.updateDriver(driver.id, { value: newValue });
         
+        // Record the new asset value in history
+        await this.recordAssetValue(driver.id, 'driver', raceId, newValue);
+        
         // Atualizar resultado com valorização
         const result = results.find(r => r.driverId === driver.id);
         if (result) {
@@ -1922,6 +1934,9 @@ export class DatabaseStorage implements IStorage {
         // Removed minimum value restriction
         console.log(`Engine ${engine.name} value update: ${engine.value} -> ${newValue}`);
         await this.updateEngine(engine.id, { value: newValue });
+        
+        // Record the new asset value in history
+        await this.recordAssetValue(engine.id, 'engine', raceId, newValue);
         
         // Armazenar no histórico de performance (com posição média 0 já que não é aplicável)
         await this.createPerformanceHistory({
