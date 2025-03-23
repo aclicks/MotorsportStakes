@@ -2256,6 +2256,85 @@ export class DatabaseStorage implements IStorage {
   async setBettingStatus(isOpen: boolean): Promise<void> {
     await this.updateGameSetting('betting_open', isOpen ? 'true' : 'false');
   }
+  
+  /**
+   * Reset the database by:
+   * 1. Keeping initial values (race ID 9999)
+   * 2. Removing all other race results
+   * 3. Removing performance history
+   * 4. Removing asset value history except for initial values
+   * 5. Resetting asset values to their initial values
+   */
+  async resetDatabase(): Promise<void> {
+    try {
+      console.log("Resetting database to initial state...");
+      
+      // Get initial values (race ID 9999)
+      const initialValues = await db
+        .select()
+        .from(assetValueHistory)
+        .where(eq(assetValueHistory.raceId, 9999));
+      
+      console.log(`Found ${initialValues.length} initial asset values`);
+      
+      // 1. Delete all race results except for initial values race
+      await db.delete(raceResults)
+        .where(
+          neq(raceResults.raceId, 9999)
+        );
+      console.log("Deleted all race results");
+      
+      // 2. Delete all performance history
+      await db.delete(performanceHistory);
+      console.log("Deleted all performance history");
+      
+      // 3. Delete all asset value history except for initial values
+      await db.delete(assetValueHistory)
+        .where(
+          neq(assetValueHistory.raceId, 9999)
+        );
+      console.log("Deleted all asset value history except initial values");
+      
+      // 4. Reset all races resultsSubmitted flag to false
+      await db.update(races)
+        .set({ resultsSubmitted: false })
+        .where(
+          neq(races.id, 9999)
+        );
+      console.log("Reset all race results submitted flags");
+      
+      // 5. Reset all asset values to their initial values
+      for (const initialValue of initialValues) {
+        const { entityId, entityType, value } = initialValue;
+        
+        if (entityType === 'driver') {
+          await db.update(drivers)
+            .set({ 
+              value, 
+              valueUpdatedAt: new Date(),
+              lastRace1Position: null,
+              lastRace2Position: null,
+              lastRace3Position: null
+            })
+            .where(eq(drivers.id, entityId));
+        } else if (entityType === 'team') {
+          await db.update(teams)
+            .set({ value, valueUpdatedAt: new Date() })
+            .where(eq(teams.id, entityId));
+        } else if (entityType === 'engine') {
+          await db.update(engines)
+            .set({ value, valueUpdatedAt: new Date() })
+            .where(eq(engines.id, entityId));
+        }
+      }
+      console.log("Reset all asset values to initial values");
+      
+      console.log("Database reset completed successfully");
+    } catch (error) {
+      console.error("Error resetting database:", error);
+      throw error;
+    }
+  }
 }
 
 // Decide qual implementação usar com base na disponibilidade do DATABASE_URL
