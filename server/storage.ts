@@ -1968,6 +1968,9 @@ export class DatabaseStorage implements IStorage {
         console.log(`Team ${team.name} value update: ${team.value} -> ${newValue}`);
         await this.updateTeam(team.id, { value: newValue });
         
+        // Record the new asset value in history
+        await this.recordAssetValue(team.id, 'team', raceId, newValue);
+        
         // Armazenar no histórico de performance (com posição média 0 já que não é aplicável)
         await this.createPerformanceHistory({
           driverId: null,
