@@ -1952,7 +1952,7 @@ export class DatabaseStorage implements IStorage {
   // Asset value history methods
   async getAssetValueHistory(entityId: number, entityType: 'driver' | 'team' | 'engine'): Promise<AssetValueHistory[]> {
     try {
-      // Create condition for filtering by entity type and id
+      // Simply get all records without join to troubleshoot
       const results = await db.select()
         .from(assetValueHistory)
         .where(
@@ -1960,19 +1960,21 @@ export class DatabaseStorage implements IStorage {
             eq(assetValueHistory.entityId, entityId),
             eq(assetValueHistory.entityType, entityType)
           )
-        )
-        .leftJoin(races, eq(assetValueHistory.raceId, races.id))
-        .orderBy(asc(races.date));
+        );
       
-      // Transform the results into AssetValueHistory objects
-      return results.map(row => ({
-        id: row.asset_value_history.id,
-        entityId: row.asset_value_history.entityId,
-        entityType: row.asset_value_history.entityType as 'driver' | 'team' | 'engine',
-        raceId: row.asset_value_history.raceId,
-        value: row.asset_value_history.value,
-        createdAt: row.asset_value_history.createdAt
-      }));
+      // Get all races for sorting
+      const allRaces = await this.getRaces();
+      const racesMap = new Map(allRaces.map(race => [race.id, race]));
+      
+      // Sort results by race date
+      const sortedResults = [...results].sort((a, b) => {
+        const raceA = racesMap.get(a.raceId);
+        const raceB = racesMap.get(b.raceId);
+        if (!raceA || !raceB) return 0;
+        return new Date(raceA.date).getTime() - new Date(raceB.date).getTime();
+      });
+      
+      return sortedResults;
     } catch (error) {
       console.error(`Error getting asset value history for ${entityType} ${entityId}:`, error);
       return [];
