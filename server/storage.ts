@@ -2021,22 +2021,52 @@ export class DatabaseStorage implements IStorage {
       const teams = await this.getTeams();
       const engines = await this.getEngines();
       
-      // For each driver, get asset value and save at Australian GP
+      // Get Australian GP - we need this to fetch asset values from this race
+      const australianGP = await this.getRace(australianGPId);
+      if (!australianGP) {
+        throw new Error(`Australian GP with ID ${australianGPId} not found`);
+      }
+      
+      // For each driver, get asset value and save at Australian GP, then update current value
       for (const driver of drivers) {
+        // Record history
         await this.recordAssetValue(driver.id, 'driver', australianGPId, driver.value);
         console.log(`Recorded asset value for driver ${driver.id} (${driver.name}) at Australian GP: ${driver.value}`);
+        
+        // Update current value
+        await this.updateDriver(driver.id, {
+          value: driver.value,
+          valueUpdatedAt: new Date(australianGP.date)
+        });
+        console.log(`Updated current value for driver ${driver.id} (${driver.name}) to ${driver.value}`);
       }
       
-      // For each team, get asset value and save at Australian GP
+      // For each team, get asset value and save at Australian GP, then update current value
       for (const team of teams) {
+        // Record history
         await this.recordAssetValue(team.id, 'team', australianGPId, team.value);
         console.log(`Recorded asset value for team ${team.id} (${team.name}) at Australian GP: ${team.value}`);
+        
+        // Update current value
+        await this.updateTeam(team.id, {
+          value: team.value,
+          valueUpdatedAt: new Date(australianGP.date)
+        });
+        console.log(`Updated current value for team ${team.id} (${team.name}) to ${team.value}`);
       }
       
-      // For each engine, get asset value and save at Australian GP
+      // For each engine, get asset value and save at Australian GP, then update current value
       for (const engine of engines) {
+        // Record history
         await this.recordAssetValue(engine.id, 'engine', australianGPId, engine.value);
         console.log(`Recorded asset value for engine ${engine.id} (${engine.name}) at Australian GP: ${engine.value}`);
+        
+        // Update current value
+        await this.updateEngine(engine.id, {
+          value: engine.value,
+          valueUpdatedAt: new Date(australianGP.date)
+        });
+        console.log(`Updated current value for engine ${engine.id} (${engine.name}) to ${engine.value}`);
       }
       
       console.log("Successfully reverted Chinese GP valuations to Australian GP values");
