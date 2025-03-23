@@ -621,12 +621,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             teamId: team.id,
             teamName: team.name,
             value: team.value,
-            credits: team.currentCredits
+            credits: team.currentCredits,
+            totalBudget: team.value + team.currentCredits // Total = asset value + available credits
           }))
       );
       
       const premiumRanking = premiumTeams
-        .sort((a, b) => b.value - a.value)
+        .sort((a, b) => b.totalBudget - a.totalBudget)
         .map((item, index) => ({
           rank: index + 1,
           ...item
@@ -642,12 +643,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             teamId: team.id,
             teamName: team.name,
             value: team.value,
-            credits: team.currentCredits
+            credits: team.currentCredits,
+            totalBudget: team.value + team.currentCredits // Total = asset value + available credits
           }))
       );
       
       const challengerRanking = challengerTeams
-        .sort((a, b) => b.value - a.value)
+        .sort((a, b) => b.totalBudget - a.totalBudget)
         .map((item, index) => ({
           rank: index + 1,
           ...item

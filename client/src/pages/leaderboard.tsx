@@ -23,6 +23,7 @@ interface TeamRanking {
   teamName: string;
   value: number;
   credits: number;
+  totalBudget: number;
 }
 
 interface LeaderboardData {
@@ -128,13 +129,14 @@ export default function Leaderboard() {
                         <th className="px-4 py-3 text-left font-medium">Jogador</th>
                         <th className="px-4 py-3 text-left font-medium">Time</th>
                         <th className="px-4 py-3 text-right font-medium">Créditos</th>
-                        <th className="px-4 py-3 text-right font-medium">Valor Total</th>
+                        <th className="px-4 py-3 text-right font-medium">Valor dos Ativos</th>
+                        <th className="px-4 py-3 text-right font-medium">Budget Total</th>
                       </tr>
                     </thead>
                     <tbody>
                       {leaderboardData?.premium.length === 0 ? (
                         <tr>
-                          <td colSpan={5} className="px-4 py-8 text-center text-neutral-500">
+                          <td colSpan={6} className="px-4 py-8 text-center text-neutral-500">
                             Nenhum time premium encontrado
                           </td>
                         </tr>
@@ -147,10 +149,13 @@ export default function Leaderboard() {
                             <td className="px-4 py-3 font-medium">{team.username}</td>
                             <td className="px-4 py-3">{team.teamName}</td>
                             <td className="px-4 py-3 text-right">
-                              {team.credits.toLocaleString()} 
+                              {team.credits.toLocaleString()} créditos
+                            </td>
+                            <td className="px-4 py-3 text-right">
+                              {team.value.toLocaleString()} créditos
                             </td>
                             <td className="px-4 py-3 text-right font-bold text-primary">
-                              {team.value.toLocaleString()} créditos
+                              {team.totalBudget.toLocaleString()} créditos
                             </td>
                           </tr>
                         ))
@@ -179,13 +184,14 @@ export default function Leaderboard() {
                         <th className="px-4 py-3 text-left font-medium">Jogador</th>
                         <th className="px-4 py-3 text-left font-medium">Time</th>
                         <th className="px-4 py-3 text-right font-medium">Créditos</th>
-                        <th className="px-4 py-3 text-right font-medium">Valor Total</th>
+                        <th className="px-4 py-3 text-right font-medium">Valor dos Ativos</th>
+                        <th className="px-4 py-3 text-right font-medium">Budget Total</th>
                       </tr>
                     </thead>
                     <tbody>
                       {leaderboardData?.challenger.length === 0 ? (
                         <tr>
-                          <td colSpan={5} className="px-4 py-8 text-center text-neutral-500">
+                          <td colSpan={6} className="px-4 py-8 text-center text-neutral-500">
                             Nenhum time challenger encontrado
                           </td>
                         </tr>
@@ -198,10 +204,13 @@ export default function Leaderboard() {
                             <td className="px-4 py-3 font-medium">{team.username}</td>
                             <td className="px-4 py-3">{team.teamName}</td>
                             <td className="px-4 py-3 text-right">
-                              {team.credits.toLocaleString()} 
+                              {team.credits.toLocaleString()} créditos
+                            </td>
+                            <td className="px-4 py-3 text-right">
+                              {team.value.toLocaleString()} créditos
                             </td>
                             <td className="px-4 py-3 text-right font-bold text-primary">
-                              {team.value.toLocaleString()} créditos
+                              {team.totalBudget.toLocaleString()} créditos
                             </td>
                           </tr>
                         ))
@@ -219,7 +228,8 @@ export default function Leaderboard() {
       )}
       
       <div className="mt-8 text-sm text-center text-neutral-500">
-        <p>A classificação é baseada exclusivamente no valor total dos times de cada jogador.</p>
+        <p>A classificação é baseada no budget total (valor dos ativos + créditos disponíveis).</p>
+        <p>Todos os times iniciam com o mesmo budget total (1000 ou 700 créditos).</p>
         <p>Classificação atualizada após a submissão de resultados de cada corrida.</p>
       </div>
     </div>
