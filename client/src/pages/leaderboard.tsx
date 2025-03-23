@@ -155,7 +155,7 @@ export default function Leaderboard() {
                               {team.value.toLocaleString()} créditos
                             </td>
                             <td className="px-4 py-3 text-right font-bold text-primary">
-                              {team.totalBudget.toLocaleString()} créditos
+                              {(team.totalBudget ?? (team.value + team.credits)).toLocaleString()} créditos
                             </td>
                           </tr>
                         ))
@@ -210,7 +210,7 @@ export default function Leaderboard() {
                               {team.value.toLocaleString()} créditos
                             </td>
                             <td className="px-4 py-3 text-right font-bold text-primary">
-                              {team.totalBudget.toLocaleString()} créditos
+                              {(team.totalBudget ?? (team.value + team.credits)).toLocaleString()} créditos
                             </td>
                           </tr>
                         ))
