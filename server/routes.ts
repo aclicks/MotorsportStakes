@@ -591,30 +591,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
           totalTeamValue += teamValue;
         }
         
-        // Calcular a pontuação do jogador
-        // Pontuação = Valor total dos times + número de times * 100
-        const score = totalTeamValue + (teams.length * 100);
-        
         return {
           userId: user.id,
           username: user.username,
           totalValue: totalTeamValue,
           totalTeams: teams.length,
-          score,
           teams: processedTeams
         };
       }));
       
-      // 3. Classifição global - Ordenar por pontuação (maior para menor)
+      // 3. Classificação global - Ordenar por valor total (maior para menor), sem pontuação extra
       const globalRanking = [...userData]
-        .sort((a, b) => b.score - a.score)
+        .sort((a, b) => b.totalValue - a.totalValue)
         .map((item, index) => ({
           rank: index + 1,
           userId: item.userId,
           username: item.username,
           totalValue: item.totalValue,
-          totalTeams: item.totalTeams,
-          score: item.score
+          totalTeams: item.totalTeams
         }));
       
       // 4. Classificação para times Premium (1000 créditos)

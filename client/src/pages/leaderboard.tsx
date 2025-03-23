@@ -13,7 +13,6 @@ interface PlayerRanking {
   username: string;
   totalValue: number;
   totalTeams: number;
-  score: number;
 }
 
 interface TeamRanking {
@@ -85,13 +84,12 @@ export default function Leaderboard() {
                         <th className="px-4 py-3 text-left font-medium">Jogador</th>
                         <th className="px-4 py-3 text-right font-medium">Times</th>
                         <th className="px-4 py-3 text-right font-medium">Valor Total</th>
-                        <th className="px-4 py-3 text-right font-medium">Pontuação</th>
                       </tr>
                     </thead>
                     <tbody>
                       {leaderboardData?.global.length === 0 ? (
                         <tr>
-                          <td colSpan={5} className="px-4 py-8 text-center text-neutral-500">
+                          <td colSpan={4} className="px-4 py-8 text-center text-neutral-500">
                             Nenhum jogador encontrado
                           </td>
                         </tr>
@@ -103,11 +101,8 @@ export default function Leaderboard() {
                             </td>
                             <td className="px-4 py-3 font-medium">{player.username}</td>
                             <td className="px-4 py-3 text-right">{player.totalTeams}</td>
-                            <td className="px-4 py-3 text-right">
-                              {player.totalValue.toLocaleString()} créditos
-                            </td>
                             <td className="px-4 py-3 text-right font-bold text-primary">
-                              {player.score.toLocaleString()}
+                              {player.totalValue.toLocaleString()} créditos
                             </td>
                           </tr>
                         ))
@@ -224,7 +219,7 @@ export default function Leaderboard() {
       )}
       
       <div className="mt-8 text-sm text-center text-neutral-500">
-        <p>A pontuação global é calculada com base no valor total de seus times e o número de times gerenciados.</p>
+        <p>A classificação é baseada exclusivamente no valor total dos times de cada jogador.</p>
         <p>Classificação atualizada após a submissão de resultados de cada corrida.</p>
       </div>
     </div>
