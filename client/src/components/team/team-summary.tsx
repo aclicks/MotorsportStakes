@@ -1,26 +1,81 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { Edit } from "lucide-react";
+import { Edit, TrendingUp, TrendingDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UserTeamComplete } from "@shared/schema";
+import { useQuery } from "@tanstack/react-query";
 
 interface TeamSummaryProps {
   team: UserTeamComplete;
 }
 
 export default function TeamSummary({ team }: TeamSummaryProps) {
+  // Query to fetch asset value history for dynamic display of value changes
+  const { data: assetValueHistory } = useQuery({
+    queryKey: ["/api/asset-value-history"],
+    enabled: !!team.id,
+  });
+
+  // Function to get the value change for an asset
+  const getValueChange = (entityId: number, entityType: 'driver' | 'team' | 'engine') => {
+    if (!assetValueHistory || !Array.isArray(assetValueHistory)) return null;
+    
+    // Filter history by entity ID and type
+    const history = assetValueHistory.filter(
+      (h: any) => h.entityId === entityId && h.entityType === entityType
+    );
+    
+    // Sort by race date descending
+    const sortedHistory = [...history].sort((a: any, b: any) => {
+      return new Date(b.race?.date || 0).getTime() - new Date(a.race?.date || 0).getTime();
+    });
+    
+    // Get the two most recent values
+    if (sortedHistory.length >= 2) {
+      const current = sortedHistory[0].value;
+      const previous = sortedHistory[1].value;
+      const difference = current - previous;
+      const percentChange = ((difference / previous) * 100).toFixed(1);
+      
+      return { 
+        value: difference,
+        percent: percentChange,
+        isPositive: difference > 0 
+      };
+    }
+    
+    return null;
+  };
+
+  // Helper to render value change display
+  const renderValueChange = (change: { value: number, percent: string, isPositive: boolean } | null) => {
+    if (!change) return null;
+    
+    const Icon = change.isPositive ? TrendingUp : TrendingDown;
+    const colorClass = change.isPositive ? "text-success" : "text-error";
+    
+    return (
+      <div className={`flex items-center text-xs ml-1 ${colorClass}`}>
+        <Icon className="h-3 w-3 mr-0.5" />
+        <span>{change.isPositive ? '+' : ''}{change.percent}%</span>
+      </div>
+    );
+  };
+  
   return (
     <Card className="overflow-hidden">
       <div className="bg-secondary text-white p-4">
         <div className="flex justify-between items-center">
           <h3 className="font-semibold">{team.name}</h3>
-          <span className={cn(
-            "rounded-full px-3 py-1 text-xs font-medium",
-            team.name.includes("Premium") ? "bg-primary" : "bg-accent"
-          )}>
-            {team.initialCredits} Credits
-          </span>
+          <div className="flex flex-col items-end">
+            <span className={cn(
+              "rounded-full px-3 py-1 text-xs font-medium",
+              team.name.includes("Premium") ? "bg-primary" : "bg-accent"
+            )}>
+              {team.currentCredits} Credits
+            </span>
+          </div>
         </div>
       </div>
       
@@ -51,9 +106,12 @@ export default function TeamSummary({ team }: TeamSummaryProps) {
               </p>
             </div>
             {team.driver1 && (
-              <span className="ml-auto text-success font-medium">
-                {team.driver1.value}
-              </span>
+              <div className="ml-auto flex flex-col items-end">
+                <span className="text-success font-medium">
+                  {team.driver1.value}
+                </span>
+                {team.driver1 && renderValueChange(getValueChange(team.driver1.id, 'driver'))}
+              </div>
             )}
           </div>
           
@@ -73,9 +131,12 @@ export default function TeamSummary({ team }: TeamSummaryProps) {
               </p>
             </div>
             {team.driver2 && (
-              <span className="ml-auto text-success font-medium">
-                {team.driver2.value}
-              </span>
+              <div className="ml-auto flex flex-col items-end">
+                <span className="text-success font-medium">
+                  {team.driver2.value}
+                </span>
+                {team.driver2 && renderValueChange(getValueChange(team.driver2.id, 'driver'))}
+              </div>
             )}
           </div>
         </div>
@@ -96,9 +157,12 @@ export default function TeamSummary({ team }: TeamSummaryProps) {
               <p className="text-xs text-neutral-500">Engine</p>
             </div>
             {team.engine && (
-              <span className="ml-auto text-success font-medium">
-                {team.engine.value}
-              </span>
+              <div className="ml-auto flex flex-col items-end">
+                <span className="text-success font-medium">
+                  {team.engine.value}
+                </span>
+                {team.engine && renderValueChange(getValueChange(team.engine.id, 'engine'))}
+              </div>
             )}
           </div>
           
@@ -119,25 +183,13 @@ export default function TeamSummary({ team }: TeamSummaryProps) {
               <p className="text-xs text-neutral-500">Chassis</p>
             </div>
             {team.team && (
-              <span className="ml-auto text-success font-medium">
-                {team.team.value}
-              </span>
+              <div className="ml-auto flex flex-col items-end">
+                <span className="text-success font-medium">
+                  {team.team.value}
+                </span>
+                {team.team && renderValueChange(getValueChange(team.team.id, 'team'))}
+              </div>
             )}
-          </div>
-        </div>
-        
-        <div className="mt-4 border-t border-neutral-200 pt-4">
-          <div className="flex justify-between">
-            <span className="text-neutral-500">Total Value:</span>
-            <span className="font-semibold text-neutral-800">
-              {team.totalValue || 0} Credits
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-neutral-500">Remaining Budget:</span>
-            <span className="font-semibold text-neutral-800">
-              {team.currentCredits} Credits
-            </span>
           </div>
         </div>
       </CardContent>
