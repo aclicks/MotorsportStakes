@@ -1707,9 +1707,9 @@ export class DatabaseStorage implements IStorage {
         
         // Atualizar valor do piloto
         const newValue = driver.value + valuationAmount;
-        const finalValue = newValue < 100 ? 100 : newValue; // Valor mínimo
-        console.log(`Driver ${driver.name} value update: ${driver.value} -> ${finalValue}`);
-        await this.updateDriver(driver.id, { value: finalValue });
+        // Removed minimum value restriction
+        console.log(`Driver ${driver.name} value update: ${driver.value} -> ${newValue}`);
+        await this.updateDriver(driver.id, { value: newValue });
         
         // Atualizar resultado com valorização
         const result = results.find(r => r.driverId === driver.id);
@@ -1747,9 +1747,9 @@ export class DatabaseStorage implements IStorage {
         
         // Atualizar valor do motor
         const newValue = engine.value + valuationAmount;
-        const finalValue = newValue < 100 ? 100 : newValue; // Valor mínimo
-        console.log(`Engine ${engine.name} value update: ${engine.value} -> ${finalValue}`);
-        await this.updateEngine(engine.id, { value: finalValue });
+        // Removed minimum value restriction
+        console.log(`Engine ${engine.name} value update: ${engine.value} -> ${newValue}`);
+        await this.updateEngine(engine.id, { value: newValue });
         
         // Armazenar no histórico de performance (com posição média 0 já que não é aplicável)
         await this.createPerformanceHistory({
@@ -1777,9 +1777,9 @@ export class DatabaseStorage implements IStorage {
         
         // Atualizar valor do time
         const newValue = team.value + valuationAmount;
-        const finalValue = newValue < 100 ? 100 : newValue; // Valor mínimo
-        console.log(`Team ${team.name} value update: ${team.value} -> ${finalValue}`);
-        await this.updateTeam(team.id, { value: finalValue });
+        // Removed minimum value restriction
+        console.log(`Team ${team.name} value update: ${team.value} -> ${newValue}`);
+        await this.updateTeam(team.id, { value: newValue });
         
         // Armazenar no histórico de performance (com posição média 0 já que não é aplicável)
         await this.createPerformanceHistory({
