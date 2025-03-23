@@ -851,7 +851,10 @@ export class MemStorage implements IStorage {
         if (driver) {
           const driverResult = results.find(r => r.driverId === driver.id);
           if (driverResult && driverResult.valuation !== null) {
-            creditsGained += driverResult.valuation;
+            // Calculate the valuation amount based on percentage
+            const valuationAmount = Math.round((driver.value * driverResult.valuation) / 100);
+            creditsGained += valuationAmount;
+            console.log(`Driver1 (${driver.name}) valuation: ${driverResult.valuation}% = ${valuationAmount} credits`);
           }
         }
       }
@@ -861,7 +864,10 @@ export class MemStorage implements IStorage {
         if (driver) {
           const driverResult = results.find(r => r.driverId === driver.id);
           if (driverResult && driverResult.valuation !== null) {
-            creditsGained += driverResult.valuation;
+            // Calculate the valuation amount based on percentage
+            const valuationAmount = Math.round((driver.value * driverResult.valuation) / 100);
+            creditsGained += valuationAmount;
+            console.log(`Driver2 (${driver.name}) valuation: ${driverResult.valuation}% = ${valuationAmount} credits`);
           }
         }
       }
@@ -871,7 +877,10 @@ export class MemStorage implements IStorage {
         const engine = await this.getEngine(userTeam.engineId);
         if (engine) {
           const valuation = await this.calculateEngineValuation(engine.id, raceId);
-          creditsGained += valuation;
+          // Calculate the valuation amount based on percentage
+          const valuationAmount = Math.round((engine.value * valuation) / 100);
+          creditsGained += valuationAmount;
+          console.log(`Engine (${engine.name}) valuation: ${valuation}% = ${valuationAmount} credits`);
         }
       }
       
@@ -880,7 +889,10 @@ export class MemStorage implements IStorage {
         const team = await this.getTeam(userTeam.teamId);
         if (team) {
           const valuation = await this.calculateTeamValuation(team.id, raceId);
-          creditsGained += valuation;
+          // Calculate the valuation amount based on percentage
+          const valuationAmount = Math.round((team.value * valuation) / 100);
+          creditsGained += valuationAmount;
+          console.log(`Team (${team.name}) valuation: ${valuation}% = ${valuationAmount} credits`);
         }
       }
       
@@ -1729,8 +1741,12 @@ export class DatabaseStorage implements IStorage {
         const valuation = await this.calculateEngineValuation(engine.id, raceId);
         console.log(`Engine ${engine.name} valuation: ${valuation}`);
         
+        // Calculate valuation amount based on percentage
+        const valuationAmount = Math.round((engine.value * valuation) / 100);
+        console.log(`Engine ${engine.name} valuation: ${valuation}% = ${valuationAmount} credits`);
+        
         // Atualizar valor do motor
-        const newValue = engine.value + valuation;
+        const newValue = engine.value + valuationAmount;
         const finalValue = newValue < 100 ? 100 : newValue; // Valor mínimo
         console.log(`Engine ${engine.name} value update: ${engine.value} -> ${finalValue}`);
         await this.updateEngine(engine.id, { value: finalValue });
@@ -1755,8 +1771,12 @@ export class DatabaseStorage implements IStorage {
         const valuation = await this.calculateTeamValuation(team.id, raceId);
         console.log(`Team ${team.name} valuation: ${valuation}`);
         
+        // Calculate valuation amount based on percentage
+        const valuationAmount = Math.round((team.value * valuation) / 100);
+        console.log(`Team ${team.name} valuation: ${valuation}% = ${valuationAmount} credits`);
+        
         // Atualizar valor do time
-        const newValue = team.value + valuation;
+        const newValue = team.value + valuationAmount;
         const finalValue = newValue < 100 ? 100 : newValue; // Valor mínimo
         console.log(`Team ${team.name} value update: ${team.value} -> ${finalValue}`);
         await this.updateTeam(team.id, { value: finalValue });
