@@ -105,6 +105,9 @@ export interface IStorage {
   isBettingOpen(): Promise<boolean>;
   setBettingStatus(isOpen: boolean): Promise<void>;
   
+  // Database reset
+  resetDatabase(): Promise<void>;
+  
   // Session store
   sessionStore: any; // session.Store
 }
