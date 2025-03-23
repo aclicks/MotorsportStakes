@@ -273,6 +273,31 @@ export type GameSetting = typeof gameSettings.$inferSelect;
 export type InsertGameSetting = z.infer<typeof insertGameSettingsSchema>;
 
 export type DriverWithTeam = Driver & { team: Team };
+// Asset value history
+export const assetValueHistory = pgTable("asset_value_history", {
+  id: serial("id").primaryKey(),
+  entityId: integer("entity_id").notNull(),
+  entityType: text("entity_type", { enum: ["driver", "team", "engine"] }).notNull(),
+  raceId: integer("race_id").notNull().references(() => races.id, { onDelete: "cascade" }),
+  value: integer("value").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertAssetValueHistorySchema = createInsertSchema(assetValueHistory).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type AssetValueHistory = typeof assetValueHistory.$inferSelect;
+export type InsertAssetValueHistory = z.infer<typeof insertAssetValueHistorySchema>;
+
+export const assetValueHistoryRelations = relations(assetValueHistory, ({ one }) => ({
+  race: one(races, {
+    fields: [assetValueHistory.raceId],
+    references: [races.id],
+  }),
+}));
+
 export type UserTeamComplete = UserTeam & {
   driver1?: DriverWithTeam;
   driver2?: DriverWithTeam;

@@ -1,12 +1,14 @@
 import { 
   users, drivers, engines, teams, races, raceResults, 
   performanceHistory, valuationTable, userTeams, gameSettings,
+  assetValueHistory,
   User, InsertUser, Driver, InsertDriver, 
   Engine, InsertEngine, Team, InsertTeam, 
   Race, InsertRace, RaceResult, InsertRaceResult,
   PerformanceHistory, InsertPerformanceHistory, 
   ValuationTable, InsertValuationTable,
-  UserTeam, InsertUserTeam, updateRaceSchema, updateRaceResultSchema
+  UserTeam, InsertUserTeam, updateRaceSchema, updateRaceResultSchema,
+  AssetValueHistory, InsertAssetValueHistory
 } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
@@ -91,6 +93,11 @@ export interface IStorage {
   calculateTeamValuation(teamId: number, raceId: number): Promise<number>;
   applyValuations(raceId: number): Promise<void>;
   
+  // Asset value history methods
+  getAssetValueHistory(entityId: number, entityType: 'driver' | 'team' | 'engine'): Promise<AssetValueHistory[]>;
+  createAssetValueHistory(history: InsertAssetValueHistory): Promise<AssetValueHistory>;
+  recordAssetValue(entityId: number, entityType: 'driver' | 'team' | 'engine', raceId: number, value: number): Promise<AssetValueHistory>;
+  
   // Game settings methods
   getGameSetting(key: string): Promise<string | null>;
   updateGameSetting(key: string, value: string): Promise<void>;
@@ -111,6 +118,7 @@ export class MemStorage implements IStorage {
   private performanceHistory: Map<number, PerformanceHistory>;
   private valuationTable: Map<number, ValuationTable>;
   private userTeams: Map<number, UserTeam>;
+  private assetValueHistory: Map<number, AssetValueHistory>;
   private gameSettings: Map<string, string>;
   
   sessionStore: any; // session.Store
@@ -123,6 +131,7 @@ export class MemStorage implements IStorage {
   private raceResultIdCounter: number;
   private performanceHistoryIdCounter: number;
   private userTeamIdCounter: number;
+  private assetValueHistoryIdCounter: number;
 
   constructor() {
     this.users = new Map();
@@ -134,6 +143,7 @@ export class MemStorage implements IStorage {
     this.performanceHistory = new Map();
     this.valuationTable = new Map();
     this.userTeams = new Map();
+    this.assetValueHistory = new Map();
     this.gameSettings = new Map();
     
     this.userIdCounter = 1;
