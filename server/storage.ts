@@ -772,7 +772,7 @@ export class MemStorage implements IStorage {
       
       // Update driver value
       driver.value += valuationAmount;
-      if (driver.value < 100) driver.value = 100; // Minimum value
+      // Removed minimum value restriction
       this.drivers.set(driver.id, driver);
       
       // Update result with valuation
@@ -803,7 +803,7 @@ export class MemStorage implements IStorage {
       
       // Update engine value
       engine.value += valuationAmount;
-      if (engine.value < 100) engine.value = 100; // Minimum value
+      // Removed minimum value restriction
       this.engines.set(engine.id, engine);
       
       // Store in performance history (with average position 0 since it's not applicable)
@@ -827,7 +827,7 @@ export class MemStorage implements IStorage {
       
       // Update team value
       team.value += valuationAmount;
-      if (team.value < 100) team.value = 100; // Minimum value
+      // Removed minimum value restriction
       this.teams.set(team.id, team);
       
       // Store in performance history (with average position 0 since it's not applicable)
