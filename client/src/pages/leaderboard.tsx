@@ -15,7 +15,7 @@ interface PlayerRanking {
   rank: number;
   userId: number;
   username: string;
-  totalValue: number;
+  totalCredits: number;
   totalTeams: number;
 }
 
@@ -25,9 +25,7 @@ interface TeamRanking {
   username: string;
   teamId: number;
   teamName: string;
-  value: number;
   credits: number;
-  totalBudget: number;
 }
 
 interface LeaderboardData {
@@ -61,10 +59,10 @@ export default function Leaderboard() {
   };
 
   // Function to display value trend indicators
-  const getTrendIndicator = (value: number, initialValue: number) => {
+  const getCreditsTrendIndicator = (credits: number, initialCredits: number) => {
     // For premium teams initial value is 1000, for challenger it's 700
-    const diff = value - initialValue;
-    const percentChange = ((diff / initialValue) * 100).toFixed(1);
+    const diff = credits - initialCredits;
+    const percentChange = ((diff / initialCredits) * 100).toFixed(1);
     
     if (diff > 0) {
       return (
@@ -224,7 +222,7 @@ export default function Leaderboard() {
                   Global Players Ranking
                 </CardTitle>
                 <CardDescription>
-                  Combined value of all team budgets for each player
+                  Combined credits of all teams for each player
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -235,7 +233,7 @@ export default function Leaderboard() {
                         <th className="px-4 py-3 text-left font-medium">Rank</th>
                         <th className="px-4 py-3 text-left font-medium">Player</th>
                         <th className="px-4 py-3 text-right font-medium">Teams</th>
-                        <th className="px-4 py-3 text-right font-medium">Total Value</th>
+                        <th className="px-4 py-3 text-right font-medium">Total Credits</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -256,11 +254,11 @@ export default function Leaderboard() {
                             <td className="px-4 py-3 text-right">
                               <div className="flex flex-col items-end">
                                 <span className="font-bold text-primary">
-                                  {player.totalValue.toLocaleString()} credits
+                                  {player.totalCredits.toLocaleString()} credits
                                 </span>
                                 {/* Average per team */}
                                 <span className="text-xs text-neutral-500">
-                                  (avg: {(player.totalValue / player.totalTeams).toFixed(0)} per team)
+                                  (avg: {(player.totalCredits / player.totalTeams).toFixed(0)} per team)
                                 </span>
                               </div>
                             </td>
@@ -282,7 +280,7 @@ export default function Leaderboard() {
                   Premium Teams Ranking
                 </CardTitle>
                 <CardDescription>
-                  Teams with 1000 initial credits - ranked by total budget
+                  Teams with 1000 initial credits - ranked by credits
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -294,14 +292,12 @@ export default function Leaderboard() {
                         <th className="px-4 py-3 text-left font-medium">Player</th>
                         <th className="px-4 py-3 text-left font-medium">Team</th>
                         <th className="px-4 py-3 text-right font-medium">Credits</th>
-                        <th className="px-4 py-3 text-right font-medium">Asset Value</th>
-                        <th className="px-4 py-3 text-right font-medium">Total Budget</th>
                       </tr>
                     </thead>
                     <tbody>
                       {filteredData?.premium.length === 0 ? (
                         <tr>
-                          <td colSpan={6} className="px-4 py-8 text-center text-neutral-500">
+                          <td colSpan={4} className="px-4 py-8 text-center text-neutral-500">
                             {searchQuery ? 'No premium teams found matching your search' : 'No premium teams found'}
                           </td>
                         </tr>
@@ -313,22 +309,9 @@ export default function Leaderboard() {
                             </td>
                             <td className="px-4 py-3 font-medium">{team.username}</td>
                             <td className="px-4 py-3">{team.teamName}</td>
-                            <td className="px-4 py-3 text-right">
+                            <td className="px-4 py-3 text-right font-bold text-primary">
                               {team.credits.toLocaleString()} cr
-                            </td>
-                            <td className="px-4 py-3 text-right">
-                              <div className="flex flex-col items-end">
-                                <span>{team.value.toLocaleString()} cr</span>
-                                {getTrendIndicator(team.value, 0)}
-                              </div>
-                            </td>
-                            <td className="px-4 py-3 text-right font-bold">
-                              <div className="flex flex-col items-end">
-                                <span className="text-primary">
-                                  {team.totalBudget.toLocaleString()} cr
-                                </span>
-                                {getTrendIndicator(team.totalBudget, 1000)}
-                              </div>
+                              {getCreditsTrendIndicator(team.credits, 1000)}
                             </td>
                           </tr>
                         ))
@@ -366,14 +349,12 @@ export default function Leaderboard() {
                         <th className="px-4 py-3 text-left font-medium">Player</th>
                         <th className="px-4 py-3 text-left font-medium">Team</th>
                         <th className="px-4 py-3 text-right font-medium">Credits</th>
-                        <th className="px-4 py-3 text-right font-medium">Asset Value</th>
-                        <th className="px-4 py-3 text-right font-medium">Total Budget</th>
                       </tr>
                     </thead>
                     <tbody>
                       {filteredData?.challenger.length === 0 ? (
                         <tr>
-                          <td colSpan={6} className="px-4 py-8 text-center text-neutral-500">
+                          <td colSpan={4} className="px-4 py-8 text-center text-neutral-500">
                             {searchQuery ? 'No challenger teams found matching your search' : 'No challenger teams found'}
                           </td>
                         </tr>
@@ -385,22 +366,9 @@ export default function Leaderboard() {
                             </td>
                             <td className="px-4 py-3 font-medium">{team.username}</td>
                             <td className="px-4 py-3">{team.teamName}</td>
-                            <td className="px-4 py-3 text-right">
+                            <td className="px-4 py-3 text-right font-bold text-primary">
                               {team.credits.toLocaleString()} cr
-                            </td>
-                            <td className="px-4 py-3 text-right">
-                              <div className="flex flex-col items-end">
-                                <span>{team.value.toLocaleString()} cr</span>
-                                {getTrendIndicator(team.value, 0)}
-                              </div>
-                            </td>
-                            <td className="px-4 py-3 text-right font-bold">
-                              <div className="flex flex-col items-end">
-                                <span className="text-primary">
-                                  {team.totalBudget.toLocaleString()} cr
-                                </span>
-                                {getTrendIndicator(team.totalBudget, 700)}
-                              </div>
+                              {getCreditsTrendIndicator(team.credits, 700)}
                             </td>
                           </tr>
                         ))
@@ -425,19 +393,19 @@ export default function Leaderboard() {
         <ul className="space-y-2 text-sm text-neutral-700">
           <li className="flex items-start">
             <span className="bg-primary text-white rounded-full h-5 w-5 flex items-center justify-center text-xs mr-2 mt-0.5">1</span>
-            <span>Rankings are based on total budget (asset value + available credits)</span>
+            <span>Rankings are based on available credits</span>
           </li>
           <li className="flex items-start">
             <span className="bg-primary text-white rounded-full h-5 w-5 flex items-center justify-center text-xs mr-2 mt-0.5">2</span>
-            <span>All teams start with the same total budget (Premium: 1000 credits, Challenger: 700 credits)</span>
+            <span>All teams start with the same initial credits (Premium: 1000 credits, Challenger: 700 credits)</span>
           </li>
           <li className="flex items-start">
             <span className="bg-primary text-white rounded-full h-5 w-5 flex items-center justify-center text-xs mr-2 mt-0.5">3</span>
-            <span>Rankings are updated after each race when results are submitted and asset values change</span>
+            <span>Rankings are updated after each race when results are submitted and credits change</span>
           </li>
           <li className="flex items-start">
             <span className="bg-primary text-white rounded-full h-5 w-5 flex items-center justify-center text-xs mr-2 mt-0.5">4</span>
-            <span>Performance trends show how teams are performing compared to their initial budget</span>
+            <span>Performance trends show how teams are performing compared to their initial credits</span>
           </li>
         </ul>
       </div>
