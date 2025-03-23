@@ -948,49 +948,6 @@ export class MemStorage implements IStorage {
     });
   }
 
-  // Asset value history methods
-  async getAssetValueHistory(entityId: number, entityType: 'driver' | 'team' | 'engine'): Promise<AssetValueHistory[]> {
-    let query;
-    
-    if (entityType === 'driver') {
-      query = eq(assetValueHistory.entityId, entityId).and(eq(assetValueHistory.entityType, 'driver'));
-    } else if (entityType === 'team') {
-      query = eq(assetValueHistory.entityId, entityId).and(eq(assetValueHistory.entityType, 'team'));
-    } else if (entityType === 'engine') {
-      query = eq(assetValueHistory.entityId, entityId).and(eq(assetValueHistory.entityType, 'engine'));
-    } else {
-      throw new Error('Invalid entity type');
-    }
-    
-    // Get race dates for sorting
-    return db.select()
-      .from(assetValueHistory)
-      .leftJoin(races, eq(assetValueHistory.raceId, races.id))
-      .where(query)
-      .orderBy(asc(races.date));
-  }
-
-  async createAssetValueHistory(history: InsertAssetValueHistory): Promise<AssetValueHistory> {
-    const result = await db.insert(assetValueHistory)
-      .values({
-        ...history,
-        createdAt: new Date()
-      })
-      .returning();
-    
-    return result[0];
-  }
-
-  async recordAssetValue(entityId: number, entityType: 'driver' | 'team' | 'engine', raceId: number, value: number): Promise<AssetValueHistory> {
-    // Create a new asset value history record
-    return this.createAssetValueHistory({
-      entityId,
-      entityType,
-      raceId,
-      value
-    });
-  }
-
   // Game settings methods
   async getGameSetting(key: string): Promise<string | null> {
     return this.gameSettings.get(key) || null;
@@ -1964,30 +1921,24 @@ export class DatabaseStorage implements IStorage {
 
   // Asset value history methods
   async getAssetValueHistory(entityId: number, entityType: 'driver' | 'team' | 'engine'): Promise<AssetValueHistory[]> {
-    let query;
+    // Create condition based on entity type
+    const conditions = and(
+      eq(assetValueHistory.entityId, entityId),
+      eq(assetValueHistory.entityType, entityType)
+    );
     
-    if (entityType === 'driver') {
-      query = eq(assetValueHistory.entityId, entityId).and(eq(assetValueHistory.entityType, 'driver'));
-    } else if (entityType === 'team') {
-      query = eq(assetValueHistory.entityId, entityId).and(eq(assetValueHistory.entityType, 'team'));
-    } else if (entityType === 'engine') {
-      query = eq(assetValueHistory.entityId, entityId).and(eq(assetValueHistory.entityType, 'engine'));
-    } else {
-      throw new Error('Invalid entity type');
-    }
-    
-    // Get race dates for sorting
-    const result = await db.select()
+    // Get history entries sorted by race date
+    const results = await db.select()
       .from(assetValueHistory)
-      .leftJoin(races, eq(assetValueHistory.raceId, races.id))
-      .where(query)
+      .where(conditions)
+      .innerJoin(races, eq(assetValueHistory.raceId, races.id))
       .orderBy(asc(races.date));
 
-    // Transform the join result into AssetValueHistory objects
-    return result.map(row => ({
+    // Map to proper AssetValueHistory objects
+    return results.map(row => ({
       id: row.asset_value_history.id,
       entityId: row.asset_value_history.entityId,
-      entityType: row.asset_value_history.entityType,
+      entityType: row.asset_value_history.entityType as 'driver' | 'team' | 'engine',
       raceId: row.asset_value_history.raceId,
       value: row.asset_value_history.value,
       createdAt: row.asset_value_history.createdAt
