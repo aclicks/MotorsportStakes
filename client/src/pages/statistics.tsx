@@ -16,7 +16,8 @@ import {
   Tooltip, 
   Legend,
   ReferenceLine,
-  ResponsiveContainer 
+  ResponsiveContainer,
+  Area
 } from "recharts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -326,12 +327,13 @@ export default function Statistics() {
                       }}
                     >
                       <defs>
-                        <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.8}/>
-                          <stop offset="95%" stopColor="var(--primary)" stopOpacity={0.2}/>
+                        <linearGradient id="colorValue" x1="0" y1="0" x2="1" y2="0">
+                          <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.8}/>
+                          <stop offset="50%" stopColor="var(--primary)" stopOpacity={1}/>
+                          <stop offset="100%" stopColor="var(--primary)" stopOpacity={0.8}/>
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" opacity={0.4} />
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.2} stroke="#ccc" />
                       <XAxis 
                         dataKey="name" 
                         tick={{ fill: '#666' }}
@@ -373,25 +375,28 @@ export default function Statistics() {
                         }}
                       />
                       <Legend />
-                      <Area
+                      <Line
                         type="monotone"
                         dataKey="value"
-                        stroke="var(--primary)"
-                        strokeWidth={2}
-                        fill="url(#colorValue)"
-                        fillOpacity={1}
+                        stroke="url(#colorValue)"
+                        strokeWidth={3}
                         connectNulls
+                        isAnimationActive={true}
+                        animationDuration={1000}
+                        animationEasing="ease-in-out"
                         dot={{ 
                           stroke: 'var(--primary)', 
                           strokeWidth: 2, 
                           r: 6,
-                          fill: 'white' 
+                          fill: 'white',
+                          strokeDasharray: ''
                         }}
                         activeDot={{ 
                           r: 8, 
                           stroke: 'var(--primary)',
                           strokeWidth: 2,
-                          fill: 'var(--primary)' 
+                          fill: 'var(--primary)',
+                          strokeOpacity: 0.8
                         }}
                         name="Valor"
                       />
