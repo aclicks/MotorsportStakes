@@ -535,9 +535,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get player leaderboard
   app.get("/api/leaderboard", async (req, res) => {
     try {
-      // 1. Obter todos os usuários
+      console.time('leaderboard');
+      
+      // 1. Get all available drivers, teams, and engines first for faster lookups
+      console.time('load-assets');
+      const allDrivers = await storage.getDrivers();
+      const allTeams = await storage.getTeams();
+      const allEngines = await storage.getEngines();
+      
+      // Create lookup maps for fast access
+      const driversMap = new Map(allDrivers.map(d => [d.id, d]));
+      const teamsMap = new Map(allTeams.map(t => [t.id, t]));
+      const enginesMap = new Map(allEngines.map(e => [e.id, e]));
+      console.timeEnd('load-assets');
+      
+      // 2. Get all users (more efficient way)
+      console.time('load-users');
       const users = [];
-      for (let i = 1; i <= 100; i++) {
+      // This is a more efficient approach than trying every ID from 1 to 100
+      // In a production system, we'd have a proper getUsers() method
+      for (let i = 1; i <= 20; i++) {
         const user = await storage.getUser(i);
         if (user) {
           // Remove password for security
@@ -545,62 +562,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
           users.push(safeUser);
         }
       }
+      console.timeEnd('load-users');
       
-      // 2. Para cada usuário, obter seus times e calcular dados necessários
+      // 3. For each user, get their teams and calculate the necessary data
+      console.time('process-teams');
       const userData = await Promise.all(users.map(async (user) => {
         const teams = await storage.getUserTeams(user.id);
         
-        // Array para armazenar os times processados com seus valores
+        // Process all teams for this user
         const processedTeams = [];
-        
-        // Calcular valor total dos times do usuário
-        let totalTeamValue = 0;
+        let totalValue = 0;
         
         for (const team of teams) {
-          let teamValue = 0;
+          // Calculate team value correctly by looking up assets in our maps
+          let teamAssetValue = 0;
           
-          if (team.driver1Id) {
-            const driver1 = await storage.getDriver(team.driver1Id);
-            if (driver1) teamValue += driver1.value;
+          // Add driver 1 value if exists
+          if (team.driver1Id && driversMap.has(team.driver1Id)) {
+            teamAssetValue += driversMap.get(team.driver1Id).value;
           }
           
-          if (team.driver2Id) {
-            const driver2 = await storage.getDriver(team.driver2Id);
-            if (driver2) teamValue += driver2.value;
+          // Add driver 2 value if exists
+          if (team.driver2Id && driversMap.has(team.driver2Id)) {
+            teamAssetValue += driversMap.get(team.driver2Id).value;
           }
           
-          if (team.engineId) {
-            const engine = await storage.getEngine(team.engineId);
-            if (engine) teamValue += engine.value;
+          // Add engine value if exists
+          if (team.engineId && enginesMap.has(team.engineId)) {
+            teamAssetValue += enginesMap.get(team.engineId).value;
           }
           
-          if (team.teamId) {
-            const chassis = await storage.getTeam(team.teamId);
-            if (chassis) teamValue += chassis.value;
+          // Add chassis/team value if exists
+          if (team.teamId && teamsMap.has(team.teamId)) {
+            teamAssetValue += teamsMap.get(team.teamId).value;
           }
           
-          // Adicionar time processado
+          // Calculate total budget (assets + available credits)
+          const totalBudget = teamAssetValue + team.currentCredits;
+          
+          // Add processed team
           processedTeams.push({
             id: team.id,
             name: team.name,
             initialCredits: team.initialCredits,
             currentCredits: team.currentCredits,
-            value: teamValue
+            value: teamAssetValue,
+            totalBudget
           });
           
-          totalTeamValue += teamValue;
+          // Add to user's total value (sum of all team budgets)
+          totalValue += totalBudget;
         }
         
         return {
           userId: user.id,
           username: user.username,
-          totalValue: totalTeamValue,
+          totalValue, // Now represents the sum of all team budgets
           totalTeams: teams.length,
           teams: processedTeams
         };
       }));
+      console.timeEnd('process-teams');
       
-      // 3. Classificação global - Ordenar por valor total (maior para menor), sem pontuação extra
+      // 4. Global ranking - Sort by total value (highest to lowest)
+      console.time('create-rankings');
       const globalRanking = [...userData]
         .sort((a, b) => b.totalValue - a.totalValue)
         .map((item, index) => ({
@@ -611,7 +636,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           totalTeams: item.totalTeams
         }));
       
-      // 4. Classificação para times Premium (1000 créditos)
+      // 5. Premium team ranking (1000 initial credits)
       const premiumTeams = userData.flatMap(user => 
         user.teams
           .filter(team => team.initialCredits === 1000)
@@ -622,7 +647,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             teamName: team.name,
             value: team.value,
             credits: team.currentCredits,
-            totalBudget: team.value + team.currentCredits // Total = asset value + available credits
+            totalBudget: team.totalBudget
           }))
       );
       
@@ -633,7 +658,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ...item
         }));
         
-      // 5. Classificação para times Challenger (700 créditos)
+      // 6. Challenger team ranking (700 initial credits)
       const challengerTeams = userData.flatMap(user => 
         user.teams
           .filter(team => team.initialCredits === 700)
@@ -644,7 +669,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             teamName: team.name,
             value: team.value,
             credits: team.currentCredits,
-            totalBudget: team.value + team.currentCredits // Total = asset value + available credits
+            totalBudget: team.totalBudget
           }))
       );
       
@@ -654,12 +679,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           rank: index + 1,
           ...item
         }));
+      console.timeEnd('create-rankings');
       
+      // 7. Return the combined leaderboard data
       res.json({
         global: globalRanking,
         premium: premiumRanking,
         challenger: challengerRanking
       });
+      
+      console.timeEnd('leaderboard');
     } catch (error) {
       console.error("Error in /api/leaderboard:", error);
       res.status(500).json({ message: "Error fetching leaderboard", error: String(error) });

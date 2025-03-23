@@ -1,10 +1,14 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Loader2 } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, Medal, Trophy, Star, Search, Users, RefreshCw } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { queryClient } from "@/lib/queryClient";
 
 // Interfaces for leaderboard data
 interface PlayerRanking {
@@ -34,76 +38,231 @@ interface LeaderboardData {
 
 export default function Leaderboard() {
   const [activeTab, setActiveTab] = useState<string>("global");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const { toast } = useToast();
 
-  // Carregando dados de todos os leaderboards
+  // Loading leaderboard data
   const { 
     data: leaderboardData, 
-    isLoading
+    isLoading,
+    isRefetching,
+    refetch
   } = useQuery<LeaderboardData>({
     queryKey: ["/api/leaderboard"],
+    staleTime: 30000, // 30 seconds
   });
 
-  // Função para exibir medalhas para os três primeiros colocados
+  // Function to display badges for top three positions
   const getRankBadge = (rank: number) => {
-    if (rank === 1) return <Badge className="bg-yellow-500 text-white">🏆 1º</Badge>;
-    if (rank === 2) return <Badge className="bg-gray-400 text-white">🥈 2º</Badge>;
-    if (rank === 3) return <Badge className="bg-amber-700 text-white">🥉 3º</Badge>;
-    return <Badge variant="outline">{rank}º</Badge>;
+    if (rank === 1) return <Badge className="bg-yellow-500 hover:bg-yellow-600 text-white"><Trophy size={12} className="mr-1" /> 1°</Badge>;
+    if (rank === 2) return <Badge className="bg-gray-400 hover:bg-gray-500 text-white"><Medal size={12} className="mr-1" /> 2°</Badge>;
+    if (rank === 3) return <Badge className="bg-amber-700 hover:bg-amber-800 text-white"><Star size={12} className="mr-1" /> 3°</Badge>;
+    return <Badge variant="outline">{rank}°</Badge>;
   };
+
+  // Function to display value trend indicators
+  const getTrendIndicator = (value: number, initialValue: number) => {
+    // For premium teams initial value is 1000, for challenger it's 700
+    const diff = value - initialValue;
+    const percentChange = ((diff / initialValue) * 100).toFixed(1);
+    
+    if (diff > 0) {
+      return (
+        <span className="flex items-center text-green-500 text-xs">
+          <TrendingUp size={14} className="mr-1" />
+          +{percentChange}%
+        </span>
+      );
+    } else if (diff < 0) {
+      return (
+        <span className="flex items-center text-red-500 text-xs">
+          <TrendingDown size={14} className="mr-1" />
+          {percentChange}%
+        </span>
+      );
+    } else {
+      return (
+        <span className="flex items-center text-gray-500 text-xs">
+          <Minus size={14} className="mr-1" />
+          0%
+        </span>
+      );
+    }
+  };
+
+  // Filter data based on search query
+  const filteredData = useMemo(() => {
+    if (!leaderboardData || !searchQuery.trim()) {
+      return leaderboardData;
+    }
+
+    const query = searchQuery.toLowerCase();
+    
+    return {
+      global: leaderboardData.global.filter(player => 
+        player.username.toLowerCase().includes(query)
+      ),
+      premium: leaderboardData.premium.filter(team => 
+        team.username.toLowerCase().includes(query) || 
+        team.teamName.toLowerCase().includes(query)
+      ),
+      challenger: leaderboardData.challenger.filter(team => 
+        team.username.toLowerCase().includes(query) || 
+        team.teamName.toLowerCase().includes(query)
+      )
+    };
+  }, [leaderboardData, searchQuery]);
+
+  // Handle refresh of leaderboard data
+  const handleRefresh = () => {
+    refetch().then(() => {
+      toast({
+        title: "Leaderboard Refreshed",
+        description: "The latest rankings have been loaded.",
+      });
+    });
+  };
+
+  const renderLoadingState = () => (
+    <div className="flex flex-col space-y-4">
+      <div className="flex space-x-4 items-center">
+        <Skeleton className="h-12 w-12 rounded-full" />
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-[250px]" />
+          <Skeleton className="h-4 w-[200px]" />
+        </div>
+      </div>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div key={i} className="flex justify-between items-center">
+          <div className="flex space-x-4 items-center">
+            <Skeleton className="h-8 w-8 rounded-full" />
+            <Skeleton className="h-4 w-[150px]" />
+          </div>
+          <Skeleton className="h-4 w-[100px]" />
+        </div>
+      ))}
+    </div>
+  );
 
   return (
     <div className="p-6">
       <header className="mb-8">
-        <h1 className="text-2xl font-bold text-neutral-800">Classificação de Jogadores</h1>
-        <p className="text-neutral-500">Veja quem está dominando a temporada de Motorsport Stakes</p>
+        <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-red-500 text-transparent bg-clip-text">
+          Leaderboard & Rankings
+        </h1>
+        <p className="text-neutral-500">See who's dominating the Motorsport Stakes season</p>
       </header>
 
-      {isLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <span className="ml-2 text-neutral-600">Carregando classificações...</span>
+      {/* Search and Refresh Controls */}
+      <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+        <div className="relative w-full sm:w-auto">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-neutral-500" />
+          <Input
+            type="text"
+            placeholder="Search by player or team..."
+            className="pl-8 w-full sm:w-[300px]"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </div>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="w-full sm:w-auto"
+          onClick={handleRefresh}
+          disabled={isRefetching}
+        >
+          <RefreshCw className={`mr-2 h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
+          {isRefetching ? 'Refreshing...' : 'Refresh Rankings'}
+        </Button>
+      </div>
+
+      {isLoading ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Loading Rankings</CardTitle>
+            <CardDescription>Please wait while we fetch the latest data</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {renderLoadingState()}
+          </CardContent>
+        </Card>
       ) : (
         <Tabs defaultValue="global" value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-6">
-            <TabsTrigger value="global">Classificação Global</TabsTrigger>
-            <TabsTrigger value="premium">Times Premium</TabsTrigger>
-            <TabsTrigger value="challenger">Times Challenger</TabsTrigger>
+            <TabsTrigger value="global" className="relative">
+              Global Rankings
+              {filteredData?.global && (
+                <Badge variant="secondary" className="ml-2 text-xs">
+                  {filteredData.global.length}
+                </Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="premium" className="relative">
+              Premium Teams
+              {filteredData?.premium && (
+                <Badge variant="secondary" className="ml-2 text-xs">
+                  {filteredData.premium.length}
+                </Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="challenger" className="relative">
+              Challenger Teams
+              {filteredData?.challenger && (
+                <Badge variant="secondary" className="ml-2 text-xs">
+                  {filteredData.challenger.length}
+                </Badge>
+              )}
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="global">
             <Card>
               <CardHeader>
-                <CardTitle>Classificação Geral</CardTitle>
+                <CardTitle className="flex items-center">
+                  <Users className="mr-2 h-5 w-5" />
+                  Global Players Ranking
+                </CardTitle>
+                <CardDescription>
+                  Combined value of all team budgets for each player
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
                       <tr className="border-b">
-                        <th className="px-4 py-3 text-left font-medium">Posição</th>
-                        <th className="px-4 py-3 text-left font-medium">Jogador</th>
-                        <th className="px-4 py-3 text-right font-medium">Times</th>
-                        <th className="px-4 py-3 text-right font-medium">Valor Total</th>
+                        <th className="px-4 py-3 text-left font-medium">Rank</th>
+                        <th className="px-4 py-3 text-left font-medium">Player</th>
+                        <th className="px-4 py-3 text-right font-medium">Teams</th>
+                        <th className="px-4 py-3 text-right font-medium">Total Value</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {leaderboardData?.global.length === 0 ? (
+                      {filteredData?.global.length === 0 ? (
                         <tr>
                           <td colSpan={4} className="px-4 py-8 text-center text-neutral-500">
-                            Nenhum jogador encontrado
+                            {searchQuery ? 'No players found matching your search' : 'No players found'}
                           </td>
                         </tr>
                       ) : (
-                        leaderboardData?.global.map((player) => (
+                        filteredData?.global.map((player) => (
                           <tr key={player.userId} className="border-b hover:bg-neutral-50">
                             <td className="px-4 py-3">
                               {getRankBadge(player.rank)}
                             </td>
                             <td className="px-4 py-3 font-medium">{player.username}</td>
                             <td className="px-4 py-3 text-right">{player.totalTeams}</td>
-                            <td className="px-4 py-3 text-right font-bold text-primary">
-                              {player.totalValue.toLocaleString()} créditos
+                            <td className="px-4 py-3 text-right">
+                              <div className="flex flex-col items-end">
+                                <span className="font-bold text-primary">
+                                  {player.totalValue.toLocaleString()} credits
+                                </span>
+                                {/* Average per team */}
+                                <span className="text-xs text-neutral-500">
+                                  (avg: {(player.totalValue / player.totalTeams).toFixed(0)} per team)
+                                </span>
+                              </div>
                             </td>
                           </tr>
                         ))
@@ -118,30 +277,36 @@ export default function Leaderboard() {
           <TabsContent value="premium">
             <Card>
               <CardHeader>
-                <CardTitle>Classificação de Times Premium</CardTitle>
+                <CardTitle className="flex items-center">
+                  <Trophy className="mr-2 h-5 w-5" />
+                  Premium Teams Ranking
+                </CardTitle>
+                <CardDescription>
+                  Teams with 1000 initial credits - ranked by total budget
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
                       <tr className="border-b">
-                        <th className="px-4 py-3 text-left font-medium">Posição</th>
-                        <th className="px-4 py-3 text-left font-medium">Jogador</th>
-                        <th className="px-4 py-3 text-left font-medium">Time</th>
-                        <th className="px-4 py-3 text-right font-medium">Créditos</th>
-                        <th className="px-4 py-3 text-right font-medium">Valor dos Ativos</th>
-                        <th className="px-4 py-3 text-right font-medium">Budget Total</th>
+                        <th className="px-4 py-3 text-left font-medium">Rank</th>
+                        <th className="px-4 py-3 text-left font-medium">Player</th>
+                        <th className="px-4 py-3 text-left font-medium">Team</th>
+                        <th className="px-4 py-3 text-right font-medium">Credits</th>
+                        <th className="px-4 py-3 text-right font-medium">Asset Value</th>
+                        <th className="px-4 py-3 text-right font-medium">Total Budget</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {leaderboardData?.premium.length === 0 ? (
+                      {filteredData?.premium.length === 0 ? (
                         <tr>
                           <td colSpan={6} className="px-4 py-8 text-center text-neutral-500">
-                            Nenhum time premium encontrado
+                            {searchQuery ? 'No premium teams found matching your search' : 'No premium teams found'}
                           </td>
                         </tr>
                       ) : (
-                        leaderboardData?.premium.map((team) => (
+                        filteredData?.premium.map((team) => (
                           <tr key={`${team.userId}-${team.teamId}`} className="border-b hover:bg-neutral-50">
                             <td className="px-4 py-3">
                               {getRankBadge(team.rank)}
@@ -149,13 +314,21 @@ export default function Leaderboard() {
                             <td className="px-4 py-3 font-medium">{team.username}</td>
                             <td className="px-4 py-3">{team.teamName}</td>
                             <td className="px-4 py-3 text-right">
-                              {team.credits.toLocaleString()} créditos
+                              {team.credits.toLocaleString()} cr
                             </td>
                             <td className="px-4 py-3 text-right">
-                              {team.value.toLocaleString()} créditos
+                              <div className="flex flex-col items-end">
+                                <span>{team.value.toLocaleString()} cr</span>
+                                {getTrendIndicator(team.value, 0)}
+                              </div>
                             </td>
-                            <td className="px-4 py-3 text-right font-bold text-primary">
-                              {(team.totalBudget ?? (team.value + team.credits)).toLocaleString()} créditos
+                            <td className="px-4 py-3 text-right font-bold">
+                              <div className="flex flex-col items-end">
+                                <span className="text-primary">
+                                  {team.totalBudget.toLocaleString()} cr
+                                </span>
+                                {getTrendIndicator(team.totalBudget, 1000)}
+                              </div>
                             </td>
                           </tr>
                         ))
@@ -164,7 +337,10 @@ export default function Leaderboard() {
                   </table>
                 </div>
                 <div className="mt-4 text-sm text-neutral-500">
-                  <p>Times Premium começam com 1000 créditos iniciais.</p>
+                  <p className="flex items-center">
+                    <Star className="h-4 w-4 mr-2 text-yellow-500" />
+                    Premium teams start with 1000 credits - Performance is measured against this baseline
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -173,30 +349,36 @@ export default function Leaderboard() {
           <TabsContent value="challenger">
             <Card>
               <CardHeader>
-                <CardTitle>Classificação de Times Challenger</CardTitle>
+                <CardTitle className="flex items-center">
+                  <Star className="mr-2 h-5 w-5" />
+                  Challenger Teams Ranking
+                </CardTitle>
+                <CardDescription>
+                  Teams with 700 initial credits - ranked by total budget
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
                       <tr className="border-b">
-                        <th className="px-4 py-3 text-left font-medium">Posição</th>
-                        <th className="px-4 py-3 text-left font-medium">Jogador</th>
-                        <th className="px-4 py-3 text-left font-medium">Time</th>
-                        <th className="px-4 py-3 text-right font-medium">Créditos</th>
-                        <th className="px-4 py-3 text-right font-medium">Valor dos Ativos</th>
-                        <th className="px-4 py-3 text-right font-medium">Budget Total</th>
+                        <th className="px-4 py-3 text-left font-medium">Rank</th>
+                        <th className="px-4 py-3 text-left font-medium">Player</th>
+                        <th className="px-4 py-3 text-left font-medium">Team</th>
+                        <th className="px-4 py-3 text-right font-medium">Credits</th>
+                        <th className="px-4 py-3 text-right font-medium">Asset Value</th>
+                        <th className="px-4 py-3 text-right font-medium">Total Budget</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {leaderboardData?.challenger.length === 0 ? (
+                      {filteredData?.challenger.length === 0 ? (
                         <tr>
                           <td colSpan={6} className="px-4 py-8 text-center text-neutral-500">
-                            Nenhum time challenger encontrado
+                            {searchQuery ? 'No challenger teams found matching your search' : 'No challenger teams found'}
                           </td>
                         </tr>
                       ) : (
-                        leaderboardData?.challenger.map((team) => (
+                        filteredData?.challenger.map((team) => (
                           <tr key={`${team.userId}-${team.teamId}`} className="border-b hover:bg-neutral-50">
                             <td className="px-4 py-3">
                               {getRankBadge(team.rank)}
@@ -204,13 +386,21 @@ export default function Leaderboard() {
                             <td className="px-4 py-3 font-medium">{team.username}</td>
                             <td className="px-4 py-3">{team.teamName}</td>
                             <td className="px-4 py-3 text-right">
-                              {team.credits.toLocaleString()} créditos
+                              {team.credits.toLocaleString()} cr
                             </td>
                             <td className="px-4 py-3 text-right">
-                              {team.value.toLocaleString()} créditos
+                              <div className="flex flex-col items-end">
+                                <span>{team.value.toLocaleString()} cr</span>
+                                {getTrendIndicator(team.value, 0)}
+                              </div>
                             </td>
-                            <td className="px-4 py-3 text-right font-bold text-primary">
-                              {(team.totalBudget ?? (team.value + team.credits)).toLocaleString()} créditos
+                            <td className="px-4 py-3 text-right font-bold">
+                              <div className="flex flex-col items-end">
+                                <span className="text-primary">
+                                  {team.totalBudget.toLocaleString()} cr
+                                </span>
+                                {getTrendIndicator(team.totalBudget, 700)}
+                              </div>
                             </td>
                           </tr>
                         ))
@@ -219,7 +409,10 @@ export default function Leaderboard() {
                   </table>
                 </div>
                 <div className="mt-4 text-sm text-neutral-500">
-                  <p>Times Challenger começam com 700 créditos iniciais.</p>
+                  <p className="flex items-center">
+                    <Star className="h-4 w-4 mr-2 text-amber-700" />
+                    Challenger teams start with 700 credits - Performance is measured against this baseline
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -227,10 +420,26 @@ export default function Leaderboard() {
         </Tabs>
       )}
       
-      <div className="mt-8 text-sm text-center text-neutral-500">
-        <p>A classificação é baseada no budget total (valor dos ativos + créditos disponíveis).</p>
-        <p>Todos os times iniciam com o mesmo budget total (1000 ou 700 créditos).</p>
-        <p>Classificação atualizada após a submissão de resultados de cada corrida.</p>
+      <div className="mt-8 p-6 bg-neutral-50 rounded-lg border border-neutral-200">
+        <h3 className="text-lg font-semibold mb-3">How the Leaderboard Works</h3>
+        <ul className="space-y-2 text-sm text-neutral-700">
+          <li className="flex items-start">
+            <span className="bg-primary text-white rounded-full h-5 w-5 flex items-center justify-center text-xs mr-2 mt-0.5">1</span>
+            <span>Rankings are based on total budget (asset value + available credits)</span>
+          </li>
+          <li className="flex items-start">
+            <span className="bg-primary text-white rounded-full h-5 w-5 flex items-center justify-center text-xs mr-2 mt-0.5">2</span>
+            <span>All teams start with the same total budget (Premium: 1000 credits, Challenger: 700 credits)</span>
+          </li>
+          <li className="flex items-start">
+            <span className="bg-primary text-white rounded-full h-5 w-5 flex items-center justify-center text-xs mr-2 mt-0.5">3</span>
+            <span>Rankings are updated after each race when results are submitted and asset values change</span>
+          </li>
+          <li className="flex items-start">
+            <span className="bg-primary text-white rounded-full h-5 w-5 flex items-center justify-center text-xs mr-2 mt-0.5">4</span>
+            <span>Performance trends show how teams are performing compared to their initial budget</span>
+          </li>
+        </ul>
       </div>
     </div>
   );
