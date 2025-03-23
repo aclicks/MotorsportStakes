@@ -68,40 +68,62 @@ export default function Statistics() {
     enabled: !!selectedId,
   });
 
-  // Prepare data for the chart - filter out positions that are 0 (invalid)
-  const chartData = history?.map((entry) => ({
+  // Get the current value of the selected entity
+  let currentValue: number | undefined;
+  let entityPositionInStandings: number | undefined;
+  
+  if (selectedId) {
+    const id = parseInt(selectedId);
+    switch (entityType) {
+      case "driver":
+        const driverStanding = driversData?.find(item => item.driver.id === id);
+        currentValue = driverStanding?.driver.value;
+        entityPositionInStandings = driverStanding?.position;
+        break;
+      case "team":
+        const teamStanding = teamsData?.find(item => item.team.id === id);
+        currentValue = teamStanding?.team.value;
+        entityPositionInStandings = teamStanding?.position;
+        break;
+      case "engine":
+        const engineStanding = enginesData?.find(item => item.engine.id === id);
+        currentValue = engineStanding?.engine.value;
+        entityPositionInStandings = engineStanding?.position;
+        break;
+    }
+  }
+  
+  // Prepare data for the chart - we need to create a historical view of the asset value
+  // Since we don't have direct historical values in the API response, we'll use the race data
+  // and add the current value as the latest data point
+  const raceData = history?.map((entry) => ({
     name: entry.race?.name || `Race ${entry.raceId}`,
     position: entry.position,
     date: entry.race?.date ? format(new Date(entry.race.date), "dd MMM yyyy") : "",
   })).filter(entry => entry.position > 0);
   
+  // Create a chart data array that shows asset value
+  const chartData = raceData && currentValue ? [
+    ...raceData.map((race, index, array) => ({
+      name: race.name,
+      date: race.date,
+      // Since we don't have historical values in the API, we're showing the current value 
+      // for all points in the chart for now
+      value: currentValue
+    }))
+  ] : [];
+  
   // Log data for debugging
   console.log(`Statistics chart data for ${entityType} ${selectedId}:`, chartData);
   
-  // Get the average position from standings data when no valid history data
+  // For position average, continue to use position data (for reference in UI)
   let averagePosition: number | undefined;
   
-  // First try to get it from race history data
-  if (chartData && chartData.length > 0) {
-    averagePosition = Number((chartData.reduce((sum, entry) => sum + entry.position, 0) / chartData.length).toFixed(2));
-  } 
-  // If no valid race history data, try to get the position from standings
+  if (raceData && raceData.length > 0) {
+    averagePosition = Number((raceData.reduce((sum, entry) => sum + entry.position, 0) / raceData.length).toFixed(2));
+  }
   else if (selectedId) {
-    const id = parseInt(selectedId);
-    switch (entityType) {
-      case "driver":
-        const driverStanding = driversData?.find(item => item.driver.id === id);
-        averagePosition = driverStanding?.position;
-        break;
-      case "team":
-        const teamStanding = teamsData?.find(item => item.team.id === id);
-        averagePosition = teamStanding?.position;
-        break;
-      case "engine":
-        const engineStanding = enginesData?.find(item => item.engine.id === id);
-        averagePosition = engineStanding?.position;
-        break;
-    }
+    averagePosition = entityPositionInStandings;
   }
 
   // Find the name of the selected entity
@@ -221,9 +243,9 @@ export default function Statistics() {
                   <h3 className="text-lg font-medium">
                     Histórico de Desempenho: {getEntityName()}
                   </h3>
-                  {averagePosition !== undefined && (
+                  {currentValue !== undefined && (
                     <div className="bg-primary/10 text-primary px-4 py-2 rounded-md">
-                      <span className="font-medium">Posição Média:</span> {averagePosition}
+                      <span className="font-medium">Valor Atual:</span> {currentValue.toLocaleString()} créditos
                     </div>
                   )}
                 </div>
@@ -231,13 +253,16 @@ export default function Statistics() {
                   <Skeleton className="h-[400px] w-full" />
                 ) : !history || history.length === 0 || !chartData || chartData.length === 0 ? (
                   <div className="text-center py-12 text-neutral-500">
-                    {averagePosition !== undefined ? (
+                    {currentValue !== undefined ? (
                       <>
                         <p className="mb-2">Sem dados históricos de corridas disponíveis para este {entityType === "driver" ? "piloto" : entityType === "team" ? "equipe" : "motor"}.</p>
-                        <p>Posição atual no campeonato: <span className="font-semibold text-primary">{averagePosition}º lugar</span></p>
+                        <p>Valor atual: <span className="font-semibold text-primary">{currentValue.toLocaleString()} créditos</span></p>
+                        {entityPositionInStandings && (
+                          <p className="mt-2 text-sm">Posição atual: {entityPositionInStandings}º lugar</p>
+                        )}
                       </>
                     ) : (
-                      "Sem dados históricos disponíveis para esta seleção ou todos os dados de posição são inválidos (posição 0)."
+                      "Sem dados históricos disponíveis para esta seleção."
                     )}
                   </div>
                 ) : (
@@ -259,16 +284,14 @@ export default function Statistics() {
                         axisLine={{ stroke: '#999' }}
                         tickMargin={10}
                       />
-                      {/* Posição invertida para melhor visualização (menor = melhor) */}
                       <YAxis 
-                        reversed 
-                        domain={[1, 20]}
+                        domain={['auto', 'auto']}
                         tick={{ fill: '#666' }}
                         axisLine={{ stroke: '#999' }}
                         tickSize={8}
                         tickCount={10}
                         label={{ 
-                          value: 'Posição Final', 
+                          value: 'Valor (créditos)', 
                           angle: -90, 
                           position: 'insideLeft',
                           style: { textAnchor: 'middle', fill: '#666' }
@@ -277,12 +300,8 @@ export default function Statistics() {
                       <Tooltip
                         formatter={(value: number) => {
                           return [
-                            `${value}ª Posição`, 
-                            value < (averagePosition || 10) 
-                              ? 'Acima da Média 🔼' 
-                              : value > (averagePosition || 10) 
-                                ? 'Abaixo da Média 🔽' 
-                                : 'Na Média ◼️'
+                            `${value.toLocaleString()} créditos`,
+                            ""
                           ];
                         }}
                         labelFormatter={(label, entries) => {
@@ -301,7 +320,7 @@ export default function Statistics() {
                       <Legend />
                       <Line
                         type="monotone"
-                        dataKey="position"
+                        dataKey="value"
                         stroke="var(--primary)"
                         strokeWidth={3}
                         dot={{ 
@@ -316,21 +335,8 @@ export default function Statistics() {
                           strokeWidth: 2,
                           fill: 'var(--primary)' 
                         }}
-                        name="Posição"
+                        name="Valor"
                       />
-                      {averagePosition !== undefined && (
-                        <ReferenceLine
-                          y={averagePosition}
-                          stroke="#ff7300"
-                          strokeDasharray="3 3"
-                          label={{
-                            value: `Média: ${averagePosition}`,
-                            fill: '#ff7300',
-                            fontSize: 12,
-                            position: 'insideBottomRight'
-                          }}
-                        />
-                      )}
                     </LineChart>
                   </ResponsiveContainer>
                 )}
