@@ -114,11 +114,35 @@ export default function Statistics() {
   })).filter(entry => entry.position > 0);
   
   // Prepare asset value data for the chart
-  const valueData = assetValueHistory?.map((entry) => ({
-    name: entry.race?.name || `Race ${entry.raceId}`,
-    value: entry.value,
-    date: entry.race?.date ? format(new Date(entry.race.date), "dd MMM yyyy") : "",
-  }));
+  // Process the asset value history to ensure we have only one data point per race
+  // Use a Map to deduplicate entries by raceId, keeping the latest entry
+  const valueDataMap = new Map();
+  
+  if (assetValueHistory && assetValueHistory.length > 0) {
+    // First, sort by createdAt to ensure we keep the latest entry for each race
+    const sortedHistory = [...assetValueHistory].sort((a, b) => {
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return dateB - dateA; // Latest first
+    });
+    
+    // Then, use a Map to deduplicate by raceId
+    sortedHistory.forEach(entry => {
+      if (!valueDataMap.has(entry.raceId)) {
+        valueDataMap.set(entry.raceId, {
+          name: entry.race?.name || `Race ${entry.raceId}`,
+          value: entry.value,
+          date: entry.race?.date ? format(new Date(entry.race.date), "dd MMM yyyy") : "",
+          raceId: entry.raceId,
+          timestamp: entry.race?.date ? new Date(entry.race.date).getTime() : 0
+        });
+      }
+    });
+  }
+  
+  // Convert the Map values to an array and sort by race date
+  const valueData = Array.from(valueDataMap.values())
+    .sort((a, b) => a.timestamp - b.timestamp); // Sort chronologically
   
   // Create the chart data using asset value history if available
   // If no asset value history is available, use the current value for all races
