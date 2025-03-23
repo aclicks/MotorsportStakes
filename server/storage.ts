@@ -2014,12 +2014,28 @@ export class DatabaseStorage implements IStorage {
   
   async revertChineseGPValuations(australianGPId: number, chineseGPId: number): Promise<void> {
     try {
-      console.log(`Reverting Chinese GP (${chineseGPId}) valuations to Australian GP (${australianGPId}) values`);
+      console.log(`Recording Chinese GP and Australian GP valuations`);
       
       // Get all drivers, teams, and engines
       const drivers = await this.getDrivers();
       const teams = await this.getTeams();
       const engines = await this.getEngines();
+
+      // First record Chinese GP values before reverting
+      for (const driver of drivers) {
+        await this.recordAssetValue(driver.id, 'driver', chineseGPId, driver.value);
+        console.log(`Recorded asset value for driver ${driver.id} at Chinese GP: ${driver.value}`);
+      }
+      
+      for (const team of teams) {
+        await this.recordAssetValue(team.id, 'team', chineseGPId, team.value);
+        console.log(`Recorded asset value for team ${team.id} at Chinese GP: ${team.value}`);
+      }
+      
+      for (const engine of engines) {
+        await this.recordAssetValue(engine.id, 'engine', chineseGPId, engine.value);
+        console.log(`Recorded asset value for engine ${engine.id} at Chinese GP: ${engine.value}`);
+      }
       
       // Get Australian GP - we need this to fetch asset values from this race
       const australianGP = await this.getRace(australianGPId);
