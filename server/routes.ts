@@ -1279,6 +1279,116 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+  
+  // Fix missing Australian GP asset value history data
+  app.post("/api/admin/fix-australian-gp-data", isAdmin, async (req, res) => {
+    try {
+      const australianGPId = 6; // Australian GP ID
+      
+      // Get race results for the Australian GP
+      const results = await storage.getRaceResults(australianGPId);
+      if (results.length === 0) {
+        return res.status(404).json({ message: "No results found for Australian GP" });
+      }
+      
+      // Get initial values from race ID 9999
+      const initialValues = await storage.getAssetValueHistory(0, 'driver')
+        .then(history => history.filter(h => h.raceId === 9999));
+      
+      if (initialValues.length === 0) {
+        return res.status(404).json({ message: "No initial values found" });
+      }
+      
+      console.log(`Found ${results.length} race results and ${initialValues.length} initial values`);
+      
+      // Create a map of entity IDs to initial values
+      const initialValueMap = new Map();
+      for (const value of initialValues) {
+        const key = `${value.entityType}_${value.entityId}`;
+        initialValueMap.set(key, value.value);
+      }
+      
+      // For each driver, calculate its Australian GP value
+      const allDrivers = await storage.getDrivers();
+      let driversProcessed = 0;
+      
+      for (const driver of allDrivers) {
+        // Find the driver's race result
+        const result = results.find(r => r.driverId === driver.id);
+        if (!result || result.valuation === null) continue;
+        
+        // Get initial value
+        const initialValue = initialValueMap.get(`driver_${driver.id}`);
+        if (!initialValue) continue;
+        
+        // Calculate the value after applying valuation
+        const valuationAmount = Math.round((initialValue * result.valuation) / 100);
+        const australianGPValue = initialValue + valuationAmount;
+        
+        // Record the value in history
+        await storage.recordAssetValue(driver.id, 'driver', australianGPId, australianGPValue);
+        driversProcessed++;
+      }
+      
+      // Process teams
+      const allTeams = await storage.getTeams();
+      let teamsProcessed = 0;
+      
+      for (const team of allTeams) {
+        // Get initial value
+        const initialValue = initialValueMap.get(`team_${team.id}`);
+        if (!initialValue) continue;
+        
+        // Calculate team valuation using the same algorithm as in applyValuations
+        const valuation = await storage.calculateTeamValuation(team.id, australianGPId);
+        
+        // Calculate the value after applying valuation
+        const valuationAmount = Math.round((initialValue * valuation) / 100);
+        const australianGPValue = initialValue + valuationAmount;
+        
+        // Record the value in history
+        await storage.recordAssetValue(team.id, 'team', australianGPId, australianGPValue);
+        teamsProcessed++;
+      }
+      
+      // Process engines
+      const allEngines = await storage.getEngines();
+      let enginesProcessed = 0;
+      
+      for (const engine of allEngines) {
+        // Get initial value
+        const initialValue = initialValueMap.get(`engine_${engine.id}`);
+        if (!initialValue) continue;
+        
+        // Calculate engine valuation using the same algorithm as in applyValuations
+        const valuation = await storage.calculateEngineValuation(engine.id, australianGPId);
+        
+        // Calculate the value after applying valuation
+        const valuationAmount = Math.round((initialValue * valuation) / 100);
+        const australianGPValue = initialValue + valuationAmount;
+        
+        // Record the value in history
+        await storage.recordAssetValue(engine.id, 'engine', australianGPId, australianGPValue);
+        enginesProcessed++;
+      }
+      
+      res.json({
+        success: true,
+        message: "Successfully added missing Australian GP data",
+        stats: {
+          driversProcessed,
+          teamsProcessed,
+          enginesProcessed
+        }
+      });
+    } catch (error) {
+      console.error("Error fixing Australian GP data:", error);
+      res.status(500).json({
+        message: "Error fixing Australian GP data",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
 
   // Create driver
   app.post("/api/admin/drivers", isAdmin, async (req, res) => {

@@ -49,11 +49,43 @@ export default function Admin() {
       });
     },
   });
+  
+  // Fix Australian GP data
+  const fixAustralianGPMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/admin/fix-australian-gp-data", {});
+      return res.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Data Recovery Complete",
+        description: `Successfully recovered missing Australian GP data: ${data.stats.driversProcessed} drivers, ${data.stats.teamsProcessed} teams, ${data.stats.enginesProcessed} engines.`,
+      });
+      
+      // Invalidate statistics and market data
+      queryClient.invalidateQueries({ queryKey: ["/api/market"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/statistics"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Data Recovery Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
   // Handle reset database action
   const handleResetDatabase = () => {
     if (confirm("Are you sure you want to reset the database to initial state? This will delete all race results and reset all asset values to their initial values. This action cannot be undone.")) {
       resetDatabaseMutation.mutate();
+    }
+  };
+  
+  // Handle fix Australian GP data action
+  const handleFixAustralianGP = () => {
+    if (confirm("This will recover missing asset value history records for the Australian Grand Prix. Proceed?")) {
+      fixAustralianGPMutation.mutate();
     }
   };
 
@@ -71,6 +103,16 @@ export default function Admin() {
             <p className="text-neutral-500">Manage race results, calendar, and game data.</p>
           </div>
           <div className="flex gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-1"
+              onClick={handleFixAustralianGP}
+              disabled={fixAustralianGPMutation.isPending}
+            >
+              <RefreshCw className={`h-4 w-4 ${fixAustralianGPMutation.isPending ? 'animate-spin' : ''}`} />
+              {fixAustralianGPMutation.isPending ? 'Recovering...' : 'Fix Australian GP Data'}
+            </Button>
             <Button
               variant="outline"
               size="sm"
