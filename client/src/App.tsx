@@ -15,8 +15,9 @@ import { ProtectedRoute } from "./lib/protected-route";
 import { AuthProvider } from "./hooks/use-auth";
 import AppShell from "./components/layout/app-shell";
 
-// Importando a nova página de leaderboard
+// Import additional pages
 import Leaderboard from "@/pages/leaderboard";
+import ValuationTable from "@/pages/valuation-table";
 
 function Router() {
   return (
@@ -29,6 +30,7 @@ function Router() {
       <ProtectedRoute path="/standings" component={() => <AppShell><Standings /></AppShell>} />
       <ProtectedRoute path="/statistics" component={() => <AppShell><Statistics /></AppShell>} />
       <ProtectedRoute path="/leaderboard" component={() => <AppShell><Leaderboard /></AppShell>} />
+      <ProtectedRoute path="/valuation-table" component={() => <AppShell><ValuationTable /></AppShell>} />
       <ProtectedRoute path="/admin" component={() => <AppShell><Admin /></AppShell>} />
       <Route component={NotFound} />
     </Switch>

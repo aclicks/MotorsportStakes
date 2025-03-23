@@ -12,7 +12,9 @@ import {
   Shield, 
   LogOut, 
   User,
-  X
+  X,
+  PercentCircle,
+  Calculator
 } from "lucide-react";
 
 type NavLinkProps = {
@@ -117,6 +119,9 @@ export default function Sidebar({ isMobileMenuOpen, setIsMobileMenuOpen }: Sideb
           </NavLink>
           <NavLink href="/leaderboard" icon={<Medal size={18} />} onClick={closeMobileMenu}>
             Leaderboard
+          </NavLink>
+          <NavLink href="/valuation-table" icon={<PercentCircle size={18} />} onClick={closeMobileMenu}>
+            Valuation System
           </NavLink>
           {user?.isAdmin && (
             <NavLink href="/admin" icon={<Shield size={18} />} onClick={closeMobileMenu}>

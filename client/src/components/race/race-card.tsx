@@ -90,7 +90,8 @@ export default function RaceCard({ race }: RaceCardProps) {
     
     // Cleanup
     return () => clearInterval(interval);
-  }, [deadlineDate, bettingLocked, lockBettingMutation]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deadlineDate.getTime()]);
 
   // Format countdown display
   const getCountdownDisplay = () => {
