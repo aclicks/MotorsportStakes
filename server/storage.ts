@@ -157,6 +157,7 @@ export class MemStorage implements IStorage {
     this.raceResultIdCounter = 1;
     this.performanceHistoryIdCounter = 1;
     this.userTeamIdCounter = 1;
+    this.assetValueHistoryIdCounter = 1;
     
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000, // prune expired entries every 24h
@@ -910,6 +911,41 @@ export class MemStorage implements IStorage {
       userTeam.currentCredits += creditsGained;
       this.userTeams.set(userTeam.id, userTeam);
     }
+  }
+
+  // Asset value history methods
+  async getAssetValueHistory(entityId: number, entityType: 'driver' | 'team' | 'engine'): Promise<AssetValueHistory[]> {
+    return Array.from(this.assetValueHistory.values())
+      .filter(history => history.entityId === entityId && history.entityType === entityType)
+      .sort((a, b) => {
+        // Sort by race date
+        const raceA = this.races.get(a.raceId);
+        const raceB = this.races.get(b.raceId);
+        if (!raceA || !raceB) return 0;
+        return new Date(raceA.date).getTime() - new Date(raceB.date).getTime();
+      });
+  }
+
+  async createAssetValueHistory(history: InsertAssetValueHistory): Promise<AssetValueHistory> {
+    const id = this.assetValueHistoryIdCounter++;
+    const now = new Date();
+    const newHistory: AssetValueHistory = { 
+      ...history, 
+      id,
+      createdAt: now
+    };
+    this.assetValueHistory.set(id, newHistory);
+    return newHistory;
+  }
+
+  async recordAssetValue(entityId: number, entityType: 'driver' | 'team' | 'engine', raceId: number, value: number): Promise<AssetValueHistory> {
+    // Create a new asset value history record
+    return this.createAssetValueHistory({
+      entityId,
+      entityType,
+      raceId,
+      value
+    });
   }
 
   // Game settings methods
