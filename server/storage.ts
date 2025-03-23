@@ -948,6 +948,35 @@ export class MemStorage implements IStorage {
       value
     });
   }
+  
+  async revertChineseGPValuations(australianGPId: number, chineseGPId: number): Promise<void> {
+    console.log(`Reverting Chinese GP (${chineseGPId}) valuations to Australian GP (${australianGPId}) values`);
+    
+    // Get all drivers, teams, and engines
+    const allDrivers = await this.getDrivers();
+    const allTeams = await this.getTeams();
+    const allEngines = await this.getEngines();
+    
+    // For each driver, record current value at Australian GP
+    for (const driver of allDrivers) {
+      await this.recordAssetValue(driver.id, 'driver', australianGPId, driver.value);
+      console.log(`Recorded asset value for driver ${driver.id} at Australian GP: ${driver.value}`);
+    }
+    
+    // For each team, record current value at Australian GP
+    for (const team of allTeams) {
+      await this.recordAssetValue(team.id, 'team', australianGPId, team.value);
+      console.log(`Recorded asset value for team ${team.id} at Australian GP: ${team.value}`);
+    }
+    
+    // For each engine, record current value at Australian GP
+    for (const engine of allEngines) {
+      await this.recordAssetValue(engine.id, 'engine', australianGPId, engine.value);
+      console.log(`Recorded asset value for engine ${engine.id} at Australian GP: ${engine.value}`);
+    }
+    
+    console.log("Completed reverting Chinese GP valuations to Australian GP values");
+  }
 
   // Game settings methods
   async getGameSetting(key: string): Promise<string | null> {
@@ -1977,6 +2006,40 @@ export class DatabaseStorage implements IStorage {
       });
     } catch (error) {
       console.error(`Error recording asset value for ${entityType} ${entityId}:`, error);
+      throw error;
+    }
+  }
+  
+  async revertChineseGPValuations(australianGPId: number, chineseGPId: number): Promise<void> {
+    try {
+      console.log(`Reverting Chinese GP (${chineseGPId}) valuations to Australian GP (${australianGPId}) values`);
+      
+      // Get all drivers, teams, and engines
+      const drivers = await this.getDrivers();
+      const teams = await this.getTeams();
+      const engines = await this.getEngines();
+      
+      // For each driver, get asset value and save at Australian GP
+      for (const driver of drivers) {
+        await this.recordAssetValue(driver.id, 'driver', australianGPId, driver.value);
+        console.log(`Recorded asset value for driver ${driver.id} (${driver.name}) at Australian GP: ${driver.value}`);
+      }
+      
+      // For each team, get asset value and save at Australian GP
+      for (const team of teams) {
+        await this.recordAssetValue(team.id, 'team', australianGPId, team.value);
+        console.log(`Recorded asset value for team ${team.id} (${team.name}) at Australian GP: ${team.value}`);
+      }
+      
+      // For each engine, get asset value and save at Australian GP
+      for (const engine of engines) {
+        await this.recordAssetValue(engine.id, 'engine', australianGPId, engine.value);
+        console.log(`Recorded asset value for engine ${engine.id} (${engine.name}) at Australian GP: ${engine.value}`);
+      }
+      
+      console.log("Successfully reverted Chinese GP valuations to Australian GP values");
+    } catch (error) {
+      console.error("Error reverting Chinese GP valuations:", error);
       throw error;
     }
   }
