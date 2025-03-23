@@ -15,7 +15,7 @@ interface PlayerRanking {
   rank: number;
   userId: number;
   username: string;
-  totalCredits: number;
+  totalCredits: number; // Changed from totalValue
   totalTeams: number;
 }
 
@@ -337,7 +337,7 @@ export default function Leaderboard() {
                   Challenger Teams Ranking
                 </CardTitle>
                 <CardDescription>
-                  Teams with 700 initial credits - ranked by total budget
+                  Teams with 700 initial credits - ranked by credits
                 </CardDescription>
               </CardHeader>
               <CardContent>
