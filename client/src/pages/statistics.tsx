@@ -367,9 +367,29 @@ export default function Statistics() {
                         }}
                       />
                       <Tooltip
-                        formatter={(value: number) => {
+                        formatter={(value: number, name, props) => {
+                          // Get the current entry index to calculate percentage change
+                          const currentIndex = chartData.findIndex(item => item.value === value);
+                          let percentChange = null;
+                          
+                          // Calculate percentage change compared to previous data point
+                          if (currentIndex > 0) {
+                            const previousValue = chartData[currentIndex - 1].value;
+                            percentChange = ((value - previousValue) / previousValue) * 100;
+                          }
+                          
                           return [
-                            `${value.toLocaleString()} créditos`,
+                            <>
+                              <span>{value.toLocaleString()} créditos</span>
+                              {percentChange !== null && (
+                                <div className="mt-1">
+                                  <span className={`font-semibold ${percentChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                    {percentChange >= 0 ? '▲' : '▼'} {Math.abs(percentChange).toFixed(2)}%
+                                  </span>
+                                  <span className="text-gray-500 text-xs ml-1">vs anterior</span>
+                                </div>
+                              )}
+                            </>,
                             ""
                           ];
                         }}
