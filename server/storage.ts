@@ -15,7 +15,7 @@ import createMemoryStore from "memorystore";
 import connectPg from "connect-pg-simple";
 import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
-import { eq, and, desc, lt, gt, isNull, asc } from 'drizzle-orm';
+import { eq, and, desc, lt, gt, isNull, asc, ne as neq } from 'drizzle-orm';
 import * as dotenv from 'dotenv';
 
 // Carregar variáveis de ambiente do arquivo .env
