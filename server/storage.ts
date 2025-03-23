@@ -1919,7 +1919,66 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // Asset value history methods
+  async getAssetValueHistory(entityId: number, entityType: 'driver' | 'team' | 'engine'): Promise<AssetValueHistory[]> {
+    try {
+      // Create condition for filtering by entity type and id
+      const results = await db.select()
+        .from(assetValueHistory)
+        .where(
+          and(
+            eq(assetValueHistory.entityId, entityId),
+            eq(assetValueHistory.entityType, entityType)
+          )
+        )
+        .leftJoin(races, eq(assetValueHistory.raceId, races.id))
+        .orderBy(asc(races.date));
+      
+      // Transform the results into AssetValueHistory objects
+      return results.map(row => ({
+        id: row.asset_value_history.id,
+        entityId: row.asset_value_history.entityId,
+        entityType: row.asset_value_history.entityType as 'driver' | 'team' | 'engine',
+        raceId: row.asset_value_history.raceId,
+        value: row.asset_value_history.value,
+        createdAt: row.asset_value_history.createdAt
+      }));
+    } catch (error) {
+      console.error(`Error getting asset value history for ${entityType} ${entityId}:`, error);
+      return [];
+    }
+  }
 
+  async createAssetValueHistory(history: InsertAssetValueHistory): Promise<AssetValueHistory> {
+    try {
+      const result = await db.insert(assetValueHistory)
+        .values({
+          ...history,
+          createdAt: new Date()
+        })
+        .returning();
+      
+      return result[0];
+    } catch (error) {
+      console.error("Error creating asset value history:", error);
+      throw error;
+    }
+  }
+
+  async recordAssetValue(entityId: number, entityType: 'driver' | 'team' | 'engine', raceId: number, value: number): Promise<AssetValueHistory> {
+    try {
+      // Create a new asset value history record
+      return await this.createAssetValueHistory({
+        entityId,
+        entityType,
+        raceId,
+        value
+      });
+    } catch (error) {
+      console.error(`Error recording asset value for ${entityType} ${entityId}:`, error);
+      throw error;
+    }
+  }
   
   // Game settings methods
   async getGameSetting(key: string): Promise<string | null> {
