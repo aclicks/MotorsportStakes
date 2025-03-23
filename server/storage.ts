@@ -1808,8 +1808,10 @@ export class DatabaseStorage implements IStorage {
           if (driver) {
             const driverResult = results.find(r => r.driverId === driver.id);
             if (driverResult && driverResult.valuation !== null) {
-              creditsGained += driverResult.valuation;
-              console.log(`Driver1 (${driver.name}) added ${driverResult.valuation} credits`);
+              // Calculate the valuation amount based on percentage
+              const valuationAmount = Math.round((driver.value * driverResult.valuation) / 100);
+              creditsGained += valuationAmount;
+              console.log(`Driver1 (${driver.name}) valuation: ${driverResult.valuation}% = ${valuationAmount} credits`);
             }
           }
         }
@@ -1819,8 +1821,10 @@ export class DatabaseStorage implements IStorage {
           if (driver) {
             const driverResult = results.find(r => r.driverId === driver.id);
             if (driverResult && driverResult.valuation !== null) {
-              creditsGained += driverResult.valuation;
-              console.log(`Driver2 (${driver.name}) added ${driverResult.valuation} credits`);
+              // Calculate the valuation amount based on percentage
+              const valuationAmount = Math.round((driver.value * driverResult.valuation) / 100);
+              creditsGained += valuationAmount;
+              console.log(`Driver2 (${driver.name}) valuation: ${driverResult.valuation}% = ${valuationAmount} credits`);
             }
           }
         }
@@ -1829,9 +1833,12 @@ export class DatabaseStorage implements IStorage {
         if (userTeam.engineId) {
           const engine = await this.getEngine(userTeam.engineId);
           if (engine) {
-            const valuation = await this.calculateEngineValuation(engine.id, raceId);
-            creditsGained += valuation;
-            console.log(`Engine (${engine.name}) added ${valuation} credits`);
+            // Get the valuation percentage
+            const valuationPercent = await this.calculateEngineValuation(engine.id, raceId);
+            // Calculate the actual credits based on the percentage
+            const valuationAmount = Math.round((engine.value * valuationPercent) / 100);
+            creditsGained += valuationAmount;
+            console.log(`Engine (${engine.name}) valuation: ${valuationPercent}% = ${valuationAmount} credits`);
           }
         }
         
@@ -1839,9 +1846,12 @@ export class DatabaseStorage implements IStorage {
         if (userTeam.teamId) {
           const team = await this.getTeam(userTeam.teamId);
           if (team) {
-            const valuation = await this.calculateTeamValuation(team.id, raceId);
-            creditsGained += valuation;
-            console.log(`Team (${team.name}) added ${valuation} credits`);
+            // Get the valuation percentage
+            const valuationPercent = await this.calculateTeamValuation(team.id, raceId);
+            // Calculate the actual credits based on the percentage
+            const valuationAmount = Math.round((team.value * valuationPercent) / 100);
+            creditsGained += valuationAmount;
+            console.log(`Team (${team.name}) valuation: ${valuationPercent}% = ${valuationAmount} credits`);
           }
         }
         
