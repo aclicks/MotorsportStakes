@@ -1277,28 +1277,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Create historical asset values for Australian GP and Chinese GP
-  app.post("/api/admin/revert-chinese-gp-valuations", isAdmin, async (req, res) => {
+  // Reset database to initial state
+  app.post("/api/admin/reset-database", isAdmin, async (req, res) => {
     try {
-      // Get race IDs for Australian GP and Chinese GP
-      const races = await storage.getRaces();
-      const australianGP = races.find(race => race.name.includes("AUSTRALIAN"));
-      const chineseGP = races.find(race => race.name.includes("CHINESE"));
-      
-      if (!australianGP || !chineseGP) {
-        return res.status(404).json({ message: "Required races not found" });
-      }
-      
-      // Generate historical values for both races
-      await storage.revertChineseGPValuations(australianGP.id, chineseGP.id);
+      await storage.resetDatabase();
       
       res.json({ 
         success: true, 
-        message: "Successfully created historical asset values for Australian GP and Chinese GP with realistic variations between races." 
+        message: "Successfully reset database to initial state." 
       });
     } catch (error) {
-      console.error("Error creating historical asset values:", error);
-      res.status(500).json({ message: "Error creating historical asset values", error: String(error) });
+      console.error("Error resetting database:", error);
+      res.status(500).json({ 
+        message: "Error resetting database", 
+        error: error instanceof Error ? error.message : String(error) 
+      });
     }
   });
 

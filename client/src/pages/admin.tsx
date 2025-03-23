@@ -19,39 +19,41 @@ export default function Admin() {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  // Revert Chinese GP valuations to Australian GP values
-  const revertChineseGPMutation = useMutation({
+  // Reset database to initial state
+  const resetDatabaseMutation = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/admin/revert-chinese-gp-valuations", {});
+      const res = await apiRequest("POST", "/api/admin/reset-database", {});
       return res.json();
     },
     onSuccess: () => {
       toast({
-        title: "Chinese GP Valuations Reverted",
-        description: "Successfully reverted Chinese GP valuations to Australian GP values.",
+        title: "Database Reset Complete",
+        description: "Successfully reset database to initial state with original values for all assets.",
       });
       
-      // Invalidate relevant queries
+      // Invalidate all relevant queries
       queryClient.invalidateQueries({ queryKey: ["/api/market"] });
       queryClient.invalidateQueries({ queryKey: ["/api/my-teams"] });
       queryClient.invalidateQueries({ queryKey: ["/api/standings/drivers"] });
       queryClient.invalidateQueries({ queryKey: ["/api/standings/teams"] });
       queryClient.invalidateQueries({ queryKey: ["/api/standings/engines"] });
       queryClient.invalidateQueries({ queryKey: ["/api/leaderboard"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/races"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/statistics"] });
     },
     onError: (error: Error) => {
       toast({
-        title: "Reversion Failed",
+        title: "Reset Failed",
         description: error.message,
         variant: "destructive",
       });
     },
   });
 
-  // Handle revert Chinese GP valuations action
-  const handleRevertChineseGP = () => {
-    if (confirm("Are you sure you want to revert Chinese GP valuations to Australian GP values? This action cannot be undone.")) {
-      revertChineseGPMutation.mutate();
+  // Handle reset database action
+  const handleResetDatabase = () => {
+    if (confirm("Are you sure you want to reset the database to initial state? This will delete all race results and reset all asset values to their initial values. This action cannot be undone.")) {
+      resetDatabaseMutation.mutate();
     }
   };
 
@@ -73,11 +75,11 @@ export default function Admin() {
               variant="outline"
               size="sm"
               className="flex items-center gap-1"
-              onClick={handleRevertChineseGP}
-              disabled={revertChineseGPMutation.isPending}
+              onClick={handleResetDatabase}
+              disabled={resetDatabaseMutation.isPending}
             >
-              <RefreshCw className={`h-4 w-4 ${revertChineseGPMutation.isPending ? 'animate-spin' : ''}`} />
-              {revertChineseGPMutation.isPending ? 'Reverting...' : 'Revert Chinese GP'}
+              <RefreshCw className={`h-4 w-4 ${resetDatabaseMutation.isPending ? 'animate-spin' : ''}`} />
+              {resetDatabaseMutation.isPending ? 'Resetting...' : 'Reset Database'}
             </Button>
             <Button
               variant="outline"
