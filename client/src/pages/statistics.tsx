@@ -325,6 +325,12 @@ export default function Statistics() {
                         bottom: 5,
                       }}
                     >
+                      <defs>
+                        <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.8}/>
+                          <stop offset="95%" stopColor="var(--primary)" stopOpacity={0.2}/>
+                        </linearGradient>
+                      </defs>
                       <CartesianGrid strokeDasharray="3 3" opacity={0.4} />
                       <XAxis 
                         dataKey="name" 
@@ -367,11 +373,14 @@ export default function Statistics() {
                         }}
                       />
                       <Legend />
-                      <Line
+                      <Area
                         type="monotone"
                         dataKey="value"
                         stroke="var(--primary)"
-                        strokeWidth={3}
+                        strokeWidth={2}
+                        fill="url(#colorValue)"
+                        fillOpacity={1}
+                        connectNulls
                         dot={{ 
                           stroke: 'var(--primary)', 
                           strokeWidth: 2, 
