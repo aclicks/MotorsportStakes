@@ -1273,7 +1273,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         throw error;
       }
     } catch (error) {
-      res.status(500).json({ message: "Error updating valuation entry", error: error.message });
+      res.status(500).json({ message: "Error updating valuation entry", error: String(error) });
+    }
+  });
+  
+  // Revert Chinese GP valuations to Australian GP values and save them at Australian GP
+  app.post("/api/admin/revert-chinese-gp-valuations", isAdmin, async (req, res) => {
+    try {
+      // Get race IDs for Australian GP and Chinese GP
+      const races = await storage.getRaces();
+      const australianGP = races.find(race => race.name.includes("AUSTRALIAN"));
+      const chineseGP = races.find(race => race.name.includes("CHINESE"));
+      
+      if (!australianGP || !chineseGP) {
+        return res.status(404).json({ message: "Required races not found" });
+      }
+      
+      // Perform the reversion operation
+      await storage.revertChineseGPValuations(australianGP.id, chineseGP.id);
+      
+      res.json({ success: true, message: "Chinese GP valuations reverted to Australian GP values" });
+    } catch (error) {
+      console.error("Error reverting Chinese GP valuations:", error);
+      res.status(500).json({ message: "Error reverting Chinese GP valuations", error: String(error) });
     }
   });
 

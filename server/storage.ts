@@ -92,6 +92,7 @@ export interface IStorage {
   calculateEngineValuation(engineId: number, raceId: number): Promise<number>;
   calculateTeamValuation(teamId: number, raceId: number): Promise<number>;
   applyValuations(raceId: number): Promise<void>;
+  revertChineseGPValuations(australianGPId: number, chineseGPId: number): Promise<void>;
   
   // Asset value history methods
   getAssetValueHistory(entityId: number, entityType: 'driver' | 'team' | 'engine'): Promise<AssetValueHistory[]>;
