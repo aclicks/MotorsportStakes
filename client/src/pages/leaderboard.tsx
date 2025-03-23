@@ -4,7 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Loader2 } from "lucide-react";
 
+// Interfaces for leaderboard data
 interface PlayerRanking {
   rank: number;
   userId: number;
@@ -14,14 +16,30 @@ interface PlayerRanking {
   score: number;
 }
 
+interface TeamRanking {
+  rank: number;
+  userId: number;
+  username: string;
+  teamId: number;
+  teamName: string;
+  value: number;
+  credits: number;
+}
+
+interface LeaderboardData {
+  global: PlayerRanking[];
+  premium: TeamRanking[];
+  challenger: TeamRanking[];
+}
+
 export default function Leaderboard() {
   const [activeTab, setActiveTab] = useState<string>("global");
 
-  // Carregar dados do leaderboard
+  // Carregando dados de todos os leaderboards
   const { 
-    data: players, 
-    isLoading: isLoadingPlayers 
-  } = useQuery<PlayerRanking[]>({
+    data: leaderboardData, 
+    isLoading
+  } = useQuery<LeaderboardData>({
     queryKey: ["/api/leaderboard"],
   });
 
@@ -40,100 +58,173 @@ export default function Leaderboard() {
         <p className="text-neutral-500">Veja quem está dominando a temporada de Motorsport Stakes</p>
       </header>
 
-      <Tabs defaultValue="global" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="mb-6">
-          <TabsTrigger value="global">Classificação Global</TabsTrigger>
-          <TabsTrigger value="premium">Times Premium</TabsTrigger>
-          <TabsTrigger value="challenger">Times Challenger</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="global">
-          <Card>
-            <CardHeader>
-              <CardTitle>Classificação Geral</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="px-4 py-3 text-left font-medium">Posição</th>
-                      <th className="px-4 py-3 text-left font-medium">Jogador</th>
-                      <th className="px-4 py-3 text-right font-medium">Times</th>
-                      <th className="px-4 py-3 text-right font-medium">Valor Total</th>
-                      <th className="px-4 py-3 text-right font-medium">Pontuação</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {isLoadingPlayers ? (
-                      Array(10).fill(0).map((_, index) => (
-                        <tr key={index} className="border-b">
-                          <td className="px-4 py-3"><Skeleton className="h-6 w-12" /></td>
-                          <td className="px-4 py-3"><Skeleton className="h-6 w-40" /></td>
-                          <td className="px-4 py-3 text-right"><Skeleton className="h-6 w-12 ml-auto" /></td>
-                          <td className="px-4 py-3 text-right"><Skeleton className="h-6 w-20 ml-auto" /></td>
-                          <td className="px-4 py-3 text-right"><Skeleton className="h-6 w-16 ml-auto" /></td>
-                        </tr>
-                      ))
-                    ) : players?.length === 0 ? (
-                      <tr>
-                        <td colSpan={5} className="px-4 py-8 text-center text-neutral-500">
-                          Nenhum jogador encontrado
-                        </td>
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <span className="ml-2 text-neutral-600">Carregando classificações...</span>
+        </div>
+      ) : (
+        <Tabs defaultValue="global" value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="mb-6">
+            <TabsTrigger value="global">Classificação Global</TabsTrigger>
+            <TabsTrigger value="premium">Times Premium</TabsTrigger>
+            <TabsTrigger value="challenger">Times Challenger</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="global">
+            <Card>
+              <CardHeader>
+                <CardTitle>Classificação Geral</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="px-4 py-3 text-left font-medium">Posição</th>
+                        <th className="px-4 py-3 text-left font-medium">Jogador</th>
+                        <th className="px-4 py-3 text-right font-medium">Times</th>
+                        <th className="px-4 py-3 text-right font-medium">Valor Total</th>
+                        <th className="px-4 py-3 text-right font-medium">Pontuação</th>
                       </tr>
-                    ) : (
-                      players?.map((player) => (
-                        <tr key={player.userId} className="border-b hover:bg-neutral-50">
-                          <td className="px-4 py-3">
-                            {getRankBadge(player.rank)}
-                          </td>
-                          <td className="px-4 py-3 font-medium">{player.username}</td>
-                          <td className="px-4 py-3 text-right">{player.totalTeams}</td>
-                          <td className="px-4 py-3 text-right">
-                            {player.totalValue.toLocaleString()} créditos
-                          </td>
-                          <td className="px-4 py-3 text-right font-bold text-primary">
-                            {player.score.toLocaleString()}
+                    </thead>
+                    <tbody>
+                      {leaderboardData?.global.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="px-4 py-8 text-center text-neutral-500">
+                            Nenhum jogador encontrado
                           </td>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="premium">
-          <Card>
-            <CardHeader>
-              <CardTitle>Classificação de Times Premium</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-center py-12">
-                <p className="text-neutral-500">Classificação por times premium em breve...</p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="challenger">
-          <Card>
-            <CardHeader>
-              <CardTitle>Classificação de Times Challenger</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-center py-12">
-                <p className="text-neutral-500">Classificação por times challenger em breve...</p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+                      ) : (
+                        leaderboardData?.global.map((player) => (
+                          <tr key={player.userId} className="border-b hover:bg-neutral-50">
+                            <td className="px-4 py-3">
+                              {getRankBadge(player.rank)}
+                            </td>
+                            <td className="px-4 py-3 font-medium">{player.username}</td>
+                            <td className="px-4 py-3 text-right">{player.totalTeams}</td>
+                            <td className="px-4 py-3 text-right">
+                              {player.totalValue.toLocaleString()} créditos
+                            </td>
+                            <td className="px-4 py-3 text-right font-bold text-primary">
+                              {player.score.toLocaleString()}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="premium">
+            <Card>
+              <CardHeader>
+                <CardTitle>Classificação de Times Premium</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="px-4 py-3 text-left font-medium">Posição</th>
+                        <th className="px-4 py-3 text-left font-medium">Jogador</th>
+                        <th className="px-4 py-3 text-left font-medium">Time</th>
+                        <th className="px-4 py-3 text-right font-medium">Créditos</th>
+                        <th className="px-4 py-3 text-right font-medium">Valor Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {leaderboardData?.premium.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="px-4 py-8 text-center text-neutral-500">
+                            Nenhum time premium encontrado
+                          </td>
+                        </tr>
+                      ) : (
+                        leaderboardData?.premium.map((team) => (
+                          <tr key={`${team.userId}-${team.teamId}`} className="border-b hover:bg-neutral-50">
+                            <td className="px-4 py-3">
+                              {getRankBadge(team.rank)}
+                            </td>
+                            <td className="px-4 py-3 font-medium">{team.username}</td>
+                            <td className="px-4 py-3">{team.teamName}</td>
+                            <td className="px-4 py-3 text-right">
+                              {team.credits.toLocaleString()} 
+                            </td>
+                            <td className="px-4 py-3 text-right font-bold text-primary">
+                              {team.value.toLocaleString()} créditos
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="mt-4 text-sm text-neutral-500">
+                  <p>Times Premium começam com 1000 créditos iniciais.</p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="challenger">
+            <Card>
+              <CardHeader>
+                <CardTitle>Classificação de Times Challenger</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="px-4 py-3 text-left font-medium">Posição</th>
+                        <th className="px-4 py-3 text-left font-medium">Jogador</th>
+                        <th className="px-4 py-3 text-left font-medium">Time</th>
+                        <th className="px-4 py-3 text-right font-medium">Créditos</th>
+                        <th className="px-4 py-3 text-right font-medium">Valor Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {leaderboardData?.challenger.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="px-4 py-8 text-center text-neutral-500">
+                            Nenhum time challenger encontrado
+                          </td>
+                        </tr>
+                      ) : (
+                        leaderboardData?.challenger.map((team) => (
+                          <tr key={`${team.userId}-${team.teamId}`} className="border-b hover:bg-neutral-50">
+                            <td className="px-4 py-3">
+                              {getRankBadge(team.rank)}
+                            </td>
+                            <td className="px-4 py-3 font-medium">{team.username}</td>
+                            <td className="px-4 py-3">{team.teamName}</td>
+                            <td className="px-4 py-3 text-right">
+                              {team.credits.toLocaleString()} 
+                            </td>
+                            <td className="px-4 py-3 text-right font-bold text-primary">
+                              {team.value.toLocaleString()} créditos
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="mt-4 text-sm text-neutral-500">
+                  <p>Times Challenger começam com 700 créditos iniciais.</p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      )}
       
       <div className="mt-8 text-sm text-center text-neutral-500">
-        <p>A pontuação é calculada com base no valor total de seus times e o número de times gerenciados.</p>
+        <p>A pontuação global é calculada com base no valor total de seus times e o número de times gerenciados.</p>
         <p>Classificação atualizada após a submissão de resultados de cada corrida.</p>
       </div>
     </div>

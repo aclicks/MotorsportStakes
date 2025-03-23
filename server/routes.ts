@@ -546,12 +546,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // 2. Para cada usuário, obter seus times e calcular o valor total
-      const leaderboardData = await Promise.all(users.map(async (user) => {
+      // 2. Para cada usuário, obter seus times e calcular dados necessários
+      const userData = await Promise.all(users.map(async (user) => {
         const teams = await storage.getUserTeams(user.id);
+        
+        // Array para armazenar os times processados com seus valores
+        const processedTeams = [];
         
         // Calcular valor total dos times do usuário
         let totalTeamValue = 0;
+        
         for (const team of teams) {
           let teamValue = 0;
           
@@ -575,6 +579,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (chassis) teamValue += chassis.value;
           }
           
+          // Adicionar time processado
+          processedTeams.push({
+            id: team.id,
+            name: team.name,
+            initialCredits: team.initialCredits,
+            currentCredits: team.currentCredits,
+            value: teamValue
+          });
+          
           totalTeamValue += teamValue;
         }
         
@@ -587,21 +600,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
           username: user.username,
           totalValue: totalTeamValue,
           totalTeams: teams.length,
-          score
+          score,
+          teams: processedTeams
         };
       }));
       
-      // 3. Ordenar por pontuação (maior para menor)
-      leaderboardData.sort((a, b) => b.score - a.score);
+      // 3. Classifição global - Ordenar por pontuação (maior para menor)
+      const globalRanking = [...userData]
+        .sort((a, b) => b.score - a.score)
+        .map((item, index) => ({
+          rank: index + 1,
+          userId: item.userId,
+          username: item.username,
+          totalValue: item.totalValue,
+          totalTeams: item.totalTeams,
+          score: item.score
+        }));
       
-      // 4. Adicionar posição no ranking
-      const leaderboard = leaderboardData.map((item, index) => ({
-        rank: index + 1,
-        ...item
-      }));
+      // 4. Classificação para times Premium (1000 créditos)
+      const premiumTeams = userData.flatMap(user => 
+        user.teams
+          .filter(team => team.initialCredits === 1000)
+          .map(team => ({
+            userId: user.userId,
+            username: user.username,
+            teamId: team.id,
+            teamName: team.name,
+            value: team.value,
+            credits: team.currentCredits
+          }))
+      );
       
-      res.json(leaderboard);
+      const premiumRanking = premiumTeams
+        .sort((a, b) => b.value - a.value)
+        .map((item, index) => ({
+          rank: index + 1,
+          ...item
+        }));
+        
+      // 5. Classificação para times Challenger (700 créditos)
+      const challengerTeams = userData.flatMap(user => 
+        user.teams
+          .filter(team => team.initialCredits === 700)
+          .map(team => ({
+            userId: user.userId,
+            username: user.username,
+            teamId: team.id,
+            teamName: team.name,
+            value: team.value,
+            credits: team.currentCredits
+          }))
+      );
+      
+      const challengerRanking = challengerTeams
+        .sort((a, b) => b.value - a.value)
+        .map((item, index) => ({
+          rank: index + 1,
+          ...item
+        }));
+      
+      res.json({
+        global: globalRanking,
+        premium: premiumRanking,
+        challenger: challengerRanking
+      });
     } catch (error) {
+      console.error("Error in /api/leaderboard:", error);
       res.status(500).json({ message: "Error fetching leaderboard", error: String(error) });
     }
   });
