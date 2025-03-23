@@ -999,6 +999,92 @@ export class MemStorage implements IStorage {
   async setBettingStatus(isOpen: boolean): Promise<void> {
     await this.updateGameSetting('betting_open', isOpen ? 'true' : 'false');
   }
+  
+  /**
+   * Reset the database by:
+   * 1. Keeping initial values (race ID 9999)
+   * 2. Removing all other race results
+   * 3. Removing performance history
+   * 4. Removing asset value history except for initial values
+   * 5. Resetting asset values to their initial values
+   */
+  async resetDatabase(): Promise<void> {
+    try {
+      console.log("Resetting memory storage to initial state...");
+      
+      // Get initial values (race ID 9999)
+      const initialValues = Array.from(this.assetValueHistory.values())
+        .filter(entry => entry.raceId === 9999);
+      
+      console.log(`Found ${initialValues.length} initial asset values`);
+      
+      // 1. Delete all race results except for initial values race
+      const resultKeysToDelete = Array.from(this.raceResults.entries())
+        .filter(([_, result]) => result.raceId !== 9999)
+        .map(([id, _]) => id);
+      
+      resultKeysToDelete.forEach(id => this.raceResults.delete(id));
+      console.log("Deleted all race results");
+      
+      // 2. Delete all performance history
+      this.performanceHistory.clear();
+      console.log("Deleted all performance history");
+      
+      // 3. Delete all asset value history except for initial values
+      const historyKeysToDelete = Array.from(this.assetValueHistory.entries())
+        .filter(([_, history]) => history.raceId !== 9999)
+        .map(([id, _]) => id);
+      
+      historyKeysToDelete.forEach(id => this.assetValueHistory.delete(id));
+      console.log("Deleted all asset value history except initial values");
+      
+      // 4. Reset all races resultsSubmitted flag to false
+      for (const [id, race] of this.races.entries()) {
+        if (race.id !== 9999) {
+          race.resultsSubmitted = false;
+          this.races.set(id, race);
+        }
+      }
+      console.log("Reset all race results submitted flags");
+      
+      // 5. Reset all asset values to their initial values
+      for (const initialValue of initialValues) {
+        const { entityId, entityType, value } = initialValue;
+        
+        if (entityType === 'driver') {
+          const driver = this.drivers.get(entityId);
+          if (driver) {
+            driver.value = value;
+            driver.valueUpdatedAt = new Date();
+            driver.lastRace1Position = null;
+            driver.lastRace2Position = null;
+            driver.lastRace3Position = null;
+            this.drivers.set(entityId, driver);
+          }
+        } else if (entityType === 'team') {
+          const team = this.teams.get(entityId);
+          if (team) {
+            team.value = value;
+            team.valueUpdatedAt = new Date();
+            this.teams.set(entityId, team);
+          }
+        } else if (entityType === 'engine') {
+          const engine = this.engines.get(entityId);
+          if (engine) {
+            engine.value = value;
+            engine.valueUpdatedAt = new Date();
+            this.engines.set(entityId, engine);
+          }
+        }
+      }
+      console.log("Reset all asset values to initial values");
+      
+      console.log("Memory storage reset completed successfully");
+    } catch (error) {
+      console.error("Error resetting memory storage:", error);
+      throw error;
+    }
+  }
 }
 
 // Implementação da classe DatabaseStorage usando PostgreSQL e Drizzle ORM
