@@ -369,7 +369,14 @@ export class MemStorage implements IStorage {
 
   async createDriver(driver: InsertDriver): Promise<Driver> {
     const id = this.driverIdCounter++;
-    const newDriver: Driver = { ...driver, id };
+    const newDriver: Driver = { 
+      ...driver, 
+      id,
+      retired: driver.retired ?? false,
+      lastRace1Position: driver.lastRace1Position ?? null,
+      lastRace2Position: driver.lastRace2Position ?? null,
+      lastRace3Position: driver.lastRace3Position ?? null
+    };
     this.drivers.set(id, newDriver);
     return newDriver;
   }
@@ -423,7 +430,11 @@ export class MemStorage implements IStorage {
 
   async createTeam(team: InsertTeam): Promise<Team> {
     const id = this.teamIdCounter++;
-    const newTeam: Team = { ...team, id };
+    const newTeam: Team = { 
+      ...team, 
+      id, 
+      engineId: team.engineId ?? null 
+    };
     this.teams.set(id, newTeam);
     return newTeam;
   }
@@ -581,7 +592,10 @@ export class MemStorage implements IStorage {
   }
 
   async createValuationEntry(entry: InsertValuationTable): Promise<ValuationTable> {
-    const newEntry: ValuationTable = { ...entry };
+    const newEntry: ValuationTable = { 
+      ...entry,
+      percentageChange: entry.percentageChange || "0"
+    };
     this.valuationTable.set(entry.difference, newEntry);
     return newEntry;
   }
@@ -672,7 +686,13 @@ export class MemStorage implements IStorage {
     
     // Look up valuation
     const valuation = await this.getValuationEntry(difference);
-    return valuation ? parseFloat(valuation.percentageChange.toString()) : 0;
+    if (!valuation) return 0;
+    
+    // Get the percentage change from the valuation table
+    const percentChange = parseFloat(valuation.percentageChange.toString());
+    
+    // Return the percentage value (which will be applied to the entity's value)
+    return percentChange;
   }
 
   async calculateEngineValuation(engineId: number, raceId: number): Promise<number> {
@@ -746,8 +766,12 @@ export class MemStorage implements IStorage {
     for (const driver of allDrivers) {
       const valuation = await this.calculateDriverValuation(driver.id, raceId);
       
+      // Calculate valuation amount based on percentage
+      const valuationAmount = Math.round((driver.value * valuation) / 100);
+      console.log(`Driver ${driver.name} valuation: ${valuation}% = ${valuationAmount} credits`);
+      
       // Update driver value
-      driver.value += valuation;
+      driver.value += valuationAmount;
       if (driver.value < 100) driver.value = 100; // Minimum value
       this.drivers.set(driver.id, driver);
       
@@ -773,8 +797,12 @@ export class MemStorage implements IStorage {
     for (const engine of allEngines) {
       const valuation = await this.calculateEngineValuation(engine.id, raceId);
       
+      // Calculate valuation amount based on percentage
+      const valuationAmount = Math.round((engine.value * valuation) / 100);
+      console.log(`Engine ${engine.name} valuation: ${valuation}% = ${valuationAmount} credits`);
+      
       // Update engine value
-      engine.value += valuation;
+      engine.value += valuationAmount;
       if (engine.value < 100) engine.value = 100; // Minimum value
       this.engines.set(engine.id, engine);
       
@@ -793,8 +821,12 @@ export class MemStorage implements IStorage {
     for (const team of allTeams) {
       const valuation = await this.calculateTeamValuation(team.id, raceId);
       
+      // Calculate valuation amount based on percentage
+      const valuationAmount = Math.round((team.value * valuation) / 100);
+      console.log(`Team ${team.name} valuation: ${valuation}% = ${valuationAmount} credits`);
+      
       // Update team value
-      team.value += valuation;
+      team.value += valuationAmount;
       if (team.value < 100) team.value = 100; // Minimum value
       this.teams.set(team.id, team);
       
@@ -1548,7 +1580,12 @@ export class DatabaseStorage implements IStorage {
       }
       
       console.log(`Found valuation entry for difference ${difference}: ${valuation.percentageChange}`);
-      return valuation ? parseFloat(valuation.percentageChange.toString()) : 0;
+      
+      // Get the percentage change from the valuation table
+      const percentChange = parseFloat(valuation.percentageChange.toString());
+      
+      // Return the percentage value (which will be applied to the entity's value)
+      return percentChange;
     } catch (error: any) {
       console.error(`Error calculating driver valuation: ${error.message || 'Unknown error'}`);
       if (error.stack) {
@@ -1652,8 +1689,12 @@ export class DatabaseStorage implements IStorage {
         const valuation = await this.calculateDriverValuation(driver.id, raceId);
         console.log(`Driver ${driver.name} valuation: ${valuation}`);
         
+        // Calculate valuation amount based on percentage
+        const valuationAmount = Math.round((driver.value * valuation) / 100);
+        console.log(`Driver ${driver.name} valuation: ${valuation}% = ${valuationAmount} credits`);
+        
         // Atualizar valor do piloto
-        const newValue = driver.value + valuation;
+        const newValue = driver.value + valuationAmount;
         const finalValue = newValue < 100 ? 100 : newValue; // Valor mínimo
         console.log(`Driver ${driver.name} value update: ${driver.value} -> ${finalValue}`);
         await this.updateDriver(driver.id, { value: finalValue });
