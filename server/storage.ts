@@ -1079,6 +1079,13 @@ export class MemStorage implements IStorage {
       }
       console.log("Reset all asset values to initial values");
       
+      // 6. Reset all user team credits to their initial values
+      for (const [id, team] of this.userTeams.entries()) {
+        team.currentCredits = team.initialCredits;
+        this.userTeams.set(id, team);
+      }
+      console.log("Reset all user team credits to initial values");
+      
       console.log("Memory storage reset completed successfully");
     } catch (error) {
       console.error("Error resetting memory storage:", error);
@@ -2264,6 +2271,7 @@ export class DatabaseStorage implements IStorage {
    * 3. Removing performance history
    * 4. Removing asset value history except for initial values
    * 5. Resetting asset values to their initial values
+   * 6. Resetting user team credits to initial values
    */
   async resetDatabase(): Promise<void> {
     try {
@@ -2328,6 +2336,15 @@ export class DatabaseStorage implements IStorage {
         }
       }
       console.log("Reset all asset values to initial values");
+      
+      // 6. Reset all user team credits to their initial values
+      const allUserTeams = await db.select().from(userTeams);
+      for (const team of allUserTeams) {
+        await db.update(userTeams)
+          .set({ currentCredits: team.initialCredits })
+          .where(eq(userTeams.id, team.id));
+      }
+      console.log("Reset all user team credits to initial values");
       
       console.log("Database reset completed successfully");
     } catch (error) {
