@@ -27,10 +27,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Driver, Team, Engine, PerformanceHistory } from "@shared/schema";
+import { Driver, Team, Engine, PerformanceHistory, AssetValueHistory } from "@shared/schema";
 import { format } from "date-fns";
 
 interface EnhancedPerformanceHistory extends PerformanceHistory {
+  race?: {
+    name: string;
+    date: string;
+  };
+}
+
+interface EnhancedAssetValueHistory extends AssetValueHistory {
   race?: {
     name: string;
     date: string;
@@ -67,6 +74,12 @@ export default function Statistics() {
     queryKey: [selectedId ? `/api/performance-history/${entityType}/${selectedId}` : "/api/performance-history"],
     enabled: !!selectedId,
   });
+  
+  // Fetch asset value history for selected entity
+  const { data: assetValueHistory, isLoading: isLoadingAssetValueHistory } = useQuery<EnhancedAssetValueHistory[]>({
+    queryKey: [selectedId ? `/api/asset-value-history/${entityType}/${selectedId}` : "/api/asset-value-history"],
+    enabled: !!selectedId,
+  });
 
   // Get the current value of the selected entity
   let currentValue: number | undefined;
@@ -93,25 +106,37 @@ export default function Statistics() {
     }
   }
   
-  // Prepare data for the chart - we need to create a historical view of the asset value
-  // Since we don't have direct historical values in the API response, we'll use the race data
-  // and add the current value as the latest data point
-  const raceData = history?.map((entry) => ({
+  // Prepare performance data for the chart (race positions)
+  const positionData = history?.map((entry) => ({
     name: entry.race?.name || `Race ${entry.raceId}`,
     position: entry.position,
     date: entry.race?.date ? format(new Date(entry.race.date), "dd MMM yyyy") : "",
   })).filter(entry => entry.position > 0);
   
-  // Create a chart data array that shows asset value
-  const chartData = raceData && currentValue ? [
-    ...raceData.map((race, index, array) => ({
+  // Prepare asset value data for the chart
+  const valueData = assetValueHistory?.map((entry) => ({
+    name: entry.race?.name || `Race ${entry.raceId}`,
+    value: entry.value,
+    date: entry.race?.date ? format(new Date(entry.race.date), "dd MMM yyyy") : "",
+  }));
+  
+  // Create the chart data using asset value history if available
+  // If no asset value history is available, use the current value for all races
+  let chartData: any[] = [];
+  
+  if (valueData && valueData.length > 0) {
+    // Use actual asset value history data
+    chartData = valueData;
+    console.log(`Using real asset value history data for ${entityType} ${selectedId}:`, chartData);
+  } else if (positionData && positionData.length > 0 && currentValue) {
+    // Fallback to position data with current value
+    chartData = positionData.map(race => ({
       name: race.name,
       date: race.date,
-      // Since we don't have historical values in the API, we're showing the current value 
-      // for all points in the chart for now
       value: currentValue
-    }))
-  ] : [];
+    }));
+    console.log(`Using fallback data for ${entityType} ${selectedId}:`, chartData);
+  }
   
   // Log data for debugging
   console.log(`Statistics chart data for ${entityType} ${selectedId}:`, chartData);
@@ -119,8 +144,8 @@ export default function Statistics() {
   // For position average, continue to use position data (for reference in UI)
   let averagePosition: number | undefined;
   
-  if (raceData && raceData.length > 0) {
-    averagePosition = Number((raceData.reduce((sum, entry) => sum + entry.position, 0) / raceData.length).toFixed(2));
+  if (positionData && positionData.length > 0) {
+    averagePosition = Number((positionData.reduce((sum, entry) => sum + entry.position, 0) / positionData.length).toFixed(2));
   }
   else if (selectedId) {
     averagePosition = entityPositionInStandings;
@@ -249,9 +274,9 @@ export default function Statistics() {
                     </div>
                   )}
                 </div>
-                {isLoadingHistory ? (
+                {isLoadingHistory || isLoadingAssetValueHistory ? (
                   <Skeleton className="h-[400px] w-full" />
-                ) : !history || history.length === 0 || !chartData || chartData.length === 0 ? (
+                ) : !chartData || chartData.length === 0 ? (
                   <div className="text-center py-12 text-neutral-500">
                     {currentValue !== undefined ? (
                       <>

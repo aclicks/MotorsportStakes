@@ -915,6 +915,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Error fetching performance history", error: (error as Error).message });
     }
   });
+  
+  // Get asset value history for an entity
+  app.get("/api/asset-value-history/:type/:id", async (req, res) => {
+    try {
+      const { type, id } = req.params;
+      const entityId = parseInt(id);
+      
+      if (!["driver", "team", "engine"].includes(type)) {
+        return res.status(400).json({ message: "Type must be driver, team, or engine" });
+      }
+      
+      if (isNaN(entityId)) {
+        return res.status(400).json({ message: "Invalid ID" });
+      }
+      
+      // Get the asset value history
+      const history = await storage.getAssetValueHistory(entityId, type as 'driver' | 'team' | 'engine');
+      
+      // Enhance with race information for better context
+      const enhancedHistory = await Promise.all(history.map(async (entry) => {
+        const race = await storage.getRace(entry.raceId);
+        return {
+          ...entry,
+          race: race ? {
+            name: race.name,
+            date: race.date,
+          } : undefined
+        };
+      }));
+      
+      // Sort by race date
+      enhancedHistory.sort((a, b) => {
+        if (!a.race || !b.race) return 0;
+        return new Date(a.race.date).getTime() - new Date(b.race.date).getTime();
+      });
+      
+      res.json(enhancedHistory);
+    } catch (error) {
+      console.error("Error fetching asset value history:", error);
+      res.status(500).json({ 
+        message: "Error fetching asset value history", 
+        error: error instanceof Error ? error.message : String(error) 
+      });
+    }
+  });
 
   // Create user team
   app.post("/api/user-teams", isAuthenticated, async (req, res) => {
