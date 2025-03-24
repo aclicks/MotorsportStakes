@@ -920,8 +920,27 @@ export class MemStorage implements IStorage {
         }
       }
       
-      // Update credits
-      userTeam.currentCredits += creditsGained;
+      // Get unspent credits (if any)
+      const unspentCredits = userTeam.unspentCredits || 0;
+      console.log(`Team ${userTeam.name} has ${unspentCredits} unspent credits from previous race`);
+      
+      // Add unspent credits to credits gained
+      const totalCreditsGained = creditsGained + unspentCredits;
+      
+      // Calculate new credits but prevent negative values
+      let newCredits = userTeam.currentCredits + totalCreditsGained;
+      
+      // Ensure credits never go below zero
+      if (newCredits < 0) {
+        console.warn(`WARNING: Team ${userTeam.name} would have negative credits (${newCredits}). Setting to 0 instead.`);
+        newCredits = 0;
+      }
+      
+      console.log(`Team ${userTeam.name} credits update: ${userTeam.currentCredits} + ${creditsGained} (valuations) + ${unspentCredits} (unspent) = ${newCredits}`);
+      
+      // Update credits and reset unspent credits to 0 after carrying them forward
+      userTeam.currentCredits = newCredits;
+      userTeam.unspentCredits = 0;
       this.userTeams.set(userTeam.id, userTeam);
     }
   }
