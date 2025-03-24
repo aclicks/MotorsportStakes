@@ -28,7 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Driver, Team, Engine, PerformanceHistory, AssetValueHistory } from "@shared/schema";
+import { Driver, Team, Engine, PerformanceHistory, AssetValueHistory, ValuationTable } from "@shared/schema";
 import { format } from "date-fns";
 
 interface EnhancedPerformanceHistory extends PerformanceHistory {
@@ -80,6 +80,11 @@ export default function Statistics() {
   const { data: assetValueHistory, isLoading: isLoadingAssetValueHistory } = useQuery<EnhancedAssetValueHistory[]>({
     queryKey: [selectedId ? `/api/asset-value-history/${entityType}/${selectedId}` : "/api/asset-value-history"],
     enabled: !!selectedId,
+  });
+  
+  // Fetch valuation table for reference percentages
+  const { data: valuationTable, isLoading: isLoadingValuationTable } = useQuery<ValuationTable[]>({
+    queryKey: ["/api/valuation-table"],
   });
 
   // Get the current value of the selected entity
@@ -136,7 +141,8 @@ export default function Statistics() {
           value: entry.value,
           date: entry.race?.date ? format(new Date(entry.race.date), "dd MMM yyyy") : "",
           raceId: entry.raceId,
-          timestamp: entry.race?.date ? new Date(entry.race.date).getTime() : 0
+          timestamp: entry.race?.date ? new Date(entry.race.date).getTime() : 0,
+          previousRaceId: entry.raceId > 1 ? entry.raceId - 1 : null
         });
       }
     });
@@ -367,26 +373,70 @@ export default function Statistics() {
                         }}
                       />
                       <Tooltip
-                        formatter={(value: number, name, props) => {
+                        formatter={(value: number, name, props: any) => {
                           // Get the current entry index to calculate percentage change
                           const currentIndex = chartData.findIndex(item => item.value === value);
                           let percentChange = null;
+                          let valuePercentage = null;
                           
-                          // Calculate percentage change compared to previous data point
-                          if (currentIndex > 0) {
+                          // Get the payload with additional information
+                          const payload = props?.payload;
+                          const raceId = payload?.raceId;
+                          const previousRaceId = payload?.previousRaceId;
+                          
+                          // Find the actual race results to find the valuation difference
+                          if (history && history.length > 0) {
+                            // Find performance history entries for the current and previous race
+                            const currentRacePerf = history.find(entry => entry.raceId === raceId);
+                            const previousRaces = history.filter(entry => 
+                              entry.raceId < raceId
+                            ).sort((a, b) => b.raceId - a.raceId);
+                            
+                            // Calculate the average previous position (last 3 races)
+                            if (currentRacePerf && previousRaces.length > 0) {
+                              // Get positions from up to 3 previous races
+                              const previousPositions = previousRaces.slice(0, 3)
+                                .map(entry => entry.position)
+                                .filter(pos => pos > 0);
+                                
+                              if (previousPositions.length > 0) {
+                                const avgPrevPosition = previousPositions.reduce((sum, pos) => sum + pos, 0) / previousPositions.length;
+                                const posDifference = Math.round(avgPrevPosition - currentRacePerf.position);
+                                
+                                // Look up the actual valuation percentage from the table
+                                if (valuationTable && valuationTable.length > 0) {
+                                  const valuationEntry = valuationTable.find(entry => entry.difference === posDifference);
+                                  if (valuationEntry) {
+                                    valuePercentage = Number(valuationEntry.percentageChange);
+                                  }
+                                }
+                              }
+                            }
+                          }
+                          
+                          // If we don't find the exact percentage, calculate it from values as fallback
+                          if (valuePercentage === null && currentIndex > 0) {
                             const previousValue = chartData[currentIndex - 1].value;
                             percentChange = ((value - previousValue) / previousValue) * 100;
                           }
                           
+                          // Use the exact valuation percentage if available, otherwise use calculated
+                          const displayPercentage = valuePercentage !== null ? valuePercentage : percentChange;
+                          
                           return [
                             <>
                               <span>{value.toLocaleString()} créditos</span>
-                              {percentChange !== null && (
+                              {displayPercentage !== null && (
                                 <div className="mt-1">
-                                  <span className={`font-semibold ${percentChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                    {percentChange >= 0 ? '▲' : '▼'} {Math.abs(percentChange).toFixed(2)}%
+                                  <span className={`font-semibold ${displayPercentage >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                    {displayPercentage >= 0 ? '▲' : '▼'} {Math.abs(displayPercentage).toFixed(2)}%
                                   </span>
-                                  <span className="text-gray-500 text-xs ml-1">vs anterior</span>
+                                  <span className="text-gray-500 text-xs ml-1">
+                                    {valuePercentage !== null 
+                                      ? '(tabela de valorização)' 
+                                      : 'vs anterior'
+                                    }
+                                  </span>
                                 </div>
                               )}
                             </>,
