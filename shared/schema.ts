@@ -199,6 +199,7 @@ export const userTeams = pgTable("user_teams", {
   name: text("name").notNull(),
   initialCredits: integer("initial_credits").notNull(),
   currentCredits: integer("current_credits").notNull(),
+  unspentCredits: integer("unspent_credits").default(0).notNull(),
   driver1Id: integer("driver1_id"),
   driver2Id: integer("driver2_id"),
   engineId: integer("engine_id"),
