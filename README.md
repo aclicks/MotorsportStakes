@@ -186,8 +186,9 @@ The admin can:
 - id: number (PK)
 - userId: number (FK)
 - name: string
-- type: string
-- credits: number
+- initialCredits: number
+- currentCredits: number
+- unspentCredits: number
 - driver1Id: number (FK)
 - driver2Id: number (FK)
 - engineId: number (FK)
@@ -248,12 +249,18 @@ The application supports two authentication methods:
 ![Market](attached_assets/image_1742595077931.png)
 ![Teams](attached_assets/image_1742597463120.png)
 ![Admin](attached_assets/image_1742602761572.png)
+![Leaderboard](attached_assets/image_1742761342731.png)
+![Statistics](attached_assets/image_1742783246818.png)
 
 ## 📈 Special Features
 
 ### Asset Valuation History
 
-The system tracks and visualizes the history of asset values over time, allowing users to analyze performance trends and make informed decisions.
+The system tracks and visualizes the history of asset values over time, allowing users to analyze performance trends and make informed decisions. When hovering over data points, users can see the exact valuation percentages from the valuation table that were applied after each race.
+
+### Unspent Credits Tracking
+
+The system tracks unspent team credits across races. When users don't spend all their available credits during team selection, these unspent credits are preserved and added back to their budget after race valuations. This encourages strategic planning and saving.
 
 ### Chinese GP Valuation Reversion
 
@@ -261,7 +268,7 @@ Due to a special circumstance with the Chinese GP results, admins can revert val
 
 ### Dynamic Betting Status
 
-Admins can control when users can make changes to their teams, preventing unfair advantages during race periods.
+Admins can control when users can make changes to their teams, preventing unfair advantages during race periods. A countdown timer shows users when betting will close.
 
 ## 🤝 Contributing
 
