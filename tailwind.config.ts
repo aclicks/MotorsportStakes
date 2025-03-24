@@ -45,11 +45,11 @@ export default {
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         chart: {
-          "1": "hsl(var(--chart-1))",
-          "2": "hsl(var(--chart-2))",
-          "3": "hsl(var(--chart-3))",
-          "4": "hsl(var(--chart-4))",
-          "5": "hsl(var(--chart-5))",
+          "1": "#FF3300",
+          "2": "#FF9900",
+          "3": "#FFCC00",
+          "4": "#CCCCCC",
+          "5": "#999999",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
@@ -79,10 +79,45 @@ export default {
             height: "0",
           },
         },
+        "pulse-glow": {
+          "0%, 100%": { 
+            opacity: "1",
+            boxShadow: "0 0 0 rgba(255, 51, 0, 0)"
+          },
+          "50%": { 
+            opacity: "0.9",
+            boxShadow: "0 0 15px rgba(255, 51, 0, 0.5)" 
+          },
+        },
+        "slide-up": {
+          "0%": { transform: "translateY(10px)", opacity: "0" },
+          "100%": { transform: "translateY(0)", opacity: "1" },
+        },
+        "slide-right": {
+          "0%": { transform: "translateX(-10px)", opacity: "0" },
+          "100%": { transform: "translateX(0)", opacity: "1" },
+        },
+        "spin-slow": {
+          "0%": { transform: "rotate(0deg)" },
+          "100%": { transform: "rotate(360deg)" },
+        },
+        "gradient-x": {
+          "0%, 100%": {
+            backgroundPosition: "0% 50%",
+          },
+          "50%": {
+            backgroundPosition: "100% 50%",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "pulse-glow": "pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "slide-up": "slide-up 0.3s ease-out forwards",
+        "slide-right": "slide-right 0.3s ease-out forwards",
+        "spin-slow": "spin-slow 3s linear infinite",
+        "gradient-x": "gradient-x 3s ease infinite",
       },
     },
   },
