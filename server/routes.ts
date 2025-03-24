@@ -567,16 +567,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         let totalCredits = 0;
         
         for (const team of teams) {
-          // Add processed team with credits only
+          // Get unspent credits (if any)
+          const unspentCredits = team.unspentCredits || 0;
+          
+          // Calculate total credits including unspent credits
+          const totalTeamCredits = team.currentCredits + unspentCredits;
+          
+          // Add processed team with credits and unspent credits
           processedTeams.push({
             id: team.id,
             name: team.name,
             initialCredits: team.initialCredits,
-            currentCredits: team.currentCredits
+            currentCredits: team.currentCredits,
+            unspentCredits: unspentCredits,
+            totalCredits: totalTeamCredits
           });
           
-          // Add to user's total credits
-          totalCredits += team.currentCredits;
+          // Add to user's total credits including unspent credits
+          totalCredits += totalTeamCredits;
         }
         
         return {
@@ -610,12 +618,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             username: user.username,
             teamId: team.id,
             teamName: team.name,
-            credits: team.currentCredits
+            credits: team.currentCredits,
+            unspentCredits: team.unspentCredits || 0,
+            totalCredits: team.totalCredits // Already calculated above
           }))
       );
       
       const premiumRanking = premiumTeams
-        .sort((a, b) => b.credits - a.credits)
+        .sort((a, b) => b.totalCredits - a.totalCredits) // Sort by total credits including unspent
         .map((item, index) => ({
           rank: index + 1,
           ...item
@@ -630,12 +640,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             username: user.username,
             teamId: team.id,
             teamName: team.name,
-            credits: team.currentCredits
+            credits: team.currentCredits,
+            unspentCredits: team.unspentCredits || 0,
+            totalCredits: team.totalCredits // Already calculated above
           }))
       );
       
       const challengerRanking = challengerTeams
-        .sort((a, b) => b.credits - a.credits)
+        .sort((a, b) => b.totalCredits - a.totalCredits) // Sort by total credits including unspent
         .map((item, index) => ({
           rank: index + 1,
           ...item

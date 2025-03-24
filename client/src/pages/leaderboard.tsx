@@ -26,6 +26,8 @@ interface TeamRanking {
   teamId: number;
   teamName: string;
   credits: number;
+  unspentCredits: number;
+  totalCredits: number; // Combined credits + unspent
 }
 
 interface LeaderboardData {
@@ -309,9 +311,18 @@ export default function Leaderboard() {
                             </td>
                             <td className="px-4 py-3 font-medium">{team.username}</td>
                             <td className="px-4 py-3">{team.teamName}</td>
-                            <td className="px-4 py-3 text-right font-bold text-primary">
-                              {team.credits.toLocaleString()} cr
-                              {getCreditsTrendIndicator(team.credits, 1000)}
+                            <td className="px-4 py-3 text-right">
+                              <div className="flex flex-col items-end">
+                                <span className="font-bold text-primary">
+                                  {team.totalCredits.toLocaleString()} cr
+                                </span>
+                                {team.unspentCredits > 0 && (
+                                  <span className="text-xs text-neutral-500">
+                                    ({team.credits.toLocaleString()} + {team.unspentCredits} unspent)
+                                  </span>
+                                )}
+                                {getCreditsTrendIndicator(team.totalCredits, 1000)}
+                              </div>
                             </td>
                           </tr>
                         ))
@@ -366,9 +377,18 @@ export default function Leaderboard() {
                             </td>
                             <td className="px-4 py-3 font-medium">{team.username}</td>
                             <td className="px-4 py-3">{team.teamName}</td>
-                            <td className="px-4 py-3 text-right font-bold text-primary">
-                              {team.credits.toLocaleString()} cr
-                              {getCreditsTrendIndicator(team.credits, 700)}
+                            <td className="px-4 py-3 text-right">
+                              <div className="flex flex-col items-end">
+                                <span className="font-bold text-primary">
+                                  {team.totalCredits.toLocaleString()} cr
+                                </span>
+                                {team.unspentCredits > 0 && (
+                                  <span className="text-xs text-neutral-500">
+                                    ({team.credits.toLocaleString()} + {team.unspentCredits} unspent)
+                                  </span>
+                                )}
+                                {getCreditsTrendIndicator(team.totalCredits, 700)}
+                              </div>
                             </td>
                           </tr>
                         ))
