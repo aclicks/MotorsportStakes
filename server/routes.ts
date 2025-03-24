@@ -293,12 +293,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Insufficient credits" });
       }
       
-      // Update team
+      // Calculate unspent credits
+      const unspentCredits = team.currentCredits - totalCost;
+      console.log(`Team ${team.name} has ${unspentCredits} unspent credits out of ${team.currentCredits} total`);
+      
+      // Update team with selection and unspent credits
       const updatedTeam = await storage.updateUserTeam(teamId, {
         driver1Id: driver1Id || null,
         driver2Id: driver2Id || null,
         engineId: engineId || null,
         teamId: chassisId || null,
+        unspentCredits: unspentCredits,
       });
       
       res.json(updatedTeam);
