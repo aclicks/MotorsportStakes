@@ -262,7 +262,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Validate credit balance
+      // Check if we're selecting the exact same assets as before
+      const isSameSelection = 
+        (driver1Id === team.driver1Id || (!driver1Id && !team.driver1Id)) &&
+        (driver2Id === team.driver2Id || (!driver2Id && !team.driver2Id)) &&
+        (engineId === team.engineId || (!engineId && !team.engineId)) &&
+        (chassisId === team.teamId || (!chassisId && !team.teamId));
+        
+      if (isSameSelection) {
+        // If selecting the same assets, no need to recalculate
+        console.log(`Team ${team.name} selected the same assets - no credit changes needed`);
+        
+        // Just return the current team data
+        res.json(team);
+        return;
+      }
+      
+      // If there's a change, validate credit balance
       let totalCost = 0;
       
       if (driver1Id) {
