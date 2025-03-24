@@ -2054,13 +2054,7 @@ export class DatabaseStorage implements IStorage {
         
         // Atualizar créditos including unspent credits
         if (totalCreditsGained !== 0) {
-          // Ensure that credits never go below zero
-          let newCredits = userTeam.currentCredits + totalCreditsGained;
-          if (newCredits < 0) {
-            console.log(`WARNING: Team ${userTeam.name} would have negative credits (${newCredits}). Setting to 0 instead.`);
-            newCredits = 0;
-          }
-          
+          const newCredits = userTeam.currentCredits + totalCreditsGained;
           console.log(`Team ${userTeam.name} credits update: ${userTeam.currentCredits} + ${creditsGained} (valuations) + ${unspentCredits} (unspent) = ${newCredits}`);
           
           // Reset unspent credits to 0 after carrying them forward
