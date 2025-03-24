@@ -1291,85 +1291,140 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "No results found for Australian GP" });
       }
       
-      // Get initial values from race ID 9999
-      const initialValues = await storage.getAssetValueHistory(0, 'driver')
-        .then(history => history.filter(h => h.raceId === 9999));
+      console.log(`Found ${results.length} race results for Australian GP (ID: ${australianGPId})`);
       
-      if (initialValues.length === 0) {
-        return res.status(404).json({ message: "No initial values found" });
-      }
+      // Since we may not have initial values in race ID 9999, let's use the current values
+      // from the entities instead. This is an alternative approach when historical data is incomplete.
       
-      console.log(`Found ${results.length} race results and ${initialValues.length} initial values`);
-      
-      // Create a map of entity IDs to initial values
-      const initialValueMap = new Map();
-      for (const value of initialValues) {
-        const key = `${value.entityType}_${value.entityId}`;
-        initialValueMap.set(key, value.value);
-      }
-      
-      // For each driver, calculate its Australian GP value
+      // Get all drivers, teams, and engines with their current values
       const allDrivers = await storage.getDrivers();
-      let driversProcessed = 0;
+      const allTeams = await storage.getTeams();
+      const allEngines = await storage.getEngines();
       
+      // We'll keep track of how many entities we process
+      let driversProcessed = 0;
+      let teamsProcessed = 0;
+      let enginesProcessed = 0;
+      
+      console.log(`Found ${allDrivers.length} drivers, ${allTeams.length} teams, and ${allEngines.length} engines`);
+      
+      // Process drivers first
       for (const driver of allDrivers) {
         // Find the driver's race result
         const result = results.find(r => r.driverId === driver.id);
         if (!result || result.valuation === null) continue;
         
-        // Get initial value
-        const initialValue = initialValueMap.get(`driver_${driver.id}`);
-        if (!initialValue) continue;
+        // Use Chinese GP (ID 7) value as a reference if available, otherwise use current value
+        const chineseGPHistory = await storage.getAssetValueHistory(driver.id, 'driver')
+          .then(history => history.find(h => h.raceId === 7));
         
-        // Calculate the value after applying valuation
-        const valuationAmount = Math.round((initialValue * result.valuation) / 100);
-        const australianGPValue = initialValue + valuationAmount;
+        // Check if there's already a record for Australian GP
+        const australianGPRecord = await storage.getAssetValueHistory(driver.id, 'driver')
+          .then(history => history.find(h => h.raceId === australianGPId));
+          
+        // Skip if a record already exists
+        if (australianGPRecord) {
+          console.log(`Driver ${driver.name} already has Australian GP value record, skipping`);
+          continue;
+        }
         
-        // Record the value in history
-        await storage.recordAssetValue(driver.id, 'driver', australianGPId, australianGPValue);
-        driversProcessed++;
+        // If we have Chinese GP data, we can calculate the Australian GP value by backing out the valuation
+        if (chineseGPHistory) {
+          // The Chinese GP value would have been calculated from the Australian GP value
+          // We need to reverse the calculation
+          const chineseValuation = results.find(r => r.driverId === driver.id && r.raceId === 7)?.valuation;
+          
+          if (chineseValuation !== null && chineseValuation !== undefined) {
+            // Calculate what the Australian GP value would have been
+            const australianGPValue = Math.round(chineseGPHistory.value / (1 + (chineseValuation / 100)));
+            
+            // Record the calculated value in history
+            await storage.recordAssetValue(driver.id, 'driver', australianGPId, australianGPValue);
+            driversProcessed++;
+          }
+        } else {
+          // If we don't have Chinese GP data, use current value and work backward
+          // Apply the reverse of the valuation to estimate the Australian GP value
+          const australianGPValue = Math.round(driver.value / (1 + (result.valuation / 100)));
+          
+          // Record the calculated value in history
+          await storage.recordAssetValue(driver.id, 'driver', australianGPId, australianGPValue);
+          driversProcessed++;
+        }
       }
       
       // Process teams
-      const allTeams = await storage.getTeams();
-      let teamsProcessed = 0;
-      
       for (const team of allTeams) {
-        // Get initial value
-        const initialValue = initialValueMap.get(`team_${team.id}`);
-        if (!initialValue) continue;
-        
-        // Calculate team valuation using the same algorithm as in applyValuations
+        // Calculate team valuation
         const valuation = await storage.calculateTeamValuation(team.id, australianGPId);
+        if (valuation === null || valuation === undefined) continue;
         
-        // Calculate the value after applying valuation
-        const valuationAmount = Math.round((initialValue * valuation) / 100);
-        const australianGPValue = initialValue + valuationAmount;
+        // Check if there's already a record for Australian GP
+        const australianGPRecord = await storage.getAssetValueHistory(team.id, 'team')
+          .then(history => history.find(h => h.raceId === australianGPId));
+          
+        // Skip if a record already exists
+        if (australianGPRecord) {
+          console.log(`Team ${team.name} already has Australian GP value record, skipping`);
+          continue;
+        }
         
-        // Record the value in history
-        await storage.recordAssetValue(team.id, 'team', australianGPId, australianGPValue);
-        teamsProcessed++;
+        // Use Chinese GP value or current value to calculate Australian GP value
+        const chineseGPHistory = await storage.getAssetValueHistory(team.id, 'team')
+          .then(history => history.find(h => h.raceId === 7));
+          
+        if (chineseGPHistory) {
+          // Calculate what the Australian GP value would have been
+          const australianGPValue = Math.round(chineseGPHistory.value / (1 + (valuation / 100)));
+          
+          // Record the calculated value in history
+          await storage.recordAssetValue(team.id, 'team', australianGPId, australianGPValue);
+          teamsProcessed++;
+        } else {
+          // Use current value to estimate
+          const australianGPValue = Math.round(team.value / (1 + (valuation / 100)));
+          
+          // Record the calculated value in history
+          await storage.recordAssetValue(team.id, 'team', australianGPId, australianGPValue);
+          teamsProcessed++;
+        }
       }
       
       // Process engines
-      const allEngines = await storage.getEngines();
-      let enginesProcessed = 0;
-      
       for (const engine of allEngines) {
-        // Get initial value
-        const initialValue = initialValueMap.get(`engine_${engine.id}`);
-        if (!initialValue) continue;
-        
-        // Calculate engine valuation using the same algorithm as in applyValuations
+        // Calculate engine valuation
         const valuation = await storage.calculateEngineValuation(engine.id, australianGPId);
+        if (valuation === null || valuation === undefined) continue;
         
-        // Calculate the value after applying valuation
-        const valuationAmount = Math.round((initialValue * valuation) / 100);
-        const australianGPValue = initialValue + valuationAmount;
+        // Check if there's already a record for Australian GP
+        const australianGPRecord = await storage.getAssetValueHistory(engine.id, 'engine')
+          .then(history => history.find(h => h.raceId === australianGPId));
+          
+        // Skip if a record already exists
+        if (australianGPRecord) {
+          console.log(`Engine ${engine.name} already has Australian GP value record, skipping`);
+          continue;
+        }
         
-        // Record the value in history
-        await storage.recordAssetValue(engine.id, 'engine', australianGPId, australianGPValue);
-        enginesProcessed++;
+        // Use Chinese GP value or current value to calculate Australian GP value
+        const chineseGPHistory = await storage.getAssetValueHistory(engine.id, 'engine')
+          .then(history => history.find(h => h.raceId === 7));
+          
+        if (chineseGPHistory) {
+          // Calculate what the Australian GP value would have been
+          const australianGPValue = Math.round(chineseGPHistory.value / (1 + (valuation / 100)));
+          
+          // Record the calculated value in history
+          await storage.recordAssetValue(engine.id, 'engine', australianGPId, australianGPValue);
+          enginesProcessed++;
+        } else {
+          // Use current value to estimate
+          const australianGPValue = Math.round(engine.value / (1 + (valuation / 100)));
+          
+          // Record the calculated value in history
+          await storage.recordAssetValue(engine.id, 'engine', australianGPId, australianGPValue);
+          enginesProcessed++;
+        }
       }
       
       res.json({
