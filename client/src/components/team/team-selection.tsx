@@ -101,7 +101,9 @@ export function TeamSelection({
     return cost;
   };
 
-  const isOverBudget = calculateTotalCost() > team.currentCredits;
+  const totalCost = calculateTotalCost();
+  const availableCredits = team.currentCredits - totalCost;
+  const isOverBudget = availableCredits < 0;
   // Detectar aposentadoria de piloto como uma mudança
   const driver1Retired = team.driver1Id && drivers.find(d => d.id === team.driver1Id)?.retired;
   const driver2Retired = team.driver2Id && drivers.find(d => d.id === team.driver2Id)?.retired;
@@ -183,8 +185,13 @@ export function TeamSelection({
               <div>
                 <span className="text-sm">Available Credits: </span>
                 <span className={`font-bold ${isOverBudget ? "text-red-300" : ""}`}>
-                  {team.currentCredits - calculateTotalCost()}
+                  {Math.max(0, availableCredits)}
                 </span>
+                {isOverBudget && (
+                  <span className="text-xs ml-2 text-red-300">
+                    (Over budget by {Math.abs(availableCredits)})
+                  </span>
+                )}
               </div>
               {team.unspentCredits > 0 && (
                 <div className="text-xs mt-1 text-secondary-foreground/80">
