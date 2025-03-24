@@ -2045,11 +2045,25 @@ export class DatabaseStorage implements IStorage {
           }
         }
         
-        // Atualizar créditos
-        if (creditsGained !== 0) {
-          const newCredits = userTeam.currentCredits + creditsGained;
-          console.log(`Team ${userTeam.name} credits update: ${userTeam.currentCredits} -> ${newCredits}`);
-          await this.updateUserTeam(userTeam.id, { currentCredits: newCredits });
+        // Get unspent credits (if any)
+        const unspentCredits = userTeam.unspentCredits || 0;
+        console.log(`Team ${userTeam.name} has ${unspentCredits} unspent credits from previous race`);
+        
+        // Add unspent credits to credits gained
+        const totalCreditsGained = creditsGained + unspentCredits;
+        
+        // Atualizar créditos including unspent credits
+        if (totalCreditsGained !== 0) {
+          const newCredits = userTeam.currentCredits + totalCreditsGained;
+          console.log(`Team ${userTeam.name} credits update: ${userTeam.currentCredits} + ${creditsGained} (valuations) + ${unspentCredits} (unspent) = ${newCredits}`);
+          
+          // Reset unspent credits to 0 after carrying them forward
+          await this.updateUserTeam(userTeam.id, { 
+            currentCredits: newCredits,
+            unspentCredits: 0
+          });
+          
+          console.log(`Carried forward unspent credits for team ${userTeam.name} and reset to 0`);
         } else {
           console.log(`No credits gained for team ${userTeam.name}`);
         }
@@ -2355,14 +2369,17 @@ export class DatabaseStorage implements IStorage {
       }
       console.log("Reset all asset values to initial values");
       
-      // 6. Reset all user team credits to their initial values
+      // 6. Reset all user team credits and unspent credits to their initial values
       const allUserTeams = await db.select().from(userTeams);
       for (const team of allUserTeams) {
         await db.update(userTeams)
-          .set({ currentCredits: team.initialCredits })
+          .set({ 
+            currentCredits: team.initialCredits,
+            unspentCredits: 0 
+          })
           .where(eq(userTeams.id, team.id));
       }
-      console.log("Reset all user team credits to initial values");
+      console.log("Reset all user team credits and unspent credits to initial values");
       
       console.log("Database reset completed successfully");
     } catch (error) {

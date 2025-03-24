@@ -75,6 +75,11 @@ export default function TeamSummary({ team }: TeamSummaryProps) {
             )}>
               {team.currentCredits} Credits
             </span>
+            {team.unspentCredits > 0 && (
+              <span className="text-xs mt-1 text-secondary-foreground/80">
+                {team.unspentCredits} unspent credits
+              </span>
+            )}
           </div>
         </div>
       </div>

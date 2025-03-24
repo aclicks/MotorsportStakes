@@ -174,13 +174,23 @@ export function TeamSelection({
                 Driver restrictions apply
               </Button>
             </p>
+            <p className="text-neutral-500 text-xs mt-1">
+              Unspent credits from previous race are carried forward and added to your budget after valuations.
+            </p>
           </div>
           <div className="mt-4 md:mt-0">
             <div className="bg-secondary text-white px-4 py-2 rounded-lg">
-              <span className="text-sm">Available Credits: </span>
-              <span className={`font-bold ${isOverBudget ? "text-red-300" : ""}`}>
-                {team.currentCredits - calculateTotalCost()}
-              </span>
+              <div>
+                <span className="text-sm">Available Credits: </span>
+                <span className={`font-bold ${isOverBudget ? "text-red-300" : ""}`}>
+                  {team.currentCredits - calculateTotalCost()}
+                </span>
+              </div>
+              {team.unspentCredits > 0 && (
+                <div className="text-xs mt-1 text-secondary-foreground/80">
+                  Includes {team.unspentCredits} unspent credits from previous race
+                </div>
+              )}
             </div>
           </div>
         </div>
