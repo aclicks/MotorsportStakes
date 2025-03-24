@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Racing+Sans+One&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -51,15 +53,33 @@
   body {
     @apply font-sans antialiased bg-background text-foreground;
   }
+  
+  .font-racing {
+    font-family: 'Racing Sans One', cursive;
+  }
 }
 
 @layer components {
+  /* Pulse animations */
   .animate-pulse-subtle {
     animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
   
+  .animate-pulse-glow {
+    animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  /* Movement animations */
   .animate-slide-in {
     animation: slide-in 0.3s ease-out forwards;
+  }
+  
+  .animate-slide-right {
+    animation: slide-right 0.5s ease-out forwards;
+  }
+  
+  .animate-slide-up {
+    animation: slide-up 0.3s ease-out forwards;
   }
   
   .animate-fade-in {
@@ -70,12 +90,19 @@
     animation: bounce-subtle 1s ease-in-out infinite;
   }
   
+  /* Gradient animations */
+  .animate-gradient-x {
+    animation: gradient-x 3s ease infinite;
+    background-size: 200% 200%;
+  }
+  
+  /* Hover effects */
   .hover-scale {
     transition: transform 0.2s ease;
   }
   
   .hover-scale:hover {
-    transform: scale(1.03);
+    transform: scale(1.05);
   }
   
   .hover-lift {
@@ -83,17 +110,50 @@
   }
   
   .hover-lift:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  }
+  
+  /* Card styles */
+  .card-racing {
+    @apply bg-card rounded-xl border border-border p-4 hover-lift transition-all duration-300;
+  }
+  
+  .card-racing-highlight {
+    @apply bg-card rounded-xl border border-primary/20 p-4 hover-lift transition-all duration-300 shadow-[0_0_15px_rgba(255,45,45,0.15)];
+  }
+  
+  /* Button styles */
+  .btn-primary-glow {
+    @apply relative overflow-hidden;
+  }
+  
+  .btn-primary-glow::after {
+    content: '';
+    @apply absolute inset-0 bg-primary/20 rounded-full blur-xl opacity-0 transition-opacity duration-300;
+  }
+  
+  .btn-primary-glow:hover::after {
+    @apply opacity-100;
   }
 }
 
+/* Keyframes */
 @keyframes pulse-subtle {
   0%, 100% {
     opacity: 1;
   }
   50% {
     opacity: 0.85;
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    filter: brightness(1) drop-shadow(0 0 0.3rem rgba(255, 45, 45, 0.3));
+  }
+  50% {
+    filter: brightness(1.2) drop-shadow(0 0 0.5rem rgba(255, 45, 45, 0.5));
   }
 }
 
@@ -104,6 +164,28 @@
   }
   100% {
     transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-right {
+  0% {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  0% {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
     opacity: 1;
   }
 }
@@ -122,6 +204,33 @@
     transform: translateY(0);
   }
   50% {
-    transform: translateY(-2px);
+    transform: translateY(-3px);
   }
+}
+
+@keyframes gradient-x {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-black/30 rounded-full;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-muted rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-primary/60;
 }
