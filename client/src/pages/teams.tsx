@@ -1,16 +1,35 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { TeamSelection } from "@/components/team/team-selection";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { UserTeamComplete } from "@shared/schema";
+import { UserTeamComplete, Race } from "@shared/schema";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Lock } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { 
+  Lock, 
+  Timer, 
+  User, 
+  Car, 
+  Settings, 
+  Award, 
+  ChevronRight, 
+  ShieldAlert,
+  Clock
+} from "lucide-react";
+import TeamSummary from "@/components/team/team-summary";
 
 export default function Teams() {
   const [activeTeamId, setActiveTeamId] = useState<number | null>(null);
+  const [countdown, setCountdown] = useState<string>("");
   const { toast } = useToast();
+
+  // Fetch next race data
+  const { data: nextRace } = useQuery<Race>({
+    queryKey: ["/api/races/next"],
+  });
 
   // Fetch betting status
   const { 
@@ -22,6 +41,36 @@ export default function Teams() {
   });
   
   const isBettingOpen = bettingStatus?.isOpen;
+
+  // Setup countdown timer
+  useEffect(() => {
+    if (!nextRace || !nextRace.date) return;
+    
+    const updateCountdown = () => {
+      const now = new Date();
+      const raceDate = new Date(nextRace.date);
+      const difference = raceDate.getTime() - now.getTime();
+      
+      if (difference <= 0) {
+        setCountdown("Race underway");
+        return;
+      }
+      
+      const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+      
+      setCountdown(`${days}d ${hours}h ${minutes}m`);
+    };
+    
+    // Update immediately
+    updateCountdown();
+    
+    // Update every minute
+    const timer = setInterval(updateCountdown, 60000);
+    
+    return () => clearInterval(timer);
+  }, [nextRace]);
 
   // Fetch user teams
   const { 
@@ -84,18 +133,19 @@ export default function Teams() {
       return (
         <div className="p-6">
           <div className="max-w-md mx-auto mt-20 text-center">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-red-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m0 0v2m0-2h2m-2 0H9m3-4V8a3 3 0 00-3-3H6.5a2.5 2.5 0 000 5H9m9 0h3.5a2.5 2.5 0 000-5H18c-1.9 0-3.5 1.6-3.5 3.5m0 10V14" />
-            </svg>
-            <h2 className="text-2xl font-bold text-neutral-800 mb-2">Authentication Error</h2>
-            <p className="text-neutral-500 mb-6">
-              You need to be logged in to access this page. Please log in or create an account.
+            <ShieldAlert className="h-16 w-16 mx-auto text-destructive mb-4" />
+            <h2 className="text-2xl font-bold mb-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              Authentication Required
+            </h2>
+            <p className="text-muted-foreground mb-6">
+              You need to be logged in to access your teams. Please login or create an account to continue.
             </p>
             <a 
               href="/auth" 
-              className="inline-block px-6 py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary/90 transition-colors"
+              className="inline-flex items-center px-6 py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary/90 transition-colors"
             >
               Go to login page
+              <ChevronRight className="ml-2 h-4 w-4" />
             </a>
           </div>
         </div>
@@ -103,69 +153,157 @@ export default function Teams() {
     }
   }
 
+  // Helper to determine team type
+  const getTeamTypeInfo = (team: UserTeamComplete) => {
+    const isPremium = team.initialCredits === 1000 || 
+                      team.name.includes("Premium") || 
+                      team.name.includes("Principal");
+    
+    return {
+      type: isPremium ? "premium" : "challenger",
+      label: isPremium ? "Premium" : "Challenger",
+      budget: isPremium ? 1000 : 700,
+      icon: isPremium ? <Award className="h-4 w-4" /> : <Car className="h-4 w-4" />
+    };
+  };
+
   return (
-    <div className="p-6">
+    <div className="container mx-auto p-6 max-w-6xl">
       <header className="mb-8">
-        <h1 className="text-2xl font-bold text-neutral-800">Team Management</h1>
-        <p className="text-neutral-500">Manage your teams for the upcoming race.</p>
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-2">
+          Team Management
+        </h1>
+        <div className="flex items-center justify-between">
+          <p className="text-muted-foreground">
+            Manage your teams for the upcoming race: <span className="font-medium text-foreground">{nextRace?.name}</span>
+          </p>
+          
+          {/* Race countdown */}
+          {nextRace && countdown && (
+            <div className="flex items-center text-sm bg-muted px-3 py-1 rounded-full">
+              <Clock className="h-3.5 w-3.5 mr-1.5 text-primary" />
+              <span className="font-medium">{countdown}</span>
+              <span className="ml-1.5 text-muted-foreground">until race</span>
+            </div>
+          )}
+        </div>
       </header>
       
       {/* Betting Status Alert */}
-      {!isLoadingBettingStatus && !isBettingOpen && (
-        <Alert className="mb-6 border-yellow-500 bg-yellow-50">
-          <Lock className="h-4 w-4 text-yellow-500" />
-          <AlertTitle className="text-yellow-800">Betting is closed</AlertTitle>
-          <AlertDescription className="text-yellow-700">
-            Team changes are currently not allowed. The administrator has closed betting for the upcoming race.
+      {!isLoadingBettingStatus && (
+        <Alert className={`mb-6 ${isBettingOpen ? 'border-green-500 bg-green-50/10' : 'border-yellow-500 bg-yellow-50/10'}`}>
+          {isBettingOpen ? (
+            <Timer className="h-4 w-4 text-green-500" />
+          ) : (
+            <Lock className="h-4 w-4 text-yellow-500" />
+          )}
+          <AlertTitle className={isBettingOpen ? "text-green-500" : "text-yellow-500"}>
+            {isBettingOpen ? "Betting is open" : "Betting is closed"}
+          </AlertTitle>
+          <AlertDescription className={isBettingOpen ? "text-green-700/70" : "text-yellow-700/70"}>
+            {isBettingOpen 
+              ? "You can make changes to your team lineup until betting closes before the race." 
+              : "Team changes are currently not allowed. The administrator has closed betting for the upcoming race."}
           </AlertDescription>
         </Alert>
       )}
       
       {/* Team Selection Tabs */}
       {isLoading ? (
-        <Skeleton className="h-[50px] w-full mb-6" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <Skeleton className="h-[80px]" />
+          <Skeleton className="h-[80px]" />
+        </div>
       ) : teams?.length ? (
         <div className="mb-6">
-          <div className="border-b border-neutral-200">
-            <nav className="-mb-px flex">
-              {teams.map(team => (
-                <button
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {teams.map(team => {
+              const teamInfo = getTeamTypeInfo(team);
+              return (
+                <Card 
                   key={team.id}
-                  className={`py-3 px-6 border-b-2 font-medium ${
-                    team.id === activeTeamId
-                      ? "border-primary text-primary"
-                      : "border-transparent text-neutral-500 hover:text-neutral-700"
+                  className={`cursor-pointer overflow-hidden transition-all duration-300 hover:shadow-md ${
+                    team.id === activeTeamId 
+                      ? 'ring-2 ring-primary/50 transform scale-[1.01]' 
+                      : 'hover:border-primary/20'
                   }`}
                   onClick={() => setActiveTeamId(team.id)}
                 >
-                  {team.name} ({team.initialCredits} Credits)
-                </button>
-              ))}
-            </nav>
+                  <div className={`h-1 ${teamInfo.type === 'premium' ? 'bg-primary' : 'bg-secondary'}`}></div>
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center">
+                        <div className={`w-12 h-12 rounded-full ${
+                          teamInfo.type === 'premium' ? 'bg-primary/10' : 'bg-secondary/10'
+                        } flex items-center justify-center mr-3`}>
+                          {team.driver1 ? (
+                            <span className={`text-lg font-bold ${
+                              teamInfo.type === 'premium' ? 'text-primary' : 'text-secondary'
+                            }`}>
+                              {team.driver1.number}
+                            </span>
+                          ) : (
+                            <User className={teamInfo.type === 'premium' ? 'text-primary' : 'text-secondary'} />
+                          )}
+                        </div>
+                        <div>
+                          <div className="flex items-center">
+                            <h3 className="font-bold">{team.name}</h3>
+                            <Badge variant={teamInfo.type} className="ml-2">
+                              {teamInfo.icon}
+                              <span className="ml-1">{teamInfo.label}</span>
+                            </Badge>
+                          </div>
+                          <div className="flex items-center text-sm text-muted-foreground space-x-4 mt-1">
+                            <div className="flex items-center">
+                              <User className="h-3.5 w-3.5 mr-1" />
+                              <span>{team.driver1?.name || "No driver"} / {team.driver2?.name || "No driver"}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-lg font-bold">{team.currentCredits}</div>
+                        <div className="text-xs text-muted-foreground">Available credits</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </div>
       ) : (
-        <div className="text-center py-8">
-          <p className="text-neutral-500">No teams found.</p>
+        <div className="text-center py-8 border rounded-lg bg-muted/20">
+          <ShieldAlert className="mx-auto h-10 w-10 text-muted-foreground mb-3" />
+          <p className="text-muted-foreground">No teams found for your account.</p>
         </div>
       )}
       
-      {/* Team Selection Content */}
-      {isLoading || !marketData ? (
-        <Skeleton className="h-[600px] w-full" />
-      ) : activeTeam ? (
-        <TeamSelection 
-          team={activeTeam}
-          drivers={marketData.drivers || []}
-          engines={marketData.engines || []}
-          teams={marketData.teams || []}
-          onSave={(data) => updateTeamMutation.mutate({ teamId: activeTeam.id, data })}
-          isPending={updateTeamMutation.isPending}
-          disabled={!isBettingOpen}
-        />
-      ) : (
-        <div className="text-center py-8">
-          <p className="text-neutral-500">Select a team to manage.</p>
+      {/* Team Details */}
+      {!isLoading && activeTeam && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+          {/* Team Summary Card */}
+          <div className="col-span-1">
+            <TeamSummary team={activeTeam} />
+          </div>
+          
+          {/* Team Selection */}
+          <div className="col-span-1 md:col-span-2">
+            {!marketData ? (
+              <Skeleton className="h-[600px] w-full" />
+            ) : (
+              <TeamSelection 
+                team={activeTeam}
+                drivers={marketData.drivers || []}
+                engines={marketData.engines || []}
+                teams={marketData.teams || []}
+                onSave={(data) => updateTeamMutation.mutate({ teamId: activeTeam.id, data })}
+                isPending={updateTeamMutation.isPending}
+                disabled={!isBettingOpen}
+              />
+            )}
+          </div>
         </div>
       )}
     </div>
