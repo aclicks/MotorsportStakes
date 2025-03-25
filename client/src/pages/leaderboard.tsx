@@ -88,24 +88,24 @@ export default function Leaderboard() {
     
     if (diff > 0) {
       return (
-        <span className="flex items-center text-green-500 text-xs">
+        <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200 hover:bg-green-100 hover:text-green-700 font-normal animate-fadeIn">
           <TrendingUp size={14} className="mr-1" />
           +{percentChange}%
-        </span>
+        </Badge>
       );
     } else if (diff < 0) {
       return (
-        <span className="flex items-center text-red-500 text-xs">
+        <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200 hover:bg-red-100 hover:text-red-700 font-normal animate-fadeIn">
           <TrendingDown size={14} className="mr-1" />
           {percentChange}%
-        </span>
+        </Badge>
       );
     } else {
       return (
-        <span className="flex items-center text-gray-500 text-xs">
+        <Badge variant="outline" className="bg-neutral-50 text-neutral-600 border-neutral-200 hover:bg-neutral-100 hover:text-neutral-700 font-normal animate-fadeIn">
           <Minus size={14} className="mr-1" />
           0%
-        </span>
+        </Badge>
       );
     }
   };
@@ -137,28 +137,39 @@ export default function Leaderboard() {
   const handleRefresh = () => {
     refetch().then(() => {
       toast({
-        title: "Leaderboard Refreshed",
-        description: "The latest rankings have been loaded.",
+        title: "Classificação atualizada!",
+        description: "Os dados mais recentes foram carregados com sucesso.",
+        variant: "default",
+      });
+    }).catch(() => {
+      toast({
+        title: "Erro ao atualizar",
+        description: "Não foi possível carregar os dados mais recentes. Tente novamente.",
+        variant: "destructive",
       });
     });
   };
 
   const renderLoadingState = () => (
-    <div className="flex flex-col space-y-4">
+    <div className="flex flex-col space-y-6 p-2">
       <div className="flex space-x-4 items-center">
-        <Skeleton className="h-12 w-12 rounded-full" />
-        <div className="space-y-2">
-          <Skeleton className="h-4 w-[250px]" />
+        <Skeleton className="h-14 w-14 rounded-full" />
+        <div className="space-y-2 flex-1">
+          <Skeleton className="h-5 w-[250px]" />
           <Skeleton className="h-4 w-[200px]" />
         </div>
       </div>
       {Array.from({ length: 5 }).map((_, i) => (
-        <div key={i} className="flex justify-between items-center">
+        <div key={i} className="flex justify-between items-center border-b border-neutral-100 pb-4">
           <div className="flex space-x-4 items-center">
+            <Skeleton className="h-6 w-6 rounded-full" />
             <Skeleton className="h-8 w-8 rounded-full" />
             <Skeleton className="h-4 w-[150px]" />
           </div>
-          <Skeleton className="h-4 w-[100px]" />
+          <div className="flex flex-col items-end space-y-2">
+            <Skeleton className="h-5 w-[100px]" />
+            <Skeleton className="h-3 w-[80px]" />
+          </div>
         </div>
       ))}
     </div>
@@ -439,54 +450,90 @@ export default function Leaderboard() {
             </Card>
           </TabsContent>
           
-          <TabsContent value="challenger">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Star className="mr-2 h-5 w-5" />
-                  Challenger Teams Ranking
+          <TabsContent value="challenger" className="space-y-4">
+            <Card className="border border-neutral-200 shadow-md overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-neutral-50 to-neutral-100 border-b border-neutral-200">
+                <CardTitle className="flex items-center text-xl">
+                  <Award className="mr-2 h-5 w-5 text-amber-700" />
+                  <span className="bg-gradient-to-r from-amber-700 to-red-600 bg-clip-text text-transparent">
+                    Equipes Challenger
+                  </span>
                 </CardTitle>
-                <CardDescription>
-                  Teams with 700 initial credits - ranked by credits
+                <CardDescription className="text-foreground/70">
+                  Equipes com 700 créditos iniciais - classificadas pelo total atual de créditos
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-0">
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b">
-                        <th className="px-4 py-3 text-left font-medium">Rank</th>
-                        <th className="px-4 py-3 text-left font-medium">Player</th>
-                        <th className="px-4 py-3 text-left font-medium">Team</th>
-                        <th className="px-4 py-3 text-right font-medium">Credits</th>
+                      <tr className="bg-neutral-50 border-b border-neutral-200">
+                        <th className="px-4 py-3 text-left font-medium text-neutral-600">Posição</th>
+                        <th className="px-4 py-3 text-left font-medium text-neutral-600">Jogador</th>
+                        <th className="px-4 py-3 text-left font-medium text-neutral-600">Equipe</th>
+                        <th className="px-4 py-3 text-right font-medium text-neutral-600">Créditos</th>
                       </tr>
                     </thead>
                     <tbody>
                       {filteredData?.challenger.length === 0 ? (
                         <tr>
-                          <td colSpan={4} className="px-4 py-8 text-center text-neutral-500">
-                            {searchQuery ? 'No challenger teams found matching your search' : 'No challenger teams found'}
+                          <td colSpan={4} className="px-4 py-8 text-center">
+                            <div className="flex flex-col items-center justify-center text-neutral-500 py-6">
+                              <Award className="h-10 w-10 mb-2 text-amber-700/60" />
+                              <p className="font-medium mb-1">Nenhuma equipe challenger encontrada</p>
+                              <p className="text-sm">
+                                {searchQuery ? 'Tente uma busca diferente' : 'Ainda não há dados disponíveis'}
+                              </p>
+                            </div>
                           </td>
                         </tr>
                       ) : (
-                        filteredData?.challenger.map((team) => (
-                          <tr key={`${team.userId}-${team.teamId}`} className="border-b hover:bg-neutral-50">
-                            <td className="px-4 py-3">
+                        filteredData?.challenger.map((team, index) => (
+                          <tr 
+                            key={`${team.userId}-${team.teamId}`} 
+                            className={`border-b hover:bg-neutral-50 transition-colors ${index === 0 ? 'bg-amber-50/30' : ''}`}
+                          >
+                            <td className="px-4 py-4">
                               {getRankBadge(team.rank)}
                             </td>
-                            <td className="px-4 py-3 font-medium">{team.username}</td>
-                            <td className="px-4 py-3">{team.teamName}</td>
-                            <td className="px-4 py-3 text-right">
+                            <td className="px-4 py-4 font-medium">
+                              <div className="flex items-center">
+                                <div className="w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center mr-3 font-semibold text-sm">
+                                  {team.username.substring(0, 2).toUpperCase()}
+                                </div>
+                                {team.username}
+                              </div>
+                            </td>
+                            <td className="px-4 py-4">
+                              <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-200 border-none">
+                                {team.teamName}
+                              </Badge>
+                            </td>
+                            <td className="px-4 py-4 text-right">
                               <div className="flex flex-col items-end">
-                                <span className="font-bold text-primary">
-                                  {team.totalCredits.toLocaleString()} cr
-                                </span>
+                                <div className="flex items-center">
+                                  <span className="font-bold text-primary text-base mr-2">
+                                    {team.totalCredits.toLocaleString()} cr
+                                  </span>
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Info className="h-4 w-4 text-neutral-400 cursor-help" />
+                                      </TooltipTrigger>
+                                      <TooltipContent side="left">
+                                        <p className="text-xs">Base inicial: 700 créditos</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                </div>
                                 {team.unspentCredits > 0 && (
-                                  <span className="text-xs text-neutral-500">
-                                    ({team.credits.toLocaleString()} + {team.unspentCredits} unspent)
+                                  <span className="text-xs text-green-600 font-medium">
+                                    {team.credits.toLocaleString()} + {team.unspentCredits} créditos não utilizados
                                   </span>
                                 )}
-                                {getCreditsTrendIndicator(team.totalCredits, 700)}
+                                <div className="mt-1">
+                                  {getCreditsTrendIndicator(team.totalCredits, 700)}
+                                </div>
                               </div>
                             </td>
                           </tr>
@@ -495,10 +542,10 @@ export default function Leaderboard() {
                     </tbody>
                   </table>
                 </div>
-                <div className="mt-4 text-sm text-neutral-500">
+                <div className="mt-4 mx-4 py-3 px-4 bg-amber-50 rounded-md border border-amber-200 text-sm text-amber-800">
                   <p className="flex items-center">
-                    <Star className="h-4 w-4 mr-2 text-amber-700" />
-                    Challenger teams start with 700 credits - Performance is measured against this baseline
+                    <Info className="h-4 w-4 mr-2 text-amber-700" />
+                    Equipes Challenger iniciam com 700 créditos - O desempenho é medido em relação a esta linha de base
                   </p>
                 </div>
               </CardContent>
@@ -507,27 +554,60 @@ export default function Leaderboard() {
         </Tabs>
       )}
       
-      <div className="mt-8 p-6 bg-neutral-50 rounded-lg border border-neutral-200">
-        <h3 className="text-lg font-semibold mb-3">How the Leaderboard Works</h3>
-        <ul className="space-y-2 text-sm text-neutral-700">
-          <li className="flex items-start">
-            <span className="bg-primary text-white rounded-full h-5 w-5 flex items-center justify-center text-xs mr-2 mt-0.5">1</span>
-            <span>Rankings are based on available credits</span>
-          </li>
-          <li className="flex items-start">
-            <span className="bg-primary text-white rounded-full h-5 w-5 flex items-center justify-center text-xs mr-2 mt-0.5">2</span>
-            <span>All teams start with the same initial credits (Premium: 1000 credits, Challenger: 700 credits)</span>
-          </li>
-          <li className="flex items-start">
-            <span className="bg-primary text-white rounded-full h-5 w-5 flex items-center justify-center text-xs mr-2 mt-0.5">3</span>
-            <span>Rankings are updated after each race when results are submitted and credits change</span>
-          </li>
-          <li className="flex items-start">
-            <span className="bg-primary text-white rounded-full h-5 w-5 flex items-center justify-center text-xs mr-2 mt-0.5">4</span>
-            <span>Performance trends show how teams are performing compared to their initial credits</span>
-          </li>
-        </ul>
-      </div>
+      <Card className="mt-8 border border-neutral-200 shadow-md overflow-hidden">
+        <CardHeader className="bg-gradient-to-r from-neutral-50 to-neutral-100 border-b border-neutral-200 pb-4">
+          <CardTitle className="flex items-center text-lg">
+            <Info className="mr-2 h-5 w-5 text-primary" />
+            Como funciona a classificação
+          </CardTitle>
+          <CardDescription>
+            Entenda como o sistema de ranqueamento calcula as posições
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-white p-4 rounded-md border border-neutral-200 shadow-sm">
+              <div className="flex items-center mb-2">
+                <div className="bg-gradient-to-r from-primary to-red-600 text-white rounded-full h-6 w-6 flex items-center justify-center text-xs mr-2">1</div>
+                <h4 className="font-semibold text-sm">Pontuação por créditos</h4>
+              </div>
+              <p className="text-sm text-foreground/70 pl-8">
+                O ranking é baseado nos créditos disponíveis para cada equipe ou jogador
+              </p>
+            </div>
+            
+            <div className="bg-white p-4 rounded-md border border-neutral-200 shadow-sm">
+              <div className="flex items-center mb-2">
+                <div className="bg-gradient-to-r from-primary to-red-600 text-white rounded-full h-6 w-6 flex items-center justify-center text-xs mr-2">2</div>
+                <h4 className="font-semibold text-sm">Base inicial padronizada</h4>
+              </div>
+              <p className="text-sm text-foreground/70 pl-8">
+                Todas as equipes iniciam com valores padrão (Premium: 1000 créditos, Challenger: 700 créditos)
+              </p>
+            </div>
+            
+            <div className="bg-white p-4 rounded-md border border-neutral-200 shadow-sm">
+              <div className="flex items-center mb-2">
+                <div className="bg-gradient-to-r from-primary to-red-600 text-white rounded-full h-6 w-6 flex items-center justify-center text-xs mr-2">3</div>
+                <h4 className="font-semibold text-sm">Atualização pós-corrida</h4>
+              </div>
+              <p className="text-sm text-foreground/70 pl-8">
+                Os rankings são atualizados após cada corrida quando os resultados são enviados e os créditos mudam
+              </p>
+            </div>
+            
+            <div className="bg-white p-4 rounded-md border border-neutral-200 shadow-sm">
+              <div className="flex items-center mb-2">
+                <div className="bg-gradient-to-r from-primary to-red-600 text-white rounded-full h-6 w-6 flex items-center justify-center text-xs mr-2">4</div>
+                <h4 className="font-semibold text-sm">Indicadores de tendência</h4>
+              </div>
+              <p className="text-sm text-foreground/70 pl-8">
+                Os indicadores de performance mostram como as equipes estão se saindo em comparação aos créditos iniciais
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
