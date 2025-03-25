@@ -83,27 +83,27 @@ export default function Market() {
     averagePosition?: number | null;
     extraInfo?: React.ReactNode;
   }) => (
-    <Card className="overflow-hidden transition-all duration-300 hover:shadow-md group">
+    <Card className="overflow-hidden transition-all duration-300 hover:shadow-md group bg-neutral-900 border-neutral-800">
       <div className="h-1 bg-gradient-to-r from-primary to-secondary"></div>
       <CardContent className="p-4">
         <div className="flex justify-between items-start">
           <div className="flex items-center">
-            <div className="w-10 h-10 rounded-full bg-neutral-100 flex items-center justify-center mr-3">
+            <div className="w-10 h-10 rounded-full bg-neutral-800 flex items-center justify-center mr-3">
               {icon}
             </div>
             <div>
-              <h3 className="font-bold text-md group-hover:text-primary transition-colors">{name}</h3>
-              {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+              <h3 className="font-bold text-md group-hover:text-primary transition-colors text-white">{name}</h3>
+              {subtitle && <p className="text-xs text-neutral-400">{subtitle}</p>}
             </div>
           </div>
           <div className="text-right">
             <div className="flex items-center justify-end">
-              <span className="font-bold text-lg">
+              <span className="font-bold text-lg text-white">
                 {value}
               </span>
               {renderValueChange(valueChange)}
             </div>
-            <div className="text-xs text-muted-foreground">
+            <div className="text-xs text-neutral-400">
               Avg. Position: {averagePosition !== undefined && averagePosition !== null ? averagePosition.toFixed(1) : '—'}
             </div>
           </div>
