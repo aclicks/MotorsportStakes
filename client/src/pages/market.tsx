@@ -80,8 +80,8 @@ export default function Market() {
     subtitle?: string; 
     icon: JSX.Element; 
     valueChange: number | null;
-    averagePosition?: number;
-    extraInfo?: JSX.Element;
+    averagePosition?: number | null;
+    extraInfo?: React.ReactNode;
   }) => (
     <Card className="overflow-hidden transition-all duration-300 hover:shadow-md group">
       <div className="h-1 bg-gradient-to-r from-primary to-secondary"></div>
@@ -104,7 +104,7 @@ export default function Market() {
               {renderValueChange(valueChange)}
             </div>
             <div className="text-xs text-muted-foreground">
-              Avg. Position: {averagePosition !== undefined ? averagePosition.toFixed(1) : '—'}
+              Avg. Position: {averagePosition !== undefined && averagePosition !== null ? averagePosition.toFixed(1) : '—'}
             </div>
           </div>
         </div>
@@ -186,7 +186,7 @@ export default function Market() {
                         extraInfo={
                           driver.retired ? (
                             <Badge variant="outline" className="mt-2 bg-red-50 text-red-500 border-red-200">Retired</Badge>
-                          ) : null
+                          ) : undefined
                         }
                       />
                     ))}
