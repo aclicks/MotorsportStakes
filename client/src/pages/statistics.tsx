@@ -213,10 +213,10 @@ export default function Statistics() {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-6 bg-neutral-950">
       <header className="mb-8">
         <h1 className="text-3xl font-extrabold bg-gradient-to-r from-primary to-red-600 bg-clip-text text-transparent">Estatísticas de Desempenho</h1>
-        <p className="text-foreground/70">Visualize o desempenho histórico de pilotos, equipes e motores ao longo da temporada.</p>
+        <p className="text-gray-400">Visualize o desempenho histórico de pilotos, equipes e motores ao longo da temporada.</p>
       </header>
 
       <Card className="border border-neutral-800 shadow-lg bg-neutral-900">
@@ -464,10 +464,10 @@ export default function Statistics() {
                               <span>{value.toLocaleString()} créditos</span>
                               {displayPercentage !== null && (
                                 <div className="mt-1">
-                                  <span className={`font-semibold ${displayPercentage >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                  <span className={`font-semibold ${displayPercentage >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                                     {displayPercentage >= 0 ? '▲' : '▼'} {Math.abs(displayPercentage).toFixed(2)}%
                                   </span>
-                                  <span className="text-gray-500 text-xs ml-1">
+                                  <span className="text-gray-300 text-xs ml-1">
                                     {valuePercentage !== null 
                                       ? '(tabela de valorização)' 
                                       : 'vs anterior'
@@ -507,7 +507,7 @@ export default function Statistics() {
                           stroke: 'var(--primary)', 
                           strokeWidth: 2, 
                           r: 6,
-                          fill: 'white',
+                          fill: '#333',
                           strokeDasharray: ''
                         }}
                         activeDot={{ 
@@ -515,7 +515,7 @@ export default function Statistics() {
                           stroke: 'var(--primary)',
                           strokeWidth: 2,
                           fill: 'var(--primary)',
-                          strokeOpacity: 0.8
+                          strokeOpacity: 0.9
                         }}
                         name="Valor"
                       />
