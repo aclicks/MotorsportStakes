@@ -19,6 +19,7 @@ import {
   ResponsiveContainer,
   Area
 } from "recharts";
+import { AlertCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
@@ -266,17 +267,21 @@ export default function Statistics() {
             <TabsContent value="team">
               <div className="mb-6">
                 <Select value={selectedId} onValueChange={setSelectedId}>
-                  <SelectTrigger>
+                  <SelectTrigger className="border-neutral-300 transition-all duration-200 hover:border-primary focus:border-primary shadow-sm">
                     <SelectValue placeholder="Selecione uma equipe" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="border-neutral-300 shadow-md">
                     {isLoadingTeams ? (
                       <div className="p-2">
                         <Skeleton className="h-5 w-full" />
                       </div>
                     ) : (
                       teams.map((team: Team) => (
-                        <SelectItem key={team.id} value={team.id.toString()}>
+                        <SelectItem 
+                          key={team.id} 
+                          value={team.id.toString()}
+                          className="transition-colors hover:bg-neutral-100"
+                        >
                           {team.name}
                         </SelectItem>
                       ))
@@ -289,17 +294,21 @@ export default function Statistics() {
             <TabsContent value="engine">
               <div className="mb-6">
                 <Select value={selectedId} onValueChange={setSelectedId}>
-                  <SelectTrigger>
+                  <SelectTrigger className="border-neutral-300 transition-all duration-200 hover:border-primary focus:border-primary shadow-sm">
                     <SelectValue placeholder="Selecione um motor" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="border-neutral-300 shadow-md">
                     {isLoadingEngines ? (
                       <div className="p-2">
                         <Skeleton className="h-5 w-full" />
                       </div>
                     ) : (
                       engines.map((engine: Engine) => (
-                        <SelectItem key={engine.id} value={engine.id.toString()}>
+                        <SelectItem 
+                          key={engine.id} 
+                          value={engine.id.toString()}
+                          className="transition-colors hover:bg-neutral-100"
+                        >
                           {engine.name}
                         </SelectItem>
                       ))
@@ -311,30 +320,52 @@ export default function Statistics() {
 
             {selectedId && (
               <div className="mt-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-medium">
-                    Histórico de Desempenho: {getEntityName()}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6 bg-neutral-50 p-4 rounded-lg border border-neutral-200 shadow-sm">
+                  <h3 className="text-xl font-bold text-neutral-800">
+                    <span className="bg-gradient-to-r from-primary to-amber-500 bg-clip-text text-transparent">{getEntityName()}</span>
                   </h3>
+                  
                   {currentValue !== undefined && (
-                    <div className="bg-primary/10 text-primary px-4 py-2 rounded-md">
-                      <span className="font-medium">Valor Atual:</span> {currentValue.toLocaleString()} créditos
+                    <div className="flex flex-col sm:items-end">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg font-bold text-neutral-800">{currentValue.toLocaleString()} créditos</span>
+                        {entityPositionInStandings && (
+                          <span className="bg-neutral-800 text-white text-xs font-medium px-2 py-1 rounded-full">
+                            {entityPositionInStandings}º
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-sm text-neutral-500">Valor atual no mercado</span>
                     </div>
                   )}
                 </div>
                 {isLoadingHistory || isLoadingAssetValueHistory ? (
                   <Skeleton className="h-[400px] w-full" />
                 ) : !chartData || chartData.length === 0 ? (
-                  <div className="text-center py-12 text-neutral-500">
+                  <div className="text-center py-12 px-4 bg-neutral-50 border border-neutral-200 rounded-lg">
                     {currentValue !== undefined ? (
                       <>
-                        <p className="mb-2">Sem dados históricos de corridas disponíveis para este {entityType === "driver" ? "piloto" : entityType === "team" ? "equipe" : "motor"}.</p>
-                        <p>Valor atual: <span className="font-semibold text-primary">{currentValue.toLocaleString()} créditos</span></p>
-                        {entityPositionInStandings && (
-                          <p className="mt-2 text-sm">Posição atual: {entityPositionInStandings}º lugar</p>
-                        )}
+                        <div className="mb-6">
+                          <AlertCircle className="h-12 w-12 text-amber-500 mx-auto mb-3 opacity-70" />
+                          <h4 className="text-lg font-semibold text-neutral-800 mb-2">Sem histórico disponível</h4>
+                          <p className="text-neutral-600 max-w-md mx-auto">
+                            Não existem dados históricos de corridas disponíveis para 
+                            {entityType === "driver" ? " este piloto" : entityType === "team" ? " esta equipe" : " este motor"}.
+                          </p>
+                        </div>
+                        
+                        <div className="inline-flex items-center justify-center px-4 py-2 bg-white border border-neutral-200 rounded-lg shadow-sm">
+                          <div className="flex flex-col">
+                            <span className="text-xs text-neutral-500 uppercase tracking-wider">Valor Inicial</span>
+                            <span className="font-bold text-primary">{currentValue.toLocaleString()} créditos</span>
+                          </div>
+                        </div>
                       </>
                     ) : (
-                      "Sem dados históricos disponíveis para esta seleção."
+                      <div className="text-neutral-500">
+                        <AlertCircle className="h-10 w-10 mx-auto mb-3 opacity-50" />
+                        <p>Sem dados históricos disponíveis para esta seleção.</p>
+                      </div>
                     )}
                   </div>
                 ) : (
