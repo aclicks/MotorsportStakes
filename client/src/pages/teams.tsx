@@ -19,7 +19,6 @@ import {
   ShieldAlert,
   Clock
 } from "lucide-react";
-import TeamSummary from "@/components/team/team-summary";
 
 export default function Teams() {
   const [activeTeamId, setActiveTeamId] = useState<number | null>(null);
@@ -282,28 +281,21 @@ export default function Teams() {
       
       {/* Team Details */}
       {!isLoading && activeTeam && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-          {/* Team Summary Card */}
-          <div className="col-span-1">
-            <TeamSummary team={activeTeam} />
-          </div>
-          
+        <div className="mt-8">
           {/* Team Selection */}
-          <div className="col-span-1 md:col-span-2">
-            {!marketData ? (
-              <Skeleton className="h-[600px] w-full" />
-            ) : (
-              <TeamSelection 
-                team={activeTeam}
-                drivers={marketData.drivers || []}
-                engines={marketData.engines || []}
-                teams={marketData.teams || []}
-                onSave={(data) => updateTeamMutation.mutate({ teamId: activeTeam.id, data })}
-                isPending={updateTeamMutation.isPending}
-                disabled={!isBettingOpen}
-              />
-            )}
-          </div>
+          {!marketData ? (
+            <Skeleton className="h-[600px] w-full" />
+          ) : (
+            <TeamSelection 
+              team={activeTeam}
+              drivers={marketData.drivers || []}
+              engines={marketData.engines || []}
+              teams={marketData.teams || []}
+              onSave={(data) => updateTeamMutation.mutate({ teamId: activeTeam.id, data })}
+              isPending={updateTeamMutation.isPending}
+              disabled={!isBettingOpen}
+            />
+          )}
         </div>
       )}
     </div>
