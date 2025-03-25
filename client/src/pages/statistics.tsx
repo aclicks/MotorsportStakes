@@ -231,10 +231,10 @@ export default function Statistics() {
             setEntityType(value as "driver" | "team" | "engine");
             setSelectedId("");
           }}>
-            <TabsList className="grid w-full grid-cols-3 mb-6 bg-neutral-100 p-1 rounded-md">
-              <TabsTrigger value="driver" className="data-[state=active]:bg-primary data-[state=active]:text-white font-medium transition-all duration-300">Pilotos</TabsTrigger>
-              <TabsTrigger value="team" className="data-[state=active]:bg-primary data-[state=active]:text-white font-medium transition-all duration-300">Equipes</TabsTrigger>
-              <TabsTrigger value="engine" className="data-[state=active]:bg-primary data-[state=active]:text-white font-medium transition-all duration-300">Motores</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3 mb-6 bg-zinc-800 p-1 rounded-md border border-zinc-700/50 shadow-md">
+              <TabsTrigger value="driver" className="data-[state=active]:bg-primary data-[state=active]:text-white font-medium transition-all duration-300 text-zinc-300 hover:text-white hover:bg-zinc-700/50">Pilotos</TabsTrigger>
+              <TabsTrigger value="team" className="data-[state=active]:bg-primary data-[state=active]:text-white font-medium transition-all duration-300 text-zinc-300 hover:text-white hover:bg-zinc-700/50">Equipes</TabsTrigger>
+              <TabsTrigger value="engine" className="data-[state=active]:bg-primary data-[state=active]:text-white font-medium transition-all duration-300 text-zinc-300 hover:text-white hover:bg-zinc-700/50">Motores</TabsTrigger>
             </TabsList>
 
             <TabsContent value="driver">
@@ -381,9 +381,9 @@ export default function Statistics() {
                     >
                       <defs>
                         <linearGradient id="colorValue" x1="0" y1="0" x2="1" y2="0">
-                          <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.8}/>
-                          <stop offset="50%" stopColor="var(--primary)" stopOpacity={1}/>
-                          <stop offset="100%" stopColor="var(--primary)" stopOpacity={0.8}/>
+                          <stop offset="0%" stopColor="#FACC15" stopOpacity={0.8}/>
+                          <stop offset="50%" stopColor="#EAB308" stopOpacity={1}/>
+                          <stop offset="100%" stopColor="#FACC15" stopOpacity={0.8}/>
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" opacity={0.2} stroke="#ccc" />
@@ -408,19 +408,19 @@ export default function Statistics() {
                         }}
                       />
                       <Tooltip
-                        formatter={(value: number, name, props: any) => {
+                        formatter={(value: number, name: any) => {
                           // Get the current entry index to calculate percentage change
                           const currentIndex = chartData.findIndex(item => item.value === value);
                           let percentChange = null;
                           let valuePercentage = null;
                           
-                          // Get the payload with additional information
-                          const payload = props?.payload;
-                          const raceId = payload?.raceId;
-                          const previousRaceId = payload?.previousRaceId;
+                          // Get chart data for the current point
+                          const currentPoint = chartData[currentIndex];
+                          const raceId = currentPoint?.raceId;
+                          const previousRaceId = currentPoint?.previousRaceId;
                           
                           // Find the actual race results to find the valuation difference
-                          if (history && history.length > 0) {
+                          if (history && history.length > 0 && raceId) {
                             // Find performance history entries for the current and previous race
                             const currentRacePerf = history.find(entry => entry.raceId === raceId);
                             const previousRaces = history.filter(entry => 
@@ -478,17 +478,19 @@ export default function Statistics() {
                             ""
                           ];
                         }}
-                        labelFormatter={(label, entries) => {
-                          const entry = entries[0]?.payload;
+                        labelFormatter={(label: any) => {
+                          // Find the entry with this label
+                          const entry = chartData.find(item => item.name === label);
                           return entry?.date 
                             ? `${label} | ${entry.date}` 
                             : `${label}`;
                         }}
                         contentStyle={{ 
-                          backgroundColor: "rgba(255, 255, 255, 0.8)",
+                          backgroundColor: "rgba(18, 18, 18, 0.9)",
                           borderRadius: "5px",
                           padding: "10px",
-                          border: "1px solid #ccc" 
+                          border: "1px solid #333",
+                          color: "#eee"
                         }}
                       />
                       <Legend />
@@ -502,7 +504,7 @@ export default function Statistics() {
                         animationDuration={1000}
                         animationEasing="ease-in-out"
                         dot={{ 
-                          stroke: 'var(--primary)', 
+                          stroke: '#EAB308', 
                           strokeWidth: 2, 
                           r: 6,
                           fill: 'white',
@@ -510,9 +512,9 @@ export default function Statistics() {
                         }}
                         activeDot={{ 
                           r: 8, 
-                          stroke: 'var(--primary)',
+                          stroke: '#EAB308',
                           strokeWidth: 2,
-                          fill: 'var(--primary)',
+                          fill: '#EAB308',
                           strokeOpacity: 0.8
                         }}
                         name="Valor"
