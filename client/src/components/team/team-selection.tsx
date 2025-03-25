@@ -227,7 +227,7 @@ export function TeamSelection({
               </Select>
 
               {selectedDriver1 && (
-                <div className="mt-4 bg-white border border-neutral-300 rounded-lg p-4 shadow-sm">
+                <div className="mt-4 bg-neutral-900 border border-neutral-700 rounded-lg p-4 shadow-md">
                   <div className="flex items-center">
                     <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                       <span className="text-base font-bold text-primary">{selectedDriver1.number}</span>
@@ -276,7 +276,7 @@ export function TeamSelection({
               </Select>
 
               {selectedDriver2 && (
-                <div className="mt-4 bg-white border border-neutral-300 rounded-lg p-4 shadow-sm">
+                <div className="mt-4 bg-neutral-900 border border-neutral-700 rounded-lg p-4 shadow-md">
                   <div className="flex items-center">
                     <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                       <span className="text-base font-bold text-primary">{selectedDriver2.number}</span>
@@ -327,7 +327,7 @@ export function TeamSelection({
               </Select>
 
               {selectedEngine && (
-                <div className="mt-4 bg-white border border-neutral-300 rounded-lg p-4 shadow-sm">
+                <div className="mt-4 bg-neutral-900 border border-neutral-700 rounded-lg p-4 shadow-md">
                   <div className="flex items-center">
                     <div className="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center">
                       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-secondary">
@@ -377,7 +377,7 @@ export function TeamSelection({
               </Select>
 
               {selectedTeam && (
-                <div className="mt-4 bg-white border border-neutral-300 rounded-lg p-4 shadow-sm">
+                <div className="mt-4 bg-neutral-900 border border-neutral-700 rounded-lg p-4 shadow-md">
                   <div className="flex items-center">
                     <div className="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center">
                       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-secondary">
