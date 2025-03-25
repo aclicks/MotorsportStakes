@@ -46,7 +46,7 @@ export default function Market() {
 
   // Render the value change badge
   const renderValueChange = (change: number | null) => {
-    if (change === null) return <Badge variant="outline" className="bg-neutral-800 border-neutral-700"><Minus size={14} /></Badge>;
+    if (change === null) return <Badge variant="outline"><Minus size={14} /></Badge>;
     
     if (change > 0) {
       return (
@@ -61,7 +61,7 @@ export default function Market() {
         </Badge>
       );
     } else {
-      return <Badge variant="outline" className="ml-2 bg-neutral-800 border-neutral-700"><Minus size={14} /></Badge>;
+      return <Badge variant="outline" className="ml-2"><Minus size={14} /></Badge>;
     }
   };
 
@@ -83,27 +83,27 @@ export default function Market() {
     averagePosition?: number | null;
     extraInfo?: React.ReactNode;
   }) => (
-    <Card className="overflow-hidden transition-all duration-300 hover:shadow-md group bg-neutral-900 border-neutral-800">
+    <Card className="overflow-hidden transition-all duration-300 hover:shadow-md group">
       <div className="h-1 bg-gradient-to-r from-primary to-secondary"></div>
       <CardContent className="p-4">
         <div className="flex justify-between items-start">
           <div className="flex items-center">
-            <div className="w-10 h-10 rounded-full bg-neutral-800 flex items-center justify-center mr-3">
+            <div className="w-10 h-10 rounded-full bg-neutral-100 flex items-center justify-center mr-3">
               {icon}
             </div>
             <div>
-              <h3 className="font-bold text-md group-hover:text-primary transition-colors text-white">{name}</h3>
-              {subtitle && <p className="text-xs text-neutral-400">{subtitle}</p>}
+              <h3 className="font-bold text-md group-hover:text-primary transition-colors">{name}</h3>
+              {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
             </div>
           </div>
           <div className="text-right">
             <div className="flex items-center justify-end">
-              <span className="font-bold text-lg text-white">
+              <span className="font-bold text-lg">
                 {value}
               </span>
               {renderValueChange(valueChange)}
             </div>
-            <div className="text-xs text-neutral-400">
+            <div className="text-xs text-muted-foreground">
               Avg. Position: {averagePosition !== undefined && averagePosition !== null ? averagePosition.toFixed(1) : '—'}
             </div>
           </div>
@@ -114,46 +114,46 @@ export default function Market() {
   );
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl bg-neutral-950">
+    <div className="container mx-auto p-6 max-w-6xl">
       <header className="mb-8">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-red-600 bg-clip-text text-transparent mb-2">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-2">
           Asset Market
         </h1>
-        <p className="text-gray-400">
+        <p className="text-muted-foreground">
           Track values of all assets in the fantasy league. Values change after each race based on performance.
         </p>
       </header>
 
       <div className="mb-6 relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
         <Input 
           placeholder="Search for drivers, teams, or engines..." 
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10 bg-neutral-800 border-neutral-700 text-white placeholder:text-neutral-400 focus:border-primary focus:ring-primary"
+          className="pl-10"
         />
       </div>
 
-      <Card className="shadow-sm overflow-hidden border-t-2 border-t-primary bg-neutral-900 border-neutral-800">
-        <CardHeader className="pb-2 border-b border-neutral-800">
-          <CardTitle className="text-2xl font-bold bg-gradient-to-br from-primary to-amber-500 bg-clip-text text-transparent">Market Values</CardTitle>
-          <CardDescription className="text-neutral-400">
+      <Card className="shadow-sm overflow-hidden border-t-2 border-t-primary">
+        <CardHeader className="pb-2">
+          <CardTitle>Market Values</CardTitle>
+          <CardDescription>
             All assets are sorted by their current value. Values change after each race.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="drivers" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-6 bg-neutral-800 p-1 rounded-md">
-              <TabsTrigger value="drivers" className="group data-[state=active]:bg-primary data-[state=active]:text-white data-[state=inactive]:text-neutral-400 font-medium transition-all duration-300">
-                <User size={16} className="mr-2 text-inherit" />
+            <TabsList className="grid w-full grid-cols-3 mb-6">
+              <TabsTrigger value="drivers" className="group">
+                <User size={16} className="mr-2 text-primary group-data-[state=active]:text-white" />
                 Drivers
               </TabsTrigger>
-              <TabsTrigger value="engines" className="group data-[state=active]:bg-primary data-[state=active]:text-white data-[state=inactive]:text-neutral-400 font-medium transition-all duration-300">
-                <Cpu size={16} className="mr-2 text-inherit" />
+              <TabsTrigger value="engines" className="group">
+                <Cpu size={16} className="mr-2 text-primary group-data-[state=active]:text-white" />
                 Engines
               </TabsTrigger>
-              <TabsTrigger value="chassis" className="group data-[state=active]:bg-primary data-[state=active]:text-white data-[state=inactive]:text-neutral-400 font-medium transition-all duration-300">
-                <CarFront size={16} className="mr-2 text-inherit" />
+              <TabsTrigger value="chassis" className="group">
+                <CarFront size={16} className="mr-2 text-primary group-data-[state=active]:text-white" />
                 Chassis
               </TabsTrigger>
             </TabsList>
@@ -162,7 +162,7 @@ export default function Market() {
               {isMarketLoading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {[...Array(6)].map((_, i) => (
-                    <Skeleton key={i} className="h-[100px] w-full bg-neutral-800" />
+                    <Skeleton key={i} className="h-[100px] w-full" />
                   ))}
                 </div>
               ) : (
@@ -185,7 +185,7 @@ export default function Market() {
                         averagePosition={driver.averagePosition}
                         extraInfo={
                           driver.retired ? (
-                            <Badge variant="outline" className="mt-2 bg-red-900/20 text-red-500 border-red-900/50">Retired</Badge>
+                            <Badge variant="outline" className="mt-2 bg-red-50 text-red-500 border-red-200">Retired</Badge>
                           ) : undefined
                         }
                       />
@@ -198,7 +198,7 @@ export default function Market() {
               {isMarketLoading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {[...Array(4)].map((_, i) => (
-                    <Skeleton key={i} className="h-[100px] w-full bg-neutral-800" />
+                    <Skeleton key={i} className="h-[100px] w-full" />
                   ))}
                 </div>
               ) : (
@@ -224,7 +224,7 @@ export default function Market() {
               {isMarketLoading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {[...Array(4)].map((_, i) => (
-                    <Skeleton key={i} className="h-[100px] w-full bg-neutral-800" />
+                    <Skeleton key={i} className="h-[100px] w-full" />
                   ))}
                 </div>
               ) : (
