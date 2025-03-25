@@ -46,7 +46,7 @@ export default function Market() {
 
   // Render the value change badge
   const renderValueChange = (change: number | null) => {
-    if (change === null) return <Badge variant="outline"><Minus size={14} /></Badge>;
+    if (change === null) return <Badge variant="outline" className="bg-neutral-800 border-neutral-700"><Minus size={14} /></Badge>;
     
     if (change > 0) {
       return (
@@ -61,7 +61,7 @@ export default function Market() {
         </Badge>
       );
     } else {
-      return <Badge variant="outline" className="ml-2"><Minus size={14} /></Badge>;
+      return <Badge variant="outline" className="ml-2 bg-neutral-800 border-neutral-700"><Minus size={14} /></Badge>;
     }
   };
 
@@ -185,7 +185,7 @@ export default function Market() {
                         averagePosition={driver.averagePosition}
                         extraInfo={
                           driver.retired ? (
-                            <Badge variant="outline" className="mt-2 bg-red-50 text-red-500 border-red-200">Retired</Badge>
+                            <Badge variant="outline" className="mt-2 bg-red-900/20 text-red-500 border-red-900/50">Retired</Badge>
                           ) : undefined
                         }
                       />
@@ -198,7 +198,7 @@ export default function Market() {
               {isMarketLoading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {[...Array(4)].map((_, i) => (
-                    <Skeleton key={i} className="h-[100px] w-full" />
+                    <Skeleton key={i} className="h-[100px] w-full bg-neutral-800" />
                   ))}
                 </div>
               ) : (
@@ -224,7 +224,7 @@ export default function Market() {
               {isMarketLoading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {[...Array(4)].map((_, i) => (
-                    <Skeleton key={i} className="h-[100px] w-full" />
+                    <Skeleton key={i} className="h-[100px] w-full bg-neutral-800" />
                   ))}
                 </div>
               ) : (
