@@ -18,9 +18,9 @@ const badgeVariants = cva(
         success:
           "border-transparent bg-green-600/20 text-green-500 hover:bg-green-600/30",
         premium:
-          "border-transparent bg-primary/20 text-primary hover:bg-primary/30",
+          "border border-primary/30 bg-primary/20 text-primary font-medium hover:bg-primary/30 hover:border-primary/40",
         challenger:
-          "border-transparent bg-secondary/20 text-secondary hover:bg-secondary/30",
+          "border border-secondary/40 bg-secondary/20 text-black font-medium hover:bg-secondary/30 hover:border-secondary/50",
       },
     },
     defaultVariants: {

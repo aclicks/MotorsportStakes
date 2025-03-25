@@ -180,10 +180,10 @@ export default function Teams() {
           
           {/* Race countdown */}
           {nextRace && countdown && (
-            <div className="flex items-center text-sm bg-muted px-3 py-1 rounded-full">
+            <div className="flex items-center text-sm bg-muted/80 px-3 py-1 rounded-full border border-muted">
               <Clock className="h-3.5 w-3.5 mr-1.5 text-primary" />
-              <span className="font-medium">{countdown}</span>
-              <span className="ml-1.5 text-muted-foreground">until race</span>
+              <span className="font-medium text-foreground">{countdown}</span>
+              <span className="ml-1.5 text-foreground/80">until race</span>
             </div>
           )}
         </div>
@@ -191,16 +191,16 @@ export default function Teams() {
       
       {/* Betting Status Alert */}
       {!isLoadingBettingStatus && (
-        <Alert className={`mb-6 ${isBettingOpen ? 'border-green-500 bg-green-50/10' : 'border-yellow-500 bg-yellow-50/10'}`}>
+        <Alert className={`mb-6 ${isBettingOpen ? 'border-green-600 bg-green-950/30' : 'border-yellow-600 bg-yellow-950/30'}`}>
           {isBettingOpen ? (
-            <Timer className="h-4 w-4 text-green-500" />
+            <Timer className="h-4 w-4 text-green-400" />
           ) : (
-            <Lock className="h-4 w-4 text-yellow-500" />
+            <Lock className="h-4 w-4 text-yellow-400" />
           )}
-          <AlertTitle className={isBettingOpen ? "text-green-500" : "text-yellow-500"}>
+          <AlertTitle className={`font-bold ${isBettingOpen ? "text-green-400" : "text-yellow-400"}`}>
             {isBettingOpen ? "Betting is open" : "Betting is closed"}
           </AlertTitle>
-          <AlertDescription className={isBettingOpen ? "text-green-700/70" : "text-yellow-700/70"}>
+          <AlertDescription className="text-foreground/90">
             {isBettingOpen 
               ? "You can make changes to your team lineup until betting closes before the race." 
               : "Team changes are currently not allowed. The administrator has closed betting for the upcoming race."}
@@ -254,9 +254,9 @@ export default function Teams() {
                               <span className="ml-1">{teamInfo.label}</span>
                             </Badge>
                           </div>
-                          <div className="flex items-center text-sm text-muted-foreground space-x-4 mt-1">
+                          <div className="flex items-center text-sm text-foreground/80 space-x-4 mt-1">
                             <div className="flex items-center">
-                              <User className="h-3.5 w-3.5 mr-1" />
+                              <User className="h-3.5 w-3.5 mr-1 text-foreground/80" />
                               <span>{team.driver1?.name || "No driver"} / {team.driver2?.name || "No driver"}</span>
                             </div>
                           </div>
@@ -264,7 +264,7 @@ export default function Teams() {
                       </div>
                       <div className="text-right">
                         <div className="text-lg font-bold">{team.currentCredits}</div>
-                        <div className="text-xs text-muted-foreground">Available credits</div>
+                        <div className="text-xs text-foreground/80">Available credits</div>
                       </div>
                     </div>
                   </CardContent>
@@ -275,8 +275,8 @@ export default function Teams() {
         </div>
       ) : (
         <div className="text-center py-8 border rounded-lg bg-muted/20">
-          <ShieldAlert className="mx-auto h-10 w-10 text-muted-foreground mb-3" />
-          <p className="text-muted-foreground">No teams found for your account.</p>
+          <ShieldAlert className="mx-auto h-10 w-10 text-foreground/70 mb-3" />
+          <p className="text-foreground/90 font-medium">No teams found for your account.</p>
         </div>
       )}
       
