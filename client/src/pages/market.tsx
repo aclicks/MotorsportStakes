@@ -114,46 +114,46 @@ export default function Market() {
   );
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
+    <div className="container mx-auto p-6 max-w-6xl bg-neutral-950">
       <header className="mb-8">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-2">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-red-600 bg-clip-text text-transparent mb-2">
           Asset Market
         </h1>
-        <p className="text-muted-foreground">
+        <p className="text-gray-400">
           Track values of all assets in the fantasy league. Values change after each race based on performance.
         </p>
       </header>
 
       <div className="mb-6 relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
         <Input 
           placeholder="Search for drivers, teams, or engines..." 
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10"
+          className="pl-10 bg-neutral-800 border-neutral-700 text-white placeholder:text-neutral-400 focus:border-primary focus:ring-primary"
         />
       </div>
 
-      <Card className="shadow-sm overflow-hidden border-t-2 border-t-primary">
-        <CardHeader className="pb-2">
-          <CardTitle>Market Values</CardTitle>
-          <CardDescription>
+      <Card className="shadow-sm overflow-hidden border-t-2 border-t-primary bg-neutral-900 border-neutral-800">
+        <CardHeader className="pb-2 border-b border-neutral-800">
+          <CardTitle className="text-2xl font-bold bg-gradient-to-br from-primary to-amber-500 bg-clip-text text-transparent">Market Values</CardTitle>
+          <CardDescription className="text-neutral-400">
             All assets are sorted by their current value. Values change after each race.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="drivers" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-6">
-              <TabsTrigger value="drivers" className="group">
-                <User size={16} className="mr-2 text-primary group-data-[state=active]:text-white" />
+            <TabsList className="grid w-full grid-cols-3 mb-6 bg-neutral-800 p-1 rounded-md">
+              <TabsTrigger value="drivers" className="group data-[state=active]:bg-primary data-[state=active]:text-white data-[state=inactive]:text-neutral-400 font-medium transition-all duration-300">
+                <User size={16} className="mr-2 text-inherit" />
                 Drivers
               </TabsTrigger>
-              <TabsTrigger value="engines" className="group">
-                <Cpu size={16} className="mr-2 text-primary group-data-[state=active]:text-white" />
+              <TabsTrigger value="engines" className="group data-[state=active]:bg-primary data-[state=active]:text-white data-[state=inactive]:text-neutral-400 font-medium transition-all duration-300">
+                <Cpu size={16} className="mr-2 text-inherit" />
                 Engines
               </TabsTrigger>
-              <TabsTrigger value="chassis" className="group">
-                <CarFront size={16} className="mr-2 text-primary group-data-[state=active]:text-white" />
+              <TabsTrigger value="chassis" className="group data-[state=active]:bg-primary data-[state=active]:text-white data-[state=inactive]:text-neutral-400 font-medium transition-all duration-300">
+                <CarFront size={16} className="mr-2 text-inherit" />
                 Chassis
               </TabsTrigger>
             </TabsList>
@@ -162,7 +162,7 @@ export default function Market() {
               {isMarketLoading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {[...Array(6)].map((_, i) => (
-                    <Skeleton key={i} className="h-[100px] w-full" />
+                    <Skeleton key={i} className="h-[100px] w-full bg-neutral-800" />
                   ))}
                 </div>
               ) : (
