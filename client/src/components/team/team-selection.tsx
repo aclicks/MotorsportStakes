@@ -166,35 +166,35 @@ export function TeamSelection({
         <div className="flex flex-col md:flex-row justify-between mb-6">
           <div>
             <h2 className="text-lg font-semibold text-neutral-800">{team.name}</h2>
-            <p className="text-neutral-500">
+            <p className="text-foreground/80">
               Select 2 drivers, 1 engine, and 1 chassis. 
               <Button 
                 variant="link" 
-                className="text-primary p-0 h-auto font-normal"
+                className="text-primary font-medium p-0 h-auto"
                 onClick={() => setShowDriverWarning(true)}
               >
                 Driver restrictions apply
               </Button>
             </p>
-            <p className="text-neutral-500 text-xs mt-1">
+            <p className="text-foreground/70 text-xs mt-1">
               Unspent credits from previous race are carried forward and added to your budget after valuations.
             </p>
           </div>
           <div className="mt-4 md:mt-0">
-            <div className="bg-secondary text-white px-4 py-2 rounded-lg">
-              <div>
-                <span className="text-sm">Available Credits: </span>
-                <span className={`font-bold ${isOverBudget ? "text-red-300" : ""}`}>
+            <div className="bg-secondary border border-secondary/30 text-white px-4 py-3 rounded-lg">
+              <div className="flex items-center">
+                <span className="text-sm font-medium">Available Credits: </span>
+                <span className={`font-bold text-lg ml-1 ${isOverBudget ? "text-red-200" : "text-white"}`}>
                   {Math.max(0, availableCredits)}
                 </span>
                 {isOverBudget && (
-                  <span className="text-xs ml-2 text-red-300">
+                  <span className="text-xs ml-2 text-red-200 font-medium">
                     (Over budget by {Math.abs(availableCredits)})
                   </span>
                 )}
               </div>
               {team.unspentCredits > 0 && (
-                <div className="text-xs mt-1 text-secondary-foreground/80">
+                <div className="text-xs mt-1 text-white font-medium">
                   Includes {team.unspentCredits} unspent credits from previous race
                 </div>
               )}
@@ -234,14 +234,14 @@ export function TeamSelection({
                     </div>
                     <div className="ml-4">
                       <p className="font-medium text-neutral-800">{selectedDriver1.name}</p>
-                      <p className="text-sm text-neutral-500">
+                      <p className="text-sm text-foreground/70 font-medium">
                         {selectedDriver1.team?.name || "No Team"}
                       </p>
                     </div>
                     <div className="ml-auto flex flex-col items-end">
                       <span className="text-lg font-bold text-primary">{selectedDriver1.value}</span>
                       {selectedDriver1.averagePosition !== undefined && (
-                        <span className="text-xs text-neutral-500">
+                        <span className="text-xs text-foreground/80 font-medium">
                           Avg Pos: {selectedDriver1.averagePosition}
                         </span>
                       )}
@@ -283,14 +283,14 @@ export function TeamSelection({
                     </div>
                     <div className="ml-4">
                       <p className="font-medium text-neutral-800">{selectedDriver2.name}</p>
-                      <p className="text-sm text-neutral-500">
+                      <p className="text-sm text-foreground/70 font-medium">
                         {selectedDriver2.team?.name || "No Team"}
                       </p>
                     </div>
                     <div className="ml-auto flex flex-col items-end">
                       <span className="text-lg font-bold text-primary">{selectedDriver2.value}</span>
                       {selectedDriver2.averagePosition !== undefined && (
-                        <span className="text-xs text-neutral-500">
+                        <span className="text-xs text-foreground/80 font-medium">
                           Avg Pos: {selectedDriver2.averagePosition}
                         </span>
                       )}
@@ -330,19 +330,19 @@ export function TeamSelection({
                 <div className="mt-4 bg-white border border-neutral-200 rounded-lg p-4">
                   <div className="flex items-center">
                     <div className="w-12 h-12 rounded-full bg-neutral-200 flex items-center justify-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-500">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-foreground/80">
                         <circle cx="12" cy="12" r="3"></circle>
                         <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
                       </svg>
                     </div>
                     <div className="ml-4">
                       <p className="font-medium text-neutral-800">{selectedEngine.name}</p>
-                      <p className="text-sm text-neutral-500">Engine</p>
+                      <p className="text-sm text-foreground/70 font-medium">Engine</p>
                     </div>
                     <div className="ml-auto flex flex-col items-end">
                       <span className="text-lg font-bold text-primary">{selectedEngine.value}</span>
                       {selectedEngine.averagePosition !== undefined && (
-                        <span className="text-xs text-neutral-500">
+                        <span className="text-xs text-foreground/80 font-medium">
                           Avg Pos: {selectedEngine.averagePosition}
                         </span>
                       )}
@@ -380,7 +380,7 @@ export function TeamSelection({
                 <div className="mt-4 bg-white border border-neutral-200 rounded-lg p-4">
                   <div className="flex items-center">
                     <div className="w-12 h-12 rounded-full bg-neutral-200 flex items-center justify-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-500">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-foreground/80">
                         <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.5-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"></path>
                         <circle cx="7" cy="17" r="2"></circle>
                         <path d="M9 17h6"></path>
@@ -389,12 +389,12 @@ export function TeamSelection({
                     </div>
                     <div className="ml-4">
                       <p className="font-medium text-neutral-800">{selectedTeam.name}</p>
-                      <p className="text-sm text-neutral-500">Chassis</p>
+                      <p className="text-sm text-foreground/70 font-medium">Chassis</p>
                     </div>
                     <div className="ml-auto flex flex-col items-end">
                       <span className="text-lg font-bold text-primary">{selectedTeam.value}</span>
                       {selectedTeam.averagePosition !== undefined && (
-                        <span className="text-xs text-neutral-500">
+                        <span className="text-xs text-foreground/80 font-medium">
                           Avg Pos: {selectedTeam.averagePosition}
                         </span>
                       )}
@@ -424,7 +424,7 @@ export function TeamSelection({
               </div>
             )}
             {!disabled && !hasChanges && !isOverBudget && !((!selectedDriver1Id && team.driver1Id) || (!selectedDriver2Id && team.driver2Id)) && (
-              <div className="text-sm text-neutral-500">
+              <div className="text-sm text-foreground/80 font-medium">
                 Make changes to your team to save.
               </div>
             )}
