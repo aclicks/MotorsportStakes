@@ -19,11 +19,11 @@ export default function RaceCard({ race }: RaceCardProps) {
   const today = new Date();
   const daysToRace = Math.max(0, differenceInDays(raceDate, today));
   
-  const formattedDate = format(raceDate, "MMMM d, yyyy");
+  const formattedDate = format(raceDate, "dd/MM/yyyy");
   const deadlineDate = new Date(raceDate);
   deadlineDate.setDate(deadlineDate.getDate() - 1);
   deadlineDate.setHours(deadlineDate.getHours() - 4); // 4 hours before race day
-  const formattedDeadline = format(deadlineDate, "MMMM d, HH:mm");
+  const formattedDeadline = format(deadlineDate, "dd/MM/yyyy HH:mm");
   
   // For countdown timer
   const [timeRemaining, setTimeRemaining] = useState({

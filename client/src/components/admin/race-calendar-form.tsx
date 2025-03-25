@@ -239,7 +239,7 @@ export default function RaceCalendarForm() {
                               )}
                             >
                               {field.value ? (
-                                format(field.value, "PPP")
+                                format(field.value, "dd/MM/yyyy")
                               ) : (
                                 <span>Pick a date</span>
                               )}
@@ -335,7 +335,7 @@ export default function RaceCalendarForm() {
                         <TableCell>{race.round}</TableCell>
                         <TableCell>{race.name}</TableCell>
                         <TableCell>{race.location}</TableCell>
-                        <TableCell>{format(new Date(race.date), "MMMM d, yyyy")}</TableCell>
+                        <TableCell>{format(new Date(race.date), "dd/MM/yyyy")}</TableCell>
                         <TableCell>
                           {new Date(race.date) < new Date()
                             ? race.resultsSubmitted
