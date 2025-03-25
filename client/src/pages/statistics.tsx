@@ -219,41 +219,41 @@ export default function Statistics() {
         <p className="text-foreground/70">Visualize o desempenho histórico de pilotos, equipes e motores ao longo da temporada.</p>
       </header>
 
-      <Card className="border border-neutral-300 shadow-md">
-        <CardHeader className="border-b border-neutral-200 pb-4">
+      <Card className="border border-neutral-800 shadow-lg bg-neutral-900">
+        <CardHeader className="border-b border-neutral-800 pb-4">
           <CardTitle className="text-2xl font-bold bg-gradient-to-br from-primary to-amber-500 bg-clip-text text-transparent">Desempenho Histórico</CardTitle>
-          <CardDescription className="text-foreground/70">
+          <CardDescription className="text-neutral-400">
             Selecione um piloto, equipe ou motor para visualizar seu desempenho ao longo do tempo.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="bg-neutral-900 text-white">
           <Tabs defaultValue="driver" className="w-full" onValueChange={(value) => {
             setEntityType(value as "driver" | "team" | "engine");
             setSelectedId("");
           }}>
-            <TabsList className="grid w-full grid-cols-3 mb-6 bg-neutral-100 p-1 rounded-md">
-              <TabsTrigger value="driver" className="data-[state=active]:bg-primary data-[state=active]:text-white font-medium transition-all duration-300">Pilotos</TabsTrigger>
-              <TabsTrigger value="team" className="data-[state=active]:bg-primary data-[state=active]:text-white font-medium transition-all duration-300">Equipes</TabsTrigger>
-              <TabsTrigger value="engine" className="data-[state=active]:bg-primary data-[state=active]:text-white font-medium transition-all duration-300">Motores</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3 mb-6 bg-neutral-800 p-1 rounded-md">
+              <TabsTrigger value="driver" className="data-[state=active]:bg-primary data-[state=active]:text-white data-[state=inactive]:text-neutral-400 font-medium transition-all duration-300">Pilotos</TabsTrigger>
+              <TabsTrigger value="team" className="data-[state=active]:bg-primary data-[state=active]:text-white data-[state=inactive]:text-neutral-400 font-medium transition-all duration-300">Equipes</TabsTrigger>
+              <TabsTrigger value="engine" className="data-[state=active]:bg-primary data-[state=active]:text-white data-[state=inactive]:text-neutral-400 font-medium transition-all duration-300">Motores</TabsTrigger>
             </TabsList>
 
             <TabsContent value="driver">
               <div className="mb-6">
                 <Select value={selectedId} onValueChange={setSelectedId}>
-                  <SelectTrigger className="border-neutral-300 transition-all duration-200 hover:border-primary focus:border-primary shadow-sm">
+                  <SelectTrigger className="border-neutral-700 bg-neutral-800 text-white transition-all duration-200 hover:border-primary focus:border-primary shadow-sm">
                     <SelectValue placeholder="Selecione um piloto" />
                   </SelectTrigger>
-                  <SelectContent className="border-neutral-300 shadow-md">
+                  <SelectContent className="border-neutral-700 bg-neutral-800 text-white shadow-md">
                     {isLoadingDrivers ? (
                       <div className="p-2">
-                        <Skeleton className="h-5 w-full" />
+                        <Skeleton className="h-5 w-full bg-neutral-700" />
                       </div>
                     ) : (
                       drivers.map((driver: Driver) => (
                         <SelectItem 
                           key={driver.id} 
                           value={driver.id.toString()}
-                          className="transition-colors hover:bg-neutral-100"
+                          className="transition-colors hover:bg-neutral-700 focus:bg-neutral-700 data-[highlighted]:bg-neutral-700"
                         >
                           {driver.name} ({driver.number})
                         </SelectItem>
@@ -267,20 +267,20 @@ export default function Statistics() {
             <TabsContent value="team">
               <div className="mb-6">
                 <Select value={selectedId} onValueChange={setSelectedId}>
-                  <SelectTrigger className="border-neutral-300 transition-all duration-200 hover:border-primary focus:border-primary shadow-sm">
+                  <SelectTrigger className="border-neutral-700 bg-neutral-800 text-white transition-all duration-200 hover:border-primary focus:border-primary shadow-sm">
                     <SelectValue placeholder="Selecione uma equipe" />
                   </SelectTrigger>
-                  <SelectContent className="border-neutral-300 shadow-md">
+                  <SelectContent className="border-neutral-700 bg-neutral-800 text-white shadow-md">
                     {isLoadingTeams ? (
                       <div className="p-2">
-                        <Skeleton className="h-5 w-full" />
+                        <Skeleton className="h-5 w-full bg-neutral-700" />
                       </div>
                     ) : (
                       teams.map((team: Team) => (
                         <SelectItem 
                           key={team.id} 
                           value={team.id.toString()}
-                          className="transition-colors hover:bg-neutral-100"
+                          className="transition-colors hover:bg-neutral-700 focus:bg-neutral-700 data-[highlighted]:bg-neutral-700"
                         >
                           {team.name}
                         </SelectItem>
@@ -294,20 +294,20 @@ export default function Statistics() {
             <TabsContent value="engine">
               <div className="mb-6">
                 <Select value={selectedId} onValueChange={setSelectedId}>
-                  <SelectTrigger className="border-neutral-300 transition-all duration-200 hover:border-primary focus:border-primary shadow-sm">
+                  <SelectTrigger className="border-neutral-700 bg-neutral-800 text-white transition-all duration-200 hover:border-primary focus:border-primary shadow-sm">
                     <SelectValue placeholder="Selecione um motor" />
                   </SelectTrigger>
-                  <SelectContent className="border-neutral-300 shadow-md">
+                  <SelectContent className="border-neutral-700 bg-neutral-800 text-white shadow-md">
                     {isLoadingEngines ? (
                       <div className="p-2">
-                        <Skeleton className="h-5 w-full" />
+                        <Skeleton className="h-5 w-full bg-neutral-700" />
                       </div>
                     ) : (
                       engines.map((engine: Engine) => (
                         <SelectItem 
                           key={engine.id} 
                           value={engine.id.toString()}
-                          className="transition-colors hover:bg-neutral-100"
+                          className="transition-colors hover:bg-neutral-700 focus:bg-neutral-700 data-[highlighted]:bg-neutral-700"
                         >
                           {engine.name}
                         </SelectItem>
@@ -320,49 +320,49 @@ export default function Statistics() {
 
             {selectedId && (
               <div className="mt-6">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6 bg-neutral-50 p-4 rounded-lg border border-neutral-200 shadow-sm">
-                  <h3 className="text-xl font-bold text-neutral-800">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6 bg-neutral-800 p-4 rounded-lg border border-neutral-700 shadow-lg">
+                  <h3 className="text-xl font-bold">
                     <span className="bg-gradient-to-r from-primary to-amber-500 bg-clip-text text-transparent">{getEntityName()}</span>
                   </h3>
                   
                   {currentValue !== undefined && (
                     <div className="flex flex-col sm:items-end">
                       <div className="flex items-center gap-2">
-                        <span className="text-lg font-bold text-neutral-800">{currentValue.toLocaleString()} créditos</span>
+                        <span className="text-lg font-bold text-white">{currentValue.toLocaleString()} créditos</span>
                         {entityPositionInStandings && (
-                          <span className="bg-neutral-800 text-white text-xs font-medium px-2 py-1 rounded-full">
+                          <span className="bg-neutral-700 text-white text-xs font-medium px-2 py-1 rounded-full">
                             {entityPositionInStandings}º
                           </span>
                         )}
                       </div>
-                      <span className="text-sm text-neutral-500">Valor atual no mercado</span>
+                      <span className="text-sm text-neutral-400">Valor atual no mercado</span>
                     </div>
                   )}
                 </div>
                 {isLoadingHistory || isLoadingAssetValueHistory ? (
                   <Skeleton className="h-[400px] w-full" />
                 ) : !chartData || chartData.length === 0 ? (
-                  <div className="text-center py-12 px-4 bg-neutral-50 border border-neutral-200 rounded-lg">
+                  <div className="text-center py-12 px-4 bg-neutral-800 border border-neutral-700 rounded-lg">
                     {currentValue !== undefined ? (
                       <>
                         <div className="mb-6">
                           <AlertCircle className="h-12 w-12 text-amber-500 mx-auto mb-3 opacity-70" />
-                          <h4 className="text-lg font-semibold text-neutral-800 mb-2">Sem histórico disponível</h4>
-                          <p className="text-neutral-600 max-w-md mx-auto">
+                          <h4 className="text-lg font-semibold text-white mb-2">Sem histórico disponível</h4>
+                          <p className="text-neutral-400 max-w-md mx-auto">
                             Não existem dados históricos de corridas disponíveis para 
                             {entityType === "driver" ? " este piloto" : entityType === "team" ? " esta equipe" : " este motor"}.
                           </p>
                         </div>
                         
-                        <div className="inline-flex items-center justify-center px-4 py-2 bg-white border border-neutral-200 rounded-lg shadow-sm">
+                        <div className="inline-flex items-center justify-center px-4 py-2 bg-neutral-700 border border-neutral-600 rounded-lg shadow-md">
                           <div className="flex flex-col">
-                            <span className="text-xs text-neutral-500 uppercase tracking-wider">Valor Inicial</span>
+                            <span className="text-xs text-neutral-400 uppercase tracking-wider">Valor Inicial</span>
                             <span className="font-bold text-primary">{currentValue.toLocaleString()} créditos</span>
                           </div>
                         </div>
                       </>
                     ) : (
-                      <div className="text-neutral-500">
+                      <div className="text-neutral-400">
                         <AlertCircle className="h-10 w-10 mx-auto mb-3 opacity-50" />
                         <p>Sem dados históricos disponíveis para esta seleção.</p>
                       </div>
@@ -378,6 +378,7 @@ export default function Statistics() {
                         left: 20,
                         bottom: 5,
                       }}
+                      style={{ backgroundColor: "#262626", borderRadius: "8px", padding: "10px" }}
                     >
                       <defs>
                         <linearGradient id="colorValue" x1="0" y1="0" x2="1" y2="0">
@@ -386,25 +387,25 @@ export default function Statistics() {
                           <stop offset="100%" stopColor="var(--primary)" stopOpacity={0.8}/>
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" opacity={0.2} stroke="#ccc" />
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.2} stroke="#444" />
                       <XAxis 
                         dataKey="name" 
-                        tick={{ fill: '#666' }}
+                        tick={{ fill: '#aaa' }}
                         tickSize={8}
-                        axisLine={{ stroke: '#999' }}
+                        axisLine={{ stroke: '#666' }}
                         tickMargin={10}
                       />
                       <YAxis 
                         domain={['auto', 'auto']}
-                        tick={{ fill: '#666' }}
-                        axisLine={{ stroke: '#999' }}
+                        tick={{ fill: '#aaa' }}
+                        axisLine={{ stroke: '#666' }}
                         tickSize={8}
                         tickCount={10}
                         label={{ 
                           value: 'Valor (créditos)', 
                           angle: -90, 
                           position: 'insideLeft',
-                          style: { textAnchor: 'middle', fill: '#666' }
+                          style: { textAnchor: 'middle', fill: '#aaa' }
                         }}
                       />
                       <Tooltip
@@ -485,10 +486,11 @@ export default function Statistics() {
                             : `${label}`;
                         }}
                         contentStyle={{ 
-                          backgroundColor: "rgba(255, 255, 255, 0.8)",
+                          backgroundColor: "rgba(38, 38, 38, 0.95)",
                           borderRadius: "5px",
                           padding: "10px",
-                          border: "1px solid #ccc" 
+                          border: "1px solid #444",
+                          color: "white"
                         }}
                       />
                       <Legend />
