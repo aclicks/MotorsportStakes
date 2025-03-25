@@ -360,16 +360,16 @@ export default function Leaderboard() {
             </Card>
           </TabsContent>
           
-          <TabsContent value="premium" className="space-y-4">
-            <Card className="border border-neutral-200 shadow-md overflow-hidden">
-              <CardHeader className="bg-gradient-to-r from-neutral-50 to-neutral-100 border-b border-neutral-200">
+          <TabsContent value="premium" className="space-y-4 animate-fadeInFast">
+            <Card className="border border-zinc-800 shadow-xl overflow-hidden bg-zinc-900">
+              <CardHeader className="bg-gradient-to-r from-zinc-900 to-zinc-800 border-b border-zinc-700/40">
                 <CardTitle className="flex items-center text-xl">
-                  <Crown className="mr-2 h-5 w-5 text-yellow-600" />
-                  <span className="bg-gradient-to-r from-yellow-600 to-red-600 bg-clip-text text-transparent">
+                  <Crown className="mr-2 h-5 w-5 text-yellow-500" />
+                  <span className="bg-gradient-to-r from-yellow-500 to-red-600 bg-clip-text text-transparent">
                     Equipes Premium
                   </span>
                 </CardTitle>
-                <CardDescription className="text-foreground/70">
+                <CardDescription className="text-zinc-400">
                   Equipes com 1000 créditos iniciais - classificadas pelo total atual de créditos
                 </CardDescription>
               </CardHeader>
@@ -377,21 +377,21 @@ export default function Leaderboard() {
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="bg-neutral-50 border-b border-neutral-200">
-                        <th className="px-4 py-3 text-left font-medium text-neutral-600">Posição</th>
-                        <th className="px-4 py-3 text-left font-medium text-neutral-600">Jogador</th>
-                        <th className="px-4 py-3 text-left font-medium text-neutral-600">Equipe</th>
-                        <th className="px-4 py-3 text-right font-medium text-neutral-600">Créditos</th>
+                      <tr className="bg-zinc-800 border-b border-zinc-700/60">
+                        <th className="px-4 py-3 text-left font-medium text-zinc-300">Posição</th>
+                        <th className="px-4 py-3 text-left font-medium text-zinc-300">Jogador</th>
+                        <th className="px-4 py-3 text-left font-medium text-zinc-300">Equipe</th>
+                        <th className="px-4 py-3 text-right font-medium text-zinc-300">Créditos</th>
                       </tr>
                     </thead>
                     <tbody>
                       {filteredData?.premium.length === 0 ? (
                         <tr>
                           <td colSpan={4} className="px-4 py-8 text-center">
-                            <div className="flex flex-col items-center justify-center text-neutral-500 py-6">
+                            <div className="flex flex-col items-center justify-center text-zinc-500 py-6">
                               <Crown className="h-10 w-10 mb-2 text-yellow-500/60" />
-                              <p className="font-medium mb-1">Nenhuma equipe premium encontrada</p>
-                              <p className="text-sm">
+                              <p className="font-medium mb-1 text-zinc-300">Nenhuma equipe premium encontrada</p>
+                              <p className="text-sm text-zinc-500">
                                 {searchQuery ? 'Tente uma busca diferente' : 'Ainda não há dados disponíveis'}
                               </p>
                             </div>
@@ -401,21 +401,21 @@ export default function Leaderboard() {
                         filteredData?.premium.map((team, index) => (
                           <tr 
                             key={`${team.userId}-${team.teamId}`} 
-                            className={`border-b hover:bg-neutral-50 transition-colors ${index === 0 ? 'bg-yellow-50/30' : ''}`}
+                            className={`border-b border-zinc-800 hover:bg-zinc-800/50 transition-colors ${index === 0 ? 'bg-yellow-950/40' : ''}`}
                           >
                             <td className="px-4 py-4">
                               {getRankBadge(team.rank)}
                             </td>
-                            <td className="px-4 py-4 font-medium">
+                            <td className="px-4 py-4 font-medium text-white">
                               <div className="flex items-center">
-                                <div className="w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center mr-3 font-semibold text-sm">
+                                <div className="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center mr-3 font-semibold text-sm text-zinc-300">
                                   {team.username.substring(0, 2).toUpperCase()}
                                 </div>
                                 {team.username}
                               </div>
                             </td>
                             <td className="px-4 py-4">
-                              <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200 border-none">
+                              <Badge className="bg-yellow-900/70 text-yellow-300 hover:bg-yellow-900 border-none">
                                 {team.teamName}
                               </Badge>
                             </td>
@@ -428,16 +428,16 @@ export default function Leaderboard() {
                                   <TooltipProvider>
                                     <Tooltip>
                                       <TooltipTrigger asChild>
-                                        <Info className="h-4 w-4 text-neutral-400 cursor-help" />
+                                        <Info className="h-4 w-4 text-zinc-400 cursor-help hover:text-zinc-300 transition-colors" />
                                       </TooltipTrigger>
-                                      <TooltipContent side="left">
+                                      <TooltipContent side="left" className="bg-zinc-800 border-zinc-700 text-zinc-300">
                                         <p className="text-xs">Base inicial: 1000 créditos</p>
                                       </TooltipContent>
                                     </Tooltip>
                                   </TooltipProvider>
                                 </div>
                                 {team.unspentCredits > 0 && (
-                                  <span className="text-xs text-green-600 font-medium">
+                                  <span className="text-xs text-green-500 font-medium">
                                     {team.credits.toLocaleString()} + {team.unspentCredits} créditos não utilizados
                                   </span>
                                 )}
@@ -452,9 +452,9 @@ export default function Leaderboard() {
                     </tbody>
                   </table>
                 </div>
-                <div className="mt-4 mx-4 py-3 px-4 bg-yellow-50 rounded-md border border-yellow-200 text-sm text-yellow-800">
+                <div className="mt-4 mx-4 py-3 px-4 bg-zinc-800/70 rounded-md border border-zinc-700/60 text-sm text-zinc-300">
                   <p className="flex items-center">
-                    <Info className="h-4 w-4 mr-2 text-yellow-600" />
+                    <Info className="h-4 w-4 mr-2 text-yellow-500" />
                     Equipes Premium iniciam com 1000 créditos - O desempenho é medido em relação a esta linha de base
                   </p>
                 </div>
@@ -462,16 +462,16 @@ export default function Leaderboard() {
             </Card>
           </TabsContent>
           
-          <TabsContent value="challenger" className="space-y-4">
-            <Card className="border border-neutral-200 shadow-md overflow-hidden">
-              <CardHeader className="bg-gradient-to-r from-neutral-50 to-neutral-100 border-b border-neutral-200">
+          <TabsContent value="challenger" className="space-y-4 animate-fadeInFast">
+            <Card className="border border-zinc-800 shadow-xl overflow-hidden bg-zinc-900">
+              <CardHeader className="bg-gradient-to-r from-zinc-900 to-zinc-800 border-b border-zinc-700/40">
                 <CardTitle className="flex items-center text-xl">
-                  <Award className="mr-2 h-5 w-5 text-amber-700" />
-                  <span className="bg-gradient-to-r from-amber-700 to-red-600 bg-clip-text text-transparent">
+                  <Award className="mr-2 h-5 w-5 text-amber-500" />
+                  <span className="bg-gradient-to-r from-amber-500 to-red-600 bg-clip-text text-transparent">
                     Equipes Challenger
                   </span>
                 </CardTitle>
-                <CardDescription className="text-foreground/70">
+                <CardDescription className="text-zinc-400">
                   Equipes com 700 créditos iniciais - classificadas pelo total atual de créditos
                 </CardDescription>
               </CardHeader>
@@ -479,21 +479,21 @@ export default function Leaderboard() {
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="bg-neutral-50 border-b border-neutral-200">
-                        <th className="px-4 py-3 text-left font-medium text-neutral-600">Posição</th>
-                        <th className="px-4 py-3 text-left font-medium text-neutral-600">Jogador</th>
-                        <th className="px-4 py-3 text-left font-medium text-neutral-600">Equipe</th>
-                        <th className="px-4 py-3 text-right font-medium text-neutral-600">Créditos</th>
+                      <tr className="bg-zinc-800 border-b border-zinc-700/60">
+                        <th className="px-4 py-3 text-left font-medium text-zinc-300">Posição</th>
+                        <th className="px-4 py-3 text-left font-medium text-zinc-300">Jogador</th>
+                        <th className="px-4 py-3 text-left font-medium text-zinc-300">Equipe</th>
+                        <th className="px-4 py-3 text-right font-medium text-zinc-300">Créditos</th>
                       </tr>
                     </thead>
                     <tbody>
                       {filteredData?.challenger.length === 0 ? (
                         <tr>
                           <td colSpan={4} className="px-4 py-8 text-center">
-                            <div className="flex flex-col items-center justify-center text-neutral-500 py-6">
-                              <Award className="h-10 w-10 mb-2 text-amber-700/60" />
-                              <p className="font-medium mb-1">Nenhuma equipe challenger encontrada</p>
-                              <p className="text-sm">
+                            <div className="flex flex-col items-center justify-center text-zinc-500 py-6">
+                              <Award className="h-10 w-10 mb-2 text-amber-500/60" />
+                              <p className="font-medium mb-1 text-zinc-300">Nenhuma equipe challenger encontrada</p>
+                              <p className="text-sm text-zinc-500">
                                 {searchQuery ? 'Tente uma busca diferente' : 'Ainda não há dados disponíveis'}
                               </p>
                             </div>
@@ -503,21 +503,21 @@ export default function Leaderboard() {
                         filteredData?.challenger.map((team, index) => (
                           <tr 
                             key={`${team.userId}-${team.teamId}`} 
-                            className={`border-b hover:bg-neutral-50 transition-colors ${index === 0 ? 'bg-amber-50/30' : ''}`}
+                            className={`border-b border-zinc-800 hover:bg-zinc-800/50 transition-colors ${index === 0 ? 'bg-amber-950/40' : ''}`}
                           >
                             <td className="px-4 py-4">
                               {getRankBadge(team.rank)}
                             </td>
-                            <td className="px-4 py-4 font-medium">
+                            <td className="px-4 py-4 font-medium text-white">
                               <div className="flex items-center">
-                                <div className="w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center mr-3 font-semibold text-sm">
+                                <div className="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center mr-3 font-semibold text-sm text-zinc-300">
                                   {team.username.substring(0, 2).toUpperCase()}
                                 </div>
                                 {team.username}
                               </div>
                             </td>
                             <td className="px-4 py-4">
-                              <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-200 border-none">
+                              <Badge className="bg-amber-900/70 text-amber-300 hover:bg-amber-900 border-none">
                                 {team.teamName}
                               </Badge>
                             </td>
@@ -530,16 +530,16 @@ export default function Leaderboard() {
                                   <TooltipProvider>
                                     <Tooltip>
                                       <TooltipTrigger asChild>
-                                        <Info className="h-4 w-4 text-neutral-400 cursor-help" />
+                                        <Info className="h-4 w-4 text-zinc-400 cursor-help hover:text-zinc-300 transition-colors" />
                                       </TooltipTrigger>
-                                      <TooltipContent side="left">
+                                      <TooltipContent side="left" className="bg-zinc-800 border-zinc-700 text-zinc-300">
                                         <p className="text-xs">Base inicial: 700 créditos</p>
                                       </TooltipContent>
                                     </Tooltip>
                                   </TooltipProvider>
                                 </div>
                                 {team.unspentCredits > 0 && (
-                                  <span className="text-xs text-green-600 font-medium">
+                                  <span className="text-xs text-green-500 font-medium">
                                     {team.credits.toLocaleString()} + {team.unspentCredits} créditos não utilizados
                                   </span>
                                 )}
@@ -554,9 +554,9 @@ export default function Leaderboard() {
                     </tbody>
                   </table>
                 </div>
-                <div className="mt-4 mx-4 py-3 px-4 bg-amber-50 rounded-md border border-amber-200 text-sm text-amber-800">
+                <div className="mt-4 mx-4 py-3 px-4 bg-zinc-800/70 rounded-md border border-zinc-700/60 text-sm text-zinc-300">
                   <p className="flex items-center">
-                    <Info className="h-4 w-4 mr-2 text-amber-700" />
+                    <Info className="h-4 w-4 mr-2 text-amber-500" />
                     Equipes Challenger iniciam com 700 créditos - O desempenho é medido em relação a esta linha de base
                   </p>
                 </div>
@@ -566,54 +566,56 @@ export default function Leaderboard() {
         </Tabs>
       )}
       
-      <Card className="mt-8 border border-neutral-200 shadow-md overflow-hidden">
-        <CardHeader className="bg-gradient-to-r from-neutral-50 to-neutral-100 border-b border-neutral-200 pb-4">
+      <Card className="mt-8 border border-zinc-800 shadow-xl overflow-hidden bg-zinc-900 animate-fadeInFast">
+        <CardHeader className="bg-gradient-to-r from-zinc-900 to-zinc-800 border-b border-zinc-700/40 pb-4">
           <CardTitle className="flex items-center text-lg">
             <Info className="mr-2 h-5 w-5 text-primary" />
-            Como funciona a classificação
+            <span className="bg-gradient-to-r from-primary to-red-600 bg-clip-text text-transparent">
+              Como funciona a classificação
+            </span>
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-zinc-400">
             Entenda como o sistema de ranqueamento calcula as posições
           </CardDescription>
         </CardHeader>
         <CardContent className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-white p-4 rounded-md border border-neutral-200 shadow-sm">
+            <div className="bg-zinc-800/50 p-4 rounded-md border border-zinc-700/50 shadow-md hover:bg-zinc-800/80 transition-colors">
               <div className="flex items-center mb-2">
-                <div className="bg-gradient-to-r from-primary to-red-600 text-white rounded-full h-6 w-6 flex items-center justify-center text-xs mr-2">1</div>
-                <h4 className="font-semibold text-sm">Pontuação por créditos</h4>
+                <div className="bg-gradient-to-r from-primary to-red-600 text-white rounded-full h-6 w-6 flex items-center justify-center text-xs mr-2 shadow-md">1</div>
+                <h4 className="font-semibold text-sm text-white">Pontuação por créditos</h4>
               </div>
-              <p className="text-sm text-foreground/70 pl-8">
+              <p className="text-sm text-zinc-400 pl-8">
                 O ranking é baseado nos créditos disponíveis para cada equipe ou jogador
               </p>
             </div>
             
-            <div className="bg-white p-4 rounded-md border border-neutral-200 shadow-sm">
+            <div className="bg-zinc-800/50 p-4 rounded-md border border-zinc-700/50 shadow-md hover:bg-zinc-800/80 transition-colors">
               <div className="flex items-center mb-2">
-                <div className="bg-gradient-to-r from-primary to-red-600 text-white rounded-full h-6 w-6 flex items-center justify-center text-xs mr-2">2</div>
-                <h4 className="font-semibold text-sm">Base inicial padronizada</h4>
+                <div className="bg-gradient-to-r from-primary to-red-600 text-white rounded-full h-6 w-6 flex items-center justify-center text-xs mr-2 shadow-md">2</div>
+                <h4 className="font-semibold text-sm text-white">Base inicial padronizada</h4>
               </div>
-              <p className="text-sm text-foreground/70 pl-8">
+              <p className="text-sm text-zinc-400 pl-8">
                 Todas as equipes iniciam com valores padrão (Premium: 1000 créditos, Challenger: 700 créditos)
               </p>
             </div>
             
-            <div className="bg-white p-4 rounded-md border border-neutral-200 shadow-sm">
+            <div className="bg-zinc-800/50 p-4 rounded-md border border-zinc-700/50 shadow-md hover:bg-zinc-800/80 transition-colors">
               <div className="flex items-center mb-2">
-                <div className="bg-gradient-to-r from-primary to-red-600 text-white rounded-full h-6 w-6 flex items-center justify-center text-xs mr-2">3</div>
-                <h4 className="font-semibold text-sm">Atualização pós-corrida</h4>
+                <div className="bg-gradient-to-r from-primary to-red-600 text-white rounded-full h-6 w-6 flex items-center justify-center text-xs mr-2 shadow-md">3</div>
+                <h4 className="font-semibold text-sm text-white">Atualização pós-corrida</h4>
               </div>
-              <p className="text-sm text-foreground/70 pl-8">
+              <p className="text-sm text-zinc-400 pl-8">
                 Os rankings são atualizados após cada corrida quando os resultados são enviados e os créditos mudam
               </p>
             </div>
             
-            <div className="bg-white p-4 rounded-md border border-neutral-200 shadow-sm">
+            <div className="bg-zinc-800/50 p-4 rounded-md border border-zinc-700/50 shadow-md hover:bg-zinc-800/80 transition-colors">
               <div className="flex items-center mb-2">
-                <div className="bg-gradient-to-r from-primary to-red-600 text-white rounded-full h-6 w-6 flex items-center justify-center text-xs mr-2">4</div>
-                <h4 className="font-semibold text-sm">Indicadores de tendência</h4>
+                <div className="bg-gradient-to-r from-primary to-red-600 text-white rounded-full h-6 w-6 flex items-center justify-center text-xs mr-2 shadow-md">4</div>
+                <h4 className="font-semibold text-sm text-white">Indicadores de tendência</h4>
               </div>
-              <p className="text-sm text-foreground/70 pl-8">
+              <p className="text-sm text-zinc-400 pl-8">
                 Os indicadores de performance mostram como as equipes estão se saindo em comparação aos créditos iniciais
               </p>
             </div>
