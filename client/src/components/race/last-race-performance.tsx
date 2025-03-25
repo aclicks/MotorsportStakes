@@ -346,7 +346,7 @@ export default function LastRacePerformance({ race, userTeams, assetValueHistory
                         <div className="flex items-center justify-between rounded-md bg-muted/10 p-2">
                           <div className="flex items-center">
                             <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center mr-2">
-                              <Engine className="h-3.5 w-3.5 text-white" />
+                              <Cpu className="h-3.5 w-3.5 text-white" />
                             </div>
                             <span className="text-sm">{team.engine.name}</span>
                           </div>
@@ -358,7 +358,7 @@ export default function LastRacePerformance({ race, userTeams, assetValueHistory
                         <div className="flex items-center justify-between rounded-md bg-muted/10 p-2 opacity-50">
                           <div className="flex items-center">
                             <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center mr-2">
-                              <Engine className="h-3.5 w-3.5 text-white" />
+                              <Cpu className="h-3.5 w-3.5 text-white" />
                             </div>
                             <span className="text-sm">No Engine Selected</span>
                           </div>

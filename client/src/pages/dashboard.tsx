@@ -6,7 +6,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import RaceCard from "@/components/race/race-card";
 import TeamSummary from "@/components/team/team-summary";
 import RaceResults from "@/components/race/race-results";
-import { Race, UserTeamComplete } from "@shared/schema";
+import LastRacePerformance from "@/components/race/last-race-performance";
+import { Race, UserTeamComplete, AssetValueHistory } from "@shared/schema";
 
 // Extend UserTeamComplete type to include credits
 interface EnhancedUserTeam extends UserTeamComplete {
@@ -60,6 +61,14 @@ export default function Dashboard() {
     isLoading: isLoadingBettingStatus
   } = useQuery<{ isOpen: boolean }>({
     queryKey: ["/api/betting-status"],
+  });
+  
+  // Fetch asset value history for performance tracking
+  const {
+    data: assetValueHistory,
+    isLoading: isLoadingAssetHistory
+  } = useQuery<AssetValueHistory[]>({
+    queryKey: ["/api/asset-value-history"],
   });
 
   // Find the last completed race
@@ -237,27 +246,31 @@ export default function Dashboard() {
         </div>
       </div>
       
-      {/* Last Race Results */}
+      {/* Last Race Performance */}
       <div className={`${isMounted ? 'animate-slide-up' : 'opacity-0'}`} style={{animationDelay: '600ms'}}>
         <div className="flex items-center mb-4">
           <Trophy className="mr-2 h-5 w-5 text-primary" />
-          <h2 className="text-xl font-bold text-white">Latest Results</h2>
+          <h2 className="text-xl font-bold text-white">Last Race Performance</h2>
         </div>
         
-        {isLoadingRaces ? (
+        {isLoadingRaces || isLoadingTeams || isLoadingAssetHistory ? (
           <Card className="card-racing">
             <CardContent className="p-6">
-              <Skeleton className="h-[300px] w-full rounded-lg" />
+              <Skeleton className="h-[350px] w-full rounded-lg" />
             </CardContent>
           </Card>
-        ) : lastRace ? (
-          <RaceResults race={lastRace} />
+        ) : lastRace && teams && assetValueHistory ? (
+          <LastRacePerformance 
+            race={lastRace} 
+            userTeams={teams}
+            assetValueHistory={assetValueHistory} 
+          />
         ) : (
           <Card className="card-racing-highlight">
             <CardContent className="p-6 text-center">
               <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h2 className="text-lg font-semibold text-white mb-2">No Race Results Available</h2>
-              <p className="text-gray-400">Race results will appear here once races are completed.</p>
+              <h2 className="text-lg font-semibold text-white mb-2">No Performance Data Available</h2>
+              <p className="text-gray-400">Team performance data will appear here once races are completed.</p>
             </CardContent>
           </Card>
         )}
