@@ -1,10 +1,11 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { Edit, TrendingUp, TrendingDown } from "lucide-react";
+import { Edit, TrendingUp, TrendingDown, Settings, User, Car, Award } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UserTeamComplete } from "@shared/schema";
 import { useQuery } from "@tanstack/react-query";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface TeamSummaryProps {
   team: UserTeamComplete;
@@ -41,7 +42,8 @@ export default function TeamSummary({ team }: TeamSummaryProps) {
       return { 
         value: difference,
         percent: percentChange,
-        isPositive: difference > 0 
+        isPositive: difference > 0,
+        raceName: sortedHistory[0].race?.name || 'Last Race'
       };
     }
     
@@ -49,70 +51,92 @@ export default function TeamSummary({ team }: TeamSummaryProps) {
   };
 
   // Helper to render value change display
-  const renderValueChange = (change: { value: number, percent: string, isPositive: boolean } | null) => {
+  const renderValueChange = (change: { value: number, percent: string, isPositive: boolean, raceName: string } | null) => {
     if (!change) return null;
     
     const Icon = change.isPositive ? TrendingUp : TrendingDown;
-    const colorClass = change.isPositive ? "text-success" : "text-error";
+    const colorClass = change.isPositive ? "text-green-500" : "text-red-500";
     
     return (
-      <div className={`flex items-center text-xs ml-1 ${colorClass}`}>
-        <Icon className="h-3 w-3 mr-0.5" />
-        <span>{change.isPositive ? '+' : ''}{change.percent}%</span>
-      </div>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className={`flex items-center text-xs ml-1 ${colorClass} font-medium`}>
+              <Icon className="h-3 w-3 mr-0.5" />
+              <span>{change.isPositive ? '+' : ''}{change.percent}%</span>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Change after {change.raceName}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     );
   };
   
+  // Helper to determine the team type for styling
+  const isPremium = team.name.includes("Premium") || team.name.includes("Principal");
+  const teamTypeColor = isPremium ? "from-primary to-primary/70" : "from-secondary to-secondary/70";
+  
   return (
-    <Card className="overflow-hidden">
-      <div className="bg-secondary text-white p-4">
+    <Card className="card-racing overflow-hidden hover:border-primary/30 hover:shadow-glow-red transition-all duration-300">
+      <CardHeader className={`bg-gradient-to-r ${teamTypeColor} p-4 pb-5 text-white flex flex-col space-y-1`}>
         <div className="flex justify-between items-center">
-          <h3 className="font-semibold">{team.name}</h3>
-          <div className="flex flex-col items-end">
-            <span className={cn(
-              "rounded-full px-3 py-1 text-xs font-medium",
-              team.name.includes("Premium") ? "bg-primary" : "bg-accent"
-            )}>
-              {team.currentCredits} Credits
-            </span>
-            {team.unspentCredits > 0 && (
-              <span className="text-xs mt-1 text-secondary-foreground/80">
-                {team.unspentCredits} unspent credits
-              </span>
-            )}
+          <div className="flex items-center space-x-2">
+            <Award className={`${isPremium ? 'text-white' : 'text-black/80'} h-5 w-5`} />
+            <h3 className="font-bold text-lg">{team.name}</h3>
           </div>
-        </div>
-      </div>
-      
-      <CardContent className="p-4">
-        <div className="flex justify-between items-center mb-4">
-          <h4 className="text-sm text-neutral-500">Team Selection</h4>
-          <Button asChild size="sm" variant="outline">
+          <Button asChild size="sm" variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white">
             <Link href="/teams">
-              <Edit className="mr-1 h-3 w-3" />
-              Edit Team
+              <Edit className="mr-1.5 h-3.5 w-3.5" />
+              Edit
             </Link>
           </Button>
         </div>
+        
+        <div className="flex items-center justify-between mt-2">
+          <span className="text-sm text-white/90">Total Value:</span>
+          <div className="flex items-center">
+            <span className="text-xl font-bold">{team.currentCredits}</span>
+            <span className="ml-1 text-xs opacity-90">credits</span>
+          </div>
+        </div>
+        
+        {team.unspentCredits > 0 && (
+          <div className="flex items-center justify-between mt-1">
+            <span className="text-sm text-white/70">Unspent:</span>
+            <div className="flex items-center">
+              <span className="text-sm font-medium">{team.unspentCredits}</span>
+              <span className="ml-1 text-xs opacity-70">credits</span>
+            </div>
+          </div>
+        )}
+      </CardHeader>
+      
+      <CardContent className="p-4 bg-card">
         <div className="grid grid-cols-2 gap-4 mb-4">
           {/* Driver 1 */}
-          <div className="flex items-center p-3 bg-neutral-100 rounded-lg">
-            <div className="w-10 h-10 rounded-full bg-neutral-200 flex items-center justify-center mr-3">
-              <span className="text-sm font-medium">
-                {team.driver1?.number || "-"}
-              </span>
+          <div className={`flex items-center p-3 rounded-lg ${team.driver1 ? 'bg-muted hover:shadow-inner-white' : 'bg-black/20 border border-dashed border-gray-700'} transition-all duration-200 hover-scale`}>
+            <div className={`w-10 h-10 rounded-full ${team.driver1 ? 'bg-card' : 'bg-black/30'} flex items-center justify-center mr-3 ring-1 ring-white/10`}>
+              {team.driver1?.number ? (
+                <span className={`text-sm font-racing text-white font-bold ${isPremium ? 'text-primary' : 'text-secondary'}`}>
+                  {team.driver1.number}
+                </span>
+              ) : (
+                <User className="h-5 w-5 text-gray-500" />
+              )}
             </div>
             <div className="overflow-hidden">
-              <p className="font-medium text-neutral-800 truncate">
+              <p className={`font-medium ${team.driver1 ? 'text-white' : 'text-gray-500'} truncate`}>
                 {team.driver1?.name || "Select Driver"}
               </p>
-              <p className="text-xs text-neutral-500 truncate">
+              <p className="text-xs text-gray-500 truncate">
                 {team.driver1?.team?.name || "No Team"}
               </p>
             </div>
             {team.driver1 && (
               <div className="ml-auto flex flex-col items-end">
-                <span className="text-success font-medium">
+                <span className="text-white font-medium">
                   {team.driver1.value}
                 </span>
                 {team.driver1 && renderValueChange(getValueChange(team.driver1.id, 'driver'))}
@@ -121,23 +145,27 @@ export default function TeamSummary({ team }: TeamSummaryProps) {
           </div>
           
           {/* Driver 2 */}
-          <div className="flex items-center p-3 bg-neutral-100 rounded-lg">
-            <div className="w-10 h-10 rounded-full bg-neutral-200 flex items-center justify-center mr-3">
-              <span className="text-sm font-medium">
-                {team.driver2?.number || "-"}
-              </span>
+          <div className={`flex items-center p-3 rounded-lg ${team.driver2 ? 'bg-muted hover:shadow-inner-white' : 'bg-black/20 border border-dashed border-gray-700'} transition-all duration-200 hover-scale`}>
+            <div className={`w-10 h-10 rounded-full ${team.driver2 ? 'bg-card' : 'bg-black/30'} flex items-center justify-center mr-3 ring-1 ring-white/10`}>
+              {team.driver2?.number ? (
+                <span className={`text-sm font-racing text-white font-bold ${isPremium ? 'text-primary' : 'text-secondary'}`}>
+                  {team.driver2.number}
+                </span>
+              ) : (
+                <User className="h-5 w-5 text-gray-500" />
+              )}
             </div>
             <div className="overflow-hidden">
-              <p className="font-medium text-neutral-800 truncate">
+              <p className={`font-medium ${team.driver2 ? 'text-white' : 'text-gray-500'} truncate`}>
                 {team.driver2?.name || "Select Driver"}
               </p>
-              <p className="text-xs text-neutral-500 truncate">
+              <p className="text-xs text-gray-500 truncate">
                 {team.driver2?.team?.name || "No Team"}
               </p>
             </div>
             {team.driver2 && (
               <div className="ml-auto flex flex-col items-end">
-                <span className="text-success font-medium">
+                <span className="text-white font-medium">
                   {team.driver2.value}
                 </span>
                 {team.driver2 && renderValueChange(getValueChange(team.driver2.id, 'driver'))}
@@ -148,22 +176,19 @@ export default function TeamSummary({ team }: TeamSummaryProps) {
         
         <div className="grid grid-cols-2 gap-4">
           {/* Engine */}
-          <div className="flex items-center p-3 bg-neutral-100 rounded-lg">
-            <div className="w-10 h-10 rounded-full bg-neutral-200 flex items-center justify-center mr-3">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-500">
-                <circle cx="12" cy="12" r="3"></circle>
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-              </svg>
+          <div className={`flex items-center p-3 rounded-lg ${team.engine ? 'bg-muted hover:shadow-inner-white' : 'bg-black/20 border border-dashed border-gray-700'} transition-all duration-200 hover-scale`}>
+            <div className={`w-10 h-10 rounded-full ${team.engine ? 'bg-card' : 'bg-black/30'} flex items-center justify-center mr-3 ring-1 ring-white/10`}>
+              <Settings className={`h-5 w-5 ${team.engine ? 'text-gray-300' : 'text-gray-600'}`} />
             </div>
             <div className="overflow-hidden">
-              <p className="font-medium text-neutral-800 truncate">
+              <p className={`font-medium ${team.engine ? 'text-white' : 'text-gray-500'} truncate`}>
                 {team.engine?.name || "Select Engine"}
               </p>
-              <p className="text-xs text-neutral-500">Engine</p>
+              <p className="text-xs text-gray-500">Engine</p>
             </div>
             {team.engine && (
               <div className="ml-auto flex flex-col items-end">
-                <span className="text-success font-medium">
+                <span className="text-white font-medium">
                   {team.engine.value}
                 </span>
                 {team.engine && renderValueChange(getValueChange(team.engine.id, 'engine'))}
@@ -172,24 +197,19 @@ export default function TeamSummary({ team }: TeamSummaryProps) {
           </div>
           
           {/* Chassis */}
-          <div className="flex items-center p-3 bg-neutral-100 rounded-lg">
-            <div className="w-10 h-10 rounded-full bg-neutral-200 flex items-center justify-center mr-3">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-500">
-                <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.5-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"></path>
-                <circle cx="7" cy="17" r="2"></circle>
-                <path d="M9 17h6"></path>
-                <circle cx="17" cy="17" r="2"></circle>
-              </svg>
+          <div className={`flex items-center p-3 rounded-lg ${team.team ? 'bg-muted hover:shadow-inner-white' : 'bg-black/20 border border-dashed border-gray-700'} transition-all duration-200 hover-scale`}>
+            <div className={`w-10 h-10 rounded-full ${team.team ? 'bg-card' : 'bg-black/30'} flex items-center justify-center mr-3 ring-1 ring-white/10`}>
+              <Car className={`h-5 w-5 ${team.team ? 'text-gray-300' : 'text-gray-600'}`} />
             </div>
             <div className="overflow-hidden">
-              <p className="font-medium text-neutral-800 truncate">
+              <p className={`font-medium ${team.team ? 'text-white' : 'text-gray-500'} truncate`}>
                 {team.team?.name || "Select Chassis"}
               </p>
-              <p className="text-xs text-neutral-500">Chassis</p>
+              <p className="text-xs text-gray-500">Chassis</p>
             </div>
             {team.team && (
               <div className="ml-auto flex flex-col items-end">
-                <span className="text-success font-medium">
+                <span className="text-white font-medium">
                   {team.team.value}
                 </span>
                 {team.team && renderValueChange(getValueChange(team.team.id, 'team'))}

@@ -1,5 +1,5 @@
 import { format, differenceInDays, differenceInHours, differenceInMinutes, differenceInSeconds } from "date-fns";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { Race } from "@shared/schema";
@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Calendar, Flag, MapPin, Clock, AlarmClock } from "lucide-react";
 
 interface RaceCardProps {
   race: Race;
@@ -16,7 +17,7 @@ export default function RaceCard({ race }: RaceCardProps) {
   const isMobile = useIsMobile();
   const raceDate = new Date(race.date);
   const today = new Date();
-  const daysToRace = differenceInDays(raceDate, today);
+  const daysToRace = Math.max(0, differenceInDays(raceDate, today));
   
   const formattedDate = format(raceDate, "MMMM d, yyyy");
   const deadlineDate = new Date(raceDate);
@@ -106,48 +107,98 @@ export default function RaceCard({ race }: RaceCardProps) {
     return `${timeRemaining.days}d ${timeRemaining.hours}h ${timeRemaining.minutes}m ${timeRemaining.seconds}s`;
   };
   
+  const isBettingClosed = timeRemaining.total <= 0;
+  
   return (
-    <Card className="mb-8">
-      <CardContent className="pt-6 p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold text-neutral-800">Next Race</h2>
-          <span className="text-sm text-neutral-500">Round {race.round}</span>
-        </div>
+    <Card className="card-racing overflow-hidden border-primary/20 hover:border-primary/40 transition-all duration-300">
+      <div className="bg-gradient-to-r from-card to-muted relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-bl-full"></div>
+        <div className="absolute bottom-0 left-0 w-16 h-16 bg-secondary/10 rounded-tr-full"></div>
         
-        <div className="flex flex-col md:flex-row items-center justify-between">
-          <div className="flex flex-col items-center mb-4 md:mb-0">
-            <div className="w-16 h-16 rounded-full bg-neutral-200 flex items-center justify-center mb-2">
-              <i className={`fas fa-flag text-neutral-600 text-xl`}></i>
+        <CardContent className="p-6 relative">
+          <div className="flex justify-between items-center mb-6">
+            <div className="flex items-center">
+              <Flag className="h-5 w-5 text-primary mr-2" />
+              <h2 className="text-lg font-bold text-white">{race.name}</h2>
             </div>
-            <h3 className="font-medium text-neutral-800">{race.name}</h3>
-            <p className="text-sm text-neutral-500">{race.location}</p>
+            <div className="px-3 py-1 rounded-full bg-muted text-primary font-medium text-sm">
+              Round {race.round}
+            </div>
           </div>
           
-          <div className="text-center">
-            <div className="bg-neutral-100 rounded-lg px-4 py-2 inline-block">
-              <span className="text-xl font-bold">{daysToRace}</span>
-              <span className="text-sm text-neutral-500 ml-1">days</span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Location */}
+            <div className="flex flex-col">
+              <div className="flex items-center mb-2">
+                <MapPin className="h-4 w-4 text-gray-400 mr-2" />
+                <span className="text-sm text-gray-400">Location</span>
+              </div>
+              <p className="text-white font-medium">{race.location}</p>
             </div>
-            <p className="text-sm text-neutral-500 mt-1">{formattedDate}</p>
+            
+            {/* Date */}
+            <div className="flex flex-col">
+              <div className="flex items-center mb-2">
+                <Calendar className="h-4 w-4 text-gray-400 mr-2" />
+                <span className="text-sm text-gray-400">Race Date</span>
+              </div>
+              <p className="text-white font-medium">{formattedDate}</p>
+            </div>
+            
+            {/* Days to Race */}
+            <div className="flex flex-col">
+              <div className="flex items-center mb-2">
+                <Clock className="h-4 w-4 text-gray-400 mr-2" />
+                <span className="text-sm text-gray-400">Race in</span>
+              </div>
+              <div className="flex items-baseline">
+                <span className="text-xl font-bold text-white">{daysToRace}</span>
+                <span className="text-sm text-gray-400 ml-1">days</span>
+              </div>
+            </div>
           </div>
           
-          <div className="text-center">
-            <Button 
-              asChild 
-              className="bg-primary hover:bg-primary/90"
-              disabled={timeRemaining.total <= 0}
-            >
-              <Link href="/teams">Team Selection</Link>
-            </Button>
-            <div className="mt-1">
-              <p className="text-xs font-medium text-primary">
-                {getCountdownDisplay()}
-              </p>
-              <p className="text-xs text-neutral-500">Betting Locks: {formattedDeadline} UTC</p>
+          {/* Betting Section */}
+          <div className="mt-6 pt-6 border-t border-gray-800">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+              <div className="flex items-center mb-4 md:mb-0">
+                <AlarmClock className={`h-5 w-5 ${isBettingClosed ? 'text-red-500' : 'text-green-500'} mr-2`} />
+                <div>
+                  <div className="text-sm text-gray-400">Betting Deadline</div>
+                  <div className="text-white">{formattedDeadline} UTC</div>
+                </div>
+              </div>
+              
+              <div className="flex flex-col md:flex-row md:items-center gap-4">
+                <div className={`text-sm font-medium ${isBettingClosed ? 'text-red-500' : 'text-green-500'}`}>
+                  {isBettingClosed ? (
+                    <span className="flex items-center">
+                      <span className="inline-block w-2 h-2 rounded-full bg-red-500 mr-2 animate-pulse"></span>
+                      Betting Closed
+                    </span>
+                  ) : (
+                    <span className="flex items-center">
+                      <span className="inline-block w-2 h-2 rounded-full bg-green-500 mr-2 animate-pulse"></span>
+                      Time Remaining: {getCountdownDisplay()}
+                    </span>
+                  )}
+                </div>
+                
+                <Button 
+                  asChild 
+                  variant="default"
+                  className="btn-primary-glow font-medium"
+                  disabled={isBettingClosed}
+                >
+                  <Link href="/teams">
+                    Select Your Team
+                  </Link>
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-      </CardContent>
+        </CardContent>
+      </div>
     </Card>
   );
 }
