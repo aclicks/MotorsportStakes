@@ -7,7 +7,6 @@ import Dashboard from "@/pages/dashboard";
 import Teams from "@/pages/teams";
 import Market from "@/pages/market";
 import Races from "@/pages/races";
-import Standings from "@/pages/standings";
 import Statistics from "@/pages/statistics";
 import Admin from "@/pages/admin";
 import AuthPage from "@/pages/auth-page";
@@ -94,16 +93,7 @@ function Router() {
           </AppShell>
         )} 
       />
-      <ProtectedRoute 
-        path="/standings" 
-        component={() => (
-          <AppShell>
-            <AnimatedPage>
-              <Standings />
-            </AnimatedPage>
-          </AppShell>
-        )} 
-      />
+
       <ProtectedRoute 
         path="/statistics" 
         component={() => (

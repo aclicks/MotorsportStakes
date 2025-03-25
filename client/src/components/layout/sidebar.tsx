@@ -145,20 +145,17 @@ export default function Sidebar({ isMobileMenuOpen, setIsMobileMenuOpen }: Sideb
           <NavLink href="/races" icon={<Flag size={18} />} onClick={closeMobileMenu} index={3}>
             Race Calendar
           </NavLink>
-          <NavLink href="/standings" icon={<Trophy size={18} />} onClick={closeMobileMenu} index={4}>
-            Standings
-          </NavLink>
-          <NavLink href="/statistics" icon={<BarChart2 size={18} />} onClick={closeMobileMenu} index={5}>
+          <NavLink href="/statistics" icon={<BarChart2 size={18} />} onClick={closeMobileMenu} index={4}>
             Statistics
           </NavLink>
-          <NavLink href="/leaderboard" icon={<Medal size={18} />} onClick={closeMobileMenu} index={6}>
+          <NavLink href="/leaderboard" icon={<Medal size={18} />} onClick={closeMobileMenu} index={5}>
             Leaderboard
           </NavLink>
-          <NavLink href="/valuation-table" icon={<PercentCircle size={18} />} onClick={closeMobileMenu} index={7}>
+          <NavLink href="/valuation-table" icon={<PercentCircle size={18} />} onClick={closeMobileMenu} index={6}>
             Valuation System
           </NavLink>
           {user?.isAdmin && (
-            <NavLink href="/admin" icon={<Shield size={18} />} onClick={closeMobileMenu} index={8}>
+            <NavLink href="/admin" icon={<Shield size={18} />} onClick={closeMobileMenu} index={7}>
               Admin Panel
             </NavLink>
           )}
