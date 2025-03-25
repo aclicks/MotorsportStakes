@@ -49,7 +49,7 @@ export default function LastRacePerformance({ race, userTeams, assetValueHistory
     queryKey: [`/api/races/${race.id}/results`],
   });
 
-  const formattedDate = format(new Date(race.date), "MMMM d, yyyy");
+  const formattedDate = format(new Date(race.date), "dd/MM/yyyy");
 
   // Process the data to show performance for each team
   const processTeamPerformance = (): TeamPerformanceData[] => {

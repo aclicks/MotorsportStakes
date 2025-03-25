@@ -37,7 +37,7 @@ export default function RaceResults({ race }: RaceResultsProps) {
     queryKey: ["/api/asset-value-history"],
   });
 
-  const formattedDate = format(new Date(race.date), "MMMM d, yyyy");
+  const formattedDate = format(new Date(race.date), "dd/MM/yyyy");
 
   // Function to get the value change for an asset from the last race
   const getAssetValueChange = (entityId: number, entityType: 'driver' | 'team' | 'engine') => {

@@ -35,9 +35,9 @@ export default function Races() {
     <div className="p-6 animate-fadeIn">
       <header className="mb-8">
         <h1 className="text-3xl font-extrabold bg-gradient-to-r from-primary to-red-600 bg-clip-text text-transparent mb-2">
-          Calendário de Corridas
+          Race Calendar
         </h1>
-        <p className="text-zinc-400">Visualize todas as corridas da temporada atual e seus resultados.</p>
+        <p className="text-zinc-400">View all races of the current season and their results.</p>
       </header>
 
       {/* Upcoming Races */}
@@ -46,11 +46,11 @@ export default function Races() {
           <div className="flex items-center gap-2">
             <Calendar className="h-5 w-5 text-yellow-500" />
             <CardTitle className="text-2xl font-bold bg-gradient-to-r from-yellow-500 to-amber-500 bg-clip-text text-transparent">
-              Próximas Corridas
+              Upcoming Races
             </CardTitle>
           </div>
           <CardDescription className="text-zinc-400">
-            Calendário das corridas que ainda acontecerão nesta temporada
+            Schedule of races yet to come this season
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
@@ -63,10 +63,10 @@ export default function Races() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-zinc-800 border-b border-zinc-700/50">
-                    <TableHead className="text-zinc-300">Etapa</TableHead>
-                    <TableHead className="text-zinc-300">Grande Prêmio</TableHead>
-                    <TableHead className="text-zinc-300">Localização</TableHead>
-                    <TableHead className="text-zinc-300">Data</TableHead>
+                    <TableHead className="text-zinc-300">Round</TableHead>
+                    <TableHead className="text-zinc-300">Grand Prix</TableHead>
+                    <TableHead className="text-zinc-300">Location</TableHead>
+                    <TableHead className="text-zinc-300">Date</TableHead>
                     <TableHead className="text-right text-zinc-300">Status</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -102,7 +102,7 @@ export default function Races() {
                         <TableCell className="text-zinc-300">
                           <div className="flex items-center gap-2">
                             <Clock className="h-4 w-4 text-zinc-400" />
-                            {format(new Date(race.date), "d MMMM, yyyy")}
+                            {format(new Date(race.date), "dd/MM/yyyy")}
                           </div>
                         </TableCell>
                         <TableCell className="text-right">
@@ -112,7 +112,7 @@ export default function Races() {
                               : "bg-zinc-700 text-zinc-200 hover:bg-zinc-600"
                             } transition-all duration-300 shadow-md`}
                           >
-                            {isNextRace ? "Próxima Corrida" : "Em Breve"}
+                            {isNextRace ? "Next Race" : "Upcoming"}
                           </Badge>
                         </TableCell>
                       </TableRow>
@@ -124,7 +124,7 @@ export default function Races() {
           ) : (
             <div className="text-center py-12 px-4">
               <Calendar className="h-12 w-12 text-zinc-600 mx-auto mb-3 opacity-50" />
-              <p className="text-zinc-400 font-medium">Não há corridas futuras agendadas nesta temporada.</p>
+              <p className="text-zinc-400 font-medium">No upcoming races scheduled for this season.</p>
             </div>
           )}
         </CardContent>
@@ -136,11 +136,11 @@ export default function Races() {
           <div className="flex items-center gap-2">
             <Trophy className="h-5 w-5 text-amber-500" />
             <CardTitle className="text-2xl font-bold bg-gradient-to-r from-amber-500 to-red-600 bg-clip-text text-transparent">
-              Corridas Concluídas
+              Completed Races
             </CardTitle>
           </div>
           <CardDescription className="text-zinc-400">
-            Histórico das corridas já realizadas e seus resultados
+            History of races that have already taken place and their results
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
@@ -153,10 +153,10 @@ export default function Races() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-zinc-800 border-b border-zinc-700/50">
-                    <TableHead className="text-zinc-300">Etapa</TableHead>
-                    <TableHead className="text-zinc-300">Grande Prêmio</TableHead>
-                    <TableHead className="text-zinc-300">Localização</TableHead>
-                    <TableHead className="text-zinc-300">Data</TableHead>
+                    <TableHead className="text-zinc-300">Round</TableHead>
+                    <TableHead className="text-zinc-300">Grand Prix</TableHead>
+                    <TableHead className="text-zinc-300">Location</TableHead>
+                    <TableHead className="text-zinc-300">Date</TableHead>
                     <TableHead className="text-right text-zinc-300">Status</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -188,7 +188,7 @@ export default function Races() {
                       <TableCell className="text-zinc-300">
                         <div className="flex items-center gap-2">
                           <Clock className="h-4 w-4 text-zinc-400" />
-                          {format(new Date(race.date), "d MMMM, yyyy")}
+                          {format(new Date(race.date), "dd/MM/yyyy")}
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
@@ -197,14 +197,14 @@ export default function Races() {
                             className="bg-green-900/70 text-green-300 hover:bg-green-900 transition-all duration-300 shadow-md"
                           >
                             <Trophy className="h-3 w-3 mr-1" />
-                            Resultados Publicados
+                            Results Published
                           </Badge>
                         ) : (
                           <Badge 
                             className="bg-amber-900/70 text-amber-300 hover:bg-amber-900 transition-all duration-300 shadow-md"
                           >
                             <AlertTriangle className="h-3 w-3 mr-1" />
-                            Aguardando Resultados
+                            Awaiting Results
                           </Badge>
                         )}
                       </TableCell>
@@ -216,7 +216,7 @@ export default function Races() {
           ) : (
             <div className="text-center py-12 px-4">
               <Trophy className="h-12 w-12 text-zinc-600 mx-auto mb-3 opacity-50" />
-              <p className="text-zinc-400 font-medium">Nenhuma corrida concluída até o momento.</p>
+              <p className="text-zinc-400 font-medium">No completed races yet.</p>
             </div>
           )}
         </CardContent>

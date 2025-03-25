@@ -118,7 +118,7 @@ export default function Statistics() {
   const positionData = history?.map((entry) => ({
     name: entry.race?.name || `Race ${entry.raceId}`,
     position: entry.position,
-    date: entry.race?.date ? format(new Date(entry.race.date), "dd MMM yyyy") : "",
+    date: entry.race?.date ? format(new Date(entry.race.date), "dd/MM/yyyy") : "",
   })).filter(entry => entry.position > 0);
   
   // Prepare asset value data for the chart
@@ -140,7 +140,7 @@ export default function Statistics() {
         valueDataMap.set(entry.raceId, {
           name: entry.race?.name || `Race ${entry.raceId}`,
           value: entry.value,
-          date: entry.race?.date ? format(new Date(entry.race.date), "dd MMM yyyy") : "",
+          date: entry.race?.date ? format(new Date(entry.race.date), "dd/MM/yyyy") : "",
           raceId: entry.raceId,
           timestamp: entry.race?.date ? new Date(entry.race.date).getTime() : 0,
           previousRaceId: entry.raceId > 1 ? entry.raceId - 1 : null
