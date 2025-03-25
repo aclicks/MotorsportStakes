@@ -214,14 +214,14 @@ export default function Statistics() {
   return (
     <div className="p-6">
       <header className="mb-8">
-        <h1 className="text-2xl font-bold text-neutral-800">Estatísticas de Desempenho</h1>
-        <p className="text-neutral-500">Visualize o desempenho histórico de pilotos, equipes e motores ao longo da temporada.</p>
+        <h1 className="text-3xl font-extrabold bg-gradient-to-r from-primary to-red-600 bg-clip-text text-transparent">Estatísticas de Desempenho</h1>
+        <p className="text-foreground/70">Visualize o desempenho histórico de pilotos, equipes e motores ao longo da temporada.</p>
       </header>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Desempenho Histórico</CardTitle>
-          <CardDescription>
+      <Card className="border border-neutral-300 shadow-md">
+        <CardHeader className="border-b border-neutral-200 pb-4">
+          <CardTitle className="text-2xl font-bold bg-gradient-to-br from-primary to-amber-500 bg-clip-text text-transparent">Desempenho Histórico</CardTitle>
+          <CardDescription className="text-foreground/70">
             Selecione um piloto, equipe ou motor para visualizar seu desempenho ao longo do tempo.
           </CardDescription>
         </CardHeader>
@@ -230,26 +230,30 @@ export default function Statistics() {
             setEntityType(value as "driver" | "team" | "engine");
             setSelectedId("");
           }}>
-            <TabsList className="grid w-full grid-cols-3 mb-6">
-              <TabsTrigger value="driver">Pilotos</TabsTrigger>
-              <TabsTrigger value="team">Equipes</TabsTrigger>
-              <TabsTrigger value="engine">Motores</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3 mb-6 bg-neutral-100 p-1 rounded-md">
+              <TabsTrigger value="driver" className="data-[state=active]:bg-primary data-[state=active]:text-white font-medium transition-all duration-300">Pilotos</TabsTrigger>
+              <TabsTrigger value="team" className="data-[state=active]:bg-primary data-[state=active]:text-white font-medium transition-all duration-300">Equipes</TabsTrigger>
+              <TabsTrigger value="engine" className="data-[state=active]:bg-primary data-[state=active]:text-white font-medium transition-all duration-300">Motores</TabsTrigger>
             </TabsList>
 
             <TabsContent value="driver">
               <div className="mb-6">
                 <Select value={selectedId} onValueChange={setSelectedId}>
-                  <SelectTrigger>
+                  <SelectTrigger className="border-neutral-300 transition-all duration-200 hover:border-primary focus:border-primary shadow-sm">
                     <SelectValue placeholder="Selecione um piloto" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="border-neutral-300 shadow-md">
                     {isLoadingDrivers ? (
                       <div className="p-2">
                         <Skeleton className="h-5 w-full" />
                       </div>
                     ) : (
                       drivers.map((driver: Driver) => (
-                        <SelectItem key={driver.id} value={driver.id.toString()}>
+                        <SelectItem 
+                          key={driver.id} 
+                          value={driver.id.toString()}
+                          className="transition-colors hover:bg-neutral-100"
+                        >
                           {driver.name} ({driver.number})
                         </SelectItem>
                       ))
